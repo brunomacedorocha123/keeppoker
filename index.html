@@ -478,15 +478,57 @@
             bottom: 10%;
             right: -150px;
         }
+        
+        /* Estilo para notificações */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 5px;
+            color: white;
+            font-weight: 600;
+            z-index: 10000;
+            display: none;
+            animation: slideIn 0.3s ease;
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        .notification.success {
+            background-color: #28a745;
+            border-left: 5px solid #1e7e34;
+        }
+        
+        .notification.error {
+            background-color: #dc3545;
+            border-left: 5px solid #bd2130;
+        }
+        
+        .notification.info {
+            background-color: #17a2b8;
+            border-left: 5px solid #117a8b;
+        }
     </style>
 </head>
 <body>
+    <!-- Notificações -->
+    <div id="notification" class="notification"></div>
+    
     <!-- Header -->
     <header>
         <div class="container header-container">
             <div class="logo-container">
                 <a href="index.html" class="logo-link">
-                    <!-- Logo será inserida via CSS como background para maior controle -->
                     <div class="logo-placeholder">KeepPoker</div>
                 </a>
             </div>
@@ -528,7 +570,7 @@
             </div>
             
             <div class="hero-image-container">
-                <img src="mulhercroupier1.jpg" alt="Croupier profissional" class="hero-image">
+                <img src="mulhercroupier1.jpg" alt="Croupier profissional" class="hero-image" onerror="this.style.display='none'; this.parentElement.innerHTML='<div style=\'width:100%; height:400px; background:linear-gradient(135deg, var(--azul-medio), var(--dourado)); border-radius:10px; display:flex; align-items:center; justify-content:center; color:white; font-size:24px;\'>Imagem do Croupier</div>';">
             </div>
         </div>
     </section>
@@ -572,7 +614,9 @@
     <!-- Footer -->
     <footer id="contact">
         <div class="container">
-            <img src="logokeeppoker.png" alt="KeepPoker Logo" class="footer-logo">
+            <div class="footer-logo-placeholder" style="color: var(--dourado); font-size: 32px; font-weight: bold; margin-bottom: 20px;">
+                KeepPoker
+            </div>
             
             <div class="footer-links">
                 <a href="#home">Início</a>
@@ -652,7 +696,41 @@
             logoPlaceholder.style.width = '200px';
             logoPlaceholder.style.height = '60px';
             logoPlaceholder.style.textIndent = '-9999px';
+            
+            // Verificar se usuário já está logado
+            const user = localStorage.getItem('keepPokerUser');
+            if (user) {
+                // Atualizar botões para mostrar perfil
+                const navButtons = document.querySelector('.nav-buttons');
+                navButtons.innerHTML = `
+                    <a href="dashboard.html" class="btn btn-login">Minha Conta</a>
+                    <button id="logoutBtn" class="btn btn-register">Sair</button>
+                `;
+                
+                document.getElementById('logoutBtn').addEventListener('click', function() {
+                    localStorage.removeItem('keepPokerUser');
+                    window.location.href = 'index.html';
+                });
+            }
         });
+        
+        // Função para mostrar notificações
+        function showNotification(message, type = 'info') {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `notification ${type}`;
+            notification.style.display = 'block';
+            
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 5000);
+        }
+        
+        // Mostrar mensagem de boas-vindas se veio do cadastro
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('registered') === 'true') {
+            showNotification('Cadastro realizado com sucesso! Faça login para acessar sua conta.', 'success');
+        }
     </script>
 </body>
 </html>

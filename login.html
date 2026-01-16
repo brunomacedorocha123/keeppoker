@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - KeepPoker</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Firebase SDK -->
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-firestore.js";
+        
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBIBucZSzN671VgJQHGIiepHNUqxbqNKAQ",
+            authDomain: "keeppoker-b4173.firebaseapp.com",
+            projectId: "keeppoker-b4173",
+            storageBucket: "keeppoker-b4173.firebasestorage.app",
+            messagingSenderId: "436464592434",
+            appId: "1:436464592434:web:c5a1e0c10e10acbc14fe2b"
+        };
+        
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        
+        // Função para login
+        window.loginUser = async function(event) {
+            event.preventDefault();
+            
+            const email = document.getElementById('email').value.trim();
+            const senha = document.getElementById('senha').value;
+            
+            // Validações
+            if (!email || !senha) {
+                showNotification('Por favor, preencha todos os campos.', 'error');
+                return;
+            }
+            
+            // Mostrar loading
+            const submitBtn = document.getElementById('submitBtn');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Entrando...';
+            submitBtn.disabled = true;
+            
+            try {
+                // Fazer login no Firebase
+                const userCredential = await signInWithEmailAndPassword(auth, email, senha);
+                const user = userCredential.user;
+                
+                // Buscar dados do usuário no Firestore
+                const userDoc = await getDoc(doc(db, "users", user.uid));
+                
+                if (userDoc.exists()) {
+                    const userData = userDoc.data();
+                    
+                    // Salvar dados do usuário no localStorage
+                    localStorage.setItem('keepPokerUser', JSON.stringify({
+                        uid: user.uid,
+                        nome: userData.nome,
+                        email: userData.email,
+                        userId: userData.userId,
+                        saldo: userData.saldo || 1000,
+                        nivel: userData.nivel || 1
+                    }));
+                    
+                    showNotification(`Login realizado com sucesso! Bem-vindo(a), ${userData.nome}!`, 'success');
+                    
+                    // Redirecionar para dashboard após 2 segundos
+                    setTimeout(() => {
+                        window.location.href = 'dashboard.html';
+                    }, 2000);
+                } else {
+                    showNotification('Erro ao buscar dados do usuário.', 'error');
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
+                }
+                
+            } catch (error) {
+                let errorMessage = 'Erro ao fazer login. Tente novamente.';
+                
+                switch (error.code) {
+                    case 'auth/invalid-email':
+                        errorMessage = 'Email inválido.';
+                        break;
+                    case 'auth/user-disabled':
+                        errorMessage = 'Esta conta foi desativada.';
+                        break;
+                    case 'auth/user-not-found':
+                        errorMessage = 'Usuário não encontrado.';
+                        break;
+                    case 'auth/wrong-password':
+                        errorMessage = 'Senha incorreta.';
+                        break;
+                    case 'auth/too-many-requests':
+                        errorMessage = 'Muitas tentativas. Tente novamente mais tarde.';
+                        break;
+                }
+                
+                showNotification(errorMessage, 'error');
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            }
+        };
+    </script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        :root {
+            --azul-profundo: #0d1b2a;
+            --azul-medio: #1b263b;
+            --azul-claro: #415a77;
+            --dourado: #d4af37;
+            --dourado-claro: #f7ef8a;
+            --branco: #ffffff;
+            --cinza-claro: #e0e1dd;
+        }
+        
+        body {
+            background-color: var(--azul-profundo);
+            color: var(--cinza-claro);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 15px;
+        }
+        
+        /* Header */
+        header {
+            background-color: rgba(13, 27, 42, 0.95);
+            padding: 15px 0;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(5px);
+        }
+        
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo-container {
+            position: relative;
+            height: 60px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .logo-link {
+            display: block;
+            position: relative;
+            height: 100%;
+        }
+        
+        .logo-placeholder {
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: left center;
+            width: 200px;
+            height: 60px;
+            text-indent: -9999px;
+        }
+        
+        .back-link {
+            color: var(--dourado);
+            text-decoration: none;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: opacity 0.3s ease;
+        }
+        
+        .back-link:hover {
+            opacity: 0.8;
+        }
+        
+        /* Main Content */
+        main {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 140px 0 60px;
+        }
+        
+        .form-container {
+            width: 100%;
+            max-width: 500px;
+            background-color: rgba(27, 38, 59, 0.8);
+            border-radius: 15px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+        }
+        
+        .form-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .form-header h1 {
+            color: var(--branco);
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        
+        .form-header p {
+            color: var(--cinza-claro);
+            font-size: 16px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--cinza-claro);
+            font-weight: 600;
+        }
+        
+        .input-with-icon {
+            position: relative;
+        }
+        
+        .input-with-icon input {
+            width: 100%;
+            padding: 15px 15px 15px 45px;
+            background-color: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: var(--branco);
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+        
+        .input-with-icon input:focus {
+            outline: none;
+            border-color: var(--dourado);
+            background-color: rgba(255, 255, 255, 0.08);
+        }
+        
+        .input-with-icon i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--dourado);
+            font-size: 18px;
+        }
+        
+        .remember-forgot {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+        }
+        
+        .remember-me {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .remember-me input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--dourado);
+        }
+        
+        .forgot-password {
+            color: var(--dourado);
+            text-decoration: none;
+            font-size: 14px;
+        }
+        
+        .forgot-password:hover {
+            text-decoration: underline;
+        }
+        
+        .form-footer {
+            text-align: center;
+            margin-top: 30px;
+        }
+        
+        .btn {
+            padding: 15px 30px;
+            border-radius: 30px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            font-size: 18px;
+            width: 100%;
+        }
+        
+        .btn-login {
+            background-color: var(--dourado);
+            color: var(--azul-profundo);
+            border: 2px solid var(--dourado);
+        }
+        
+        .btn-login:hover:not(:disabled) {
+            background-color: transparent;
+            color: var(--dourado);
+        }
+        
+        .btn-login:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .register-link {
+            margin-top: 20px;
+            color: var(--cinza-claro);
+        }
+        
+        .register-link a {
+            color: var(--dourado);
+            text-decoration: none;
+            font-weight: 600;
+        }
+        
+        .register-link a:hover {
+            text-decoration: underline;
+        }
+        
+        /* Notificações */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 5px;
+            color: white;
+            font-weight: 600;
+            z-index: 10000;
+            display: none;
+            animation: slideIn 0.3s ease;
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        .notification.success {
+            background-color: #28a745;
+            border-left: 5px solid #1e7e34;
+        }
+        
+        .notification.error {
+            background-color: #dc3545;
+            border-left: 5px solid #bd2130;
+        }
+        
+        .notification.info {
+            background-color: #17a2b8;
+            border-left: 5px solid #117a8b;
+        }
+        
+        /* Responsividade */
+        @media (max-width: 768px) {
+            .form-container {
+                padding: 30px 20px;
+            }
+            
+            .form-header h1 {
+                font-size: 28px;
+            }
+            
+            main {
+                padding: 130px 0 40px;
+            }
+            
+            .remember-forgot {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .form-container {
+                padding: 25px 15px;
+            }
+            
+            .form-header h1 {
+                font-size: 24px;
+            }
+            
+            .btn {
+                padding: 12px 20px;
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Notificação -->
+    <div id="notification" class="notification"></div>
+    
+    <!-- Header -->
+    <header>
+        <div class="container header-container">
+            <div class="logo-container">
+                <a href="index.html" class="logo-link">
+                    <div class="logo-placeholder">KeepPoker</div>
+                </a>
+            </div>
+            
+            <a href="index.html" class="back-link">
+                <i class="fas fa-arrow-left"></i> Voltar
+            </a>
+        </div>
+    </header>
+    
+    <!-- Main Content -->
+    <main>
+        <div class="container">
+            <div class="form-container">
+                <div class="form-header">
+                    <h1>Faça Login</h1>
+                    <p>Acesse sua conta KeepPoker e continue jogando</p>
+                </div>
+                
+                <form id="loginForm" onsubmit="loginUser(event)">
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <div class="input-with-icon">
+                            <i class="fas fa-envelope"></i>
+                            <input type="email" id="email" placeholder="seu@email.com" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="senha">Senha</label>
+                        <div class="input-with-icon">
+                            <i class="fas fa-lock"></i>
+                            <input type="password" id="senha" placeholder="Digite sua senha" required minlength="8">
+                        </div>
+                        
+                        <div class="remember-forgot">
+                            <div class="remember-me">
+                                <input type="checkbox" id="remember">
+                                <label for="remember">Lembrar-me</label>
+                            </div>
+                            
+                            <a href="#" class="forgot-password">Esqueci minha senha</a>
+                        </div>
+                    </div>
+                    
+                    <div class="form-footer">
+                        <button type="submit" class="btn btn-login" id="submitBtn">
+                            <i class="fas fa-sign-in-alt"></i> Entrar
+                        </button>
+                        
+                        <p class="register-link">
+                            Não tem uma conta? <a href="cadastro.html">Cadastre-se</a>
+                        </p>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+    
+    <script>
+        // Adicionar logo
+        document.addEventListener('DOMContentLoaded', function() {
+            const logoPlaceholder = document.querySelector('.logo-placeholder');
+            logoPlaceholder.style.backgroundImage = 'url("logokeeppoker.png")';
+            
+            // Verificar se veio do cadastro
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('registered') === 'true') {
+                const userId = urlParams.get('userId');
+                if (userId) {
+                    showNotification(`Cadastro realizado! Seu ID de jogador é: ${userId}. Faça login para continuar.`, 'success');
+                }
+            }
+            
+            // Preencher email se veio do cadastro
+            if (urlParams.get('email')) {
+                document.getElementById('email').value = urlParams.get('email');
+            }
+        });
+        
+        // Função para mostrar notificações
+        function showNotification(message, type = 'info') {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `notification ${type}`;
+            notification.style.display = 'block';
+            
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 5000);
+        }
+    </script>
+</body>
+</html>

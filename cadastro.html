@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro - KeepPoker</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Firebase SDK -->
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js";
+        import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-firestore.js";
+        
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBIBucZSzN671VgJQHGIiepHNUqxbqNKAQ",
+            authDomain: "keeppoker-b4173.firebaseapp.com",
+            projectId: "keeppoker-b4173",
+            storageBucket: "keeppoker-b4173.firebasestorage.app",
+            messagingSenderId: "436464592434",
+            appId: "1:436464592434:web:c5a1e0c10e10acbc14fe2b"
+        };
+        
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        
+        // Função para gerar ID único de 7 dígitos (apenas números)
+        function generateUserId() {
+            // Gera número entre 1000000 e 9999999 (7 dígitos)
+            return Math.floor(1000000 + Math.random() * 9000000).toString();
+        }
+        
+        // Função para validar senha
+        function validatePassword(password) {
+            const minLength = 8;
+            const hasUpperCase = /[A-Z]/.test(password);
+            const hasLowerCase = /[a-z]/.test(password);
+            const hasNumbers = /\d/.test(password);
+            
+            if (password.length < minLength) {
+                return { valid: false, message: 'A senha deve ter pelo menos 8 caracteres' };
+            }
+            if (!hasUpperCase) {
+                return { valid: false, message: 'A senha deve conter pelo menos uma letra maiúscula' };
+            }
+            if (!hasLowerCase) {
+                return { valid: false, message: 'A senha deve conter pelo menos uma letra minúscula' };
+            }
+            if (!hasNumbers) {
+                return { valid: false, message: 'A senha deve conter pelo menos um número' };
+            }
+            return { valid: true, message: 'Senha válida' };
+        }
+        
+        // Função para cadastrar usuário
+        window.registerUser = async function(event) {
+            event.preventDefault();
+            
+            const nome = document.getElementById('nome').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const senha = document.getElementById('senha').value;
+            const confirmarSenha = document.getElementById('confirmar-senha').value;
+            const dataNascimento = document.getElementById('data-nascimento').value;
+            
+            // Validações
+            if (!nome || !email || !senha || !confirmarSenha || !dataNascimento) {
+                showNotification('Por favor, preencha todos os campos.', 'error');
+                return;
+            }
+            
+            if (senha !== confirmarSenha) {
+                showNotification('As senhas não coincidem.', 'error');
+                return;
+            }
+            
+            const passwordValidation = validatePassword(senha);
+            if (!passwordValidation.valid) {
+                showNotification(passwordValidation.message, 'error');
+                return;
+            }
+            
+            // Calcular idade
+            const birthDate = new Date(dataNascimento);
+            const today = new Date();
+            let age = today.getFullYear() - birthDate.getFullYear();
+            const monthDiff = today.getMonth() - birthDate.getMonth();
+            
+            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+                age--;
+            }
+            
+            if (age < 18) {
+                showNotification('Você deve ter pelo menos 18 anos para se cadastrar.', 'error');
+                return;
+            }
+            
+            // Gerar ID único
+            const userId = generateUserId();
+            
+            // Mostrar loading
+            const submitBtn = document.getElementById('submitBtn');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Cadastrando...';
+            submitBtn.disabled = true;
+            
+            try {
+                // Criar usuário no Firebase Authentication
+                const userCredential = await createUserWithEmailAndPassword(auth, email, senha);
+                const user = userCredential.user;
+                
+                // Salvar dados adicionais no Firestore
+                await setDoc(doc(db, "users", user.uid), {
+                    nome: nome,
+                    email: email,
+                    userId: userId,
+                    dataNascimento: dataNascimento,
+                    dataCadastro: new Date().toISOString(),
+                    saldo: 1000, // Saldo inicial
+                    nivel: 1,
+                    vitorias: 0,
+                    derrotas: 0
+                });
+                
+                // Mostrar ID gerado
+                showNotification(`Cadastro realizado com sucesso! Seu ID de jogador é: ${userId}`, 'success');
+                
+                // Redirecionar para login após 3 segundos
+                setTimeout(() => {
+                    window.location.href = 'login.html?registered=true&userId=' + userId;
+                }, 3000);
+                
+            } catch (error) {
+                let errorMessage = 'Erro ao cadastrar. Tente novamente.';
+                
+                switch (error.code) {
+                    case 'auth/email-already-in-use':
+                        errorMessage = 'Este email já está em uso.';
+                        break;
+                    case 'auth/invalid-email':
+                        errorMessage = 'Email inválido.';
+                        break;
+                    case 'auth/weak-password':
+                        errorMessage = 'A senha é muito fraca.';
+                        break;
+                    case 'auth/operation-not-allowed':
+                        errorMessage = 'Operação não permitida.';
+                        break;
+                }
+                
+                showNotification(errorMessage, 'error');
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            }
+        };
+    </script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        :root {
+            --azul-profundo: #0d1b2a;
+            --azul-medio: #1b263b;
+            --azul-claro: #415a77;
+            --dourado: #d4af37;
+            --dourado-claro: #f7ef8a;
+            --branco: #ffffff;
+            --cinza-claro: #e0e1dd;
+        }
+        
+        body {
+            background-color: var(--azul-profundo);
+            color: var(--cinza-claro);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 15px;
+        }
+        
+        /* Header */
+        header {
+            background-color: rgba(13, 27, 42, 0.95);
+            padding: 15px 0;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(5px);
+        }
+        
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo-container {
+            position: relative;
+            height: 60px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .logo-link {
+            display: block;
+            position: relative;
+            height: 100%;
+        }
+        
+        .logo-placeholder {
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: left center;
+            width: 200px;
+            height: 60px;
+            text-indent: -9999px;
+        }
+        
+        .back-link {
+            color: var(--dourado);
+            text-decoration: none;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: opacity 0.3s ease;
+        }
+        
+        .back-link:hover {
+            opacity: 0.8;
+        }
+        
+        /* Main Content */
+        main {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 140px 0 60px;
+        }
+        
+        .form-container {
+            width: 100%;
+            max-width: 500px;
+            background-color: rgba(27, 38, 59, 0.8);
+            border-radius: 15px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+        }
+        
+        .form-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .form-header h1 {
+            color: var(--branco);
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        
+        .form-header p {
+            color: var(--cinza-claro);
+            font-size: 16px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--cinza-claro);
+            font-weight: 600;
+        }
+        
+        .input-with-icon {
+            position: relative;
+        }
+        
+        .input-with-icon input {
+            width: 100%;
+            padding: 15px 15px 15px 45px;
+            background-color: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: var(--branco);
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+        
+        .input-with-icon input:focus {
+            outline: none;
+            border-color: var(--dourado);
+            background-color: rgba(255, 255, 255, 0.08);
+        }
+        
+        .input-with-icon i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--dourado);
+            font-size: 18px;
+        }
+        
+        .password-strength {
+            margin-top: 5px;
+            font-size: 14px;
+            display: none;
+        }
+        
+        .password-strength.weak {
+            color: #ff6b6b;
+        }
+        
+        .password-strength.medium {
+            color: #ffd93d;
+        }
+        
+        .password-strength.strong {
+            color: #6bcf7f;
+        }
+        
+        .requirements {
+            background-color: rgba(13, 27, 42, 0.7);
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+            font-size: 14px;
+            border-left: 4px solid var(--dourado);
+        }
+        
+        .requirements h4 {
+            color: var(--dourado);
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+        
+        .requirements ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        
+        .requirements li {
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .requirements li i {
+            color: var(--dourado);
+            font-size: 12px;
+        }
+        
+        .form-footer {
+            text-align: center;
+            margin-top: 30px;
+        }
+        
+        .btn {
+            padding: 15px 30px;
+            border-radius: 30px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            font-size: 18px;
+            width: 100%;
+        }
+        
+        .btn-register {
+            background-color: var(--dourado);
+            color: var(--azul-profundo);
+            border: 2px solid var(--dourado);
+        }
+        
+        .btn-register:hover:not(:disabled) {
+            background-color: transparent;
+            color: var(--dourado);
+        }
+        
+        .btn-register:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .login-link {
+            margin-top: 20px;
+            color: var(--cinza-claro);
+        }
+        
+        .login-link a {
+            color: var(--dourado);
+            text-decoration: none;
+            font-weight: 600;
+        }
+        
+        .login-link a:hover {
+            text-decoration: underline;
+        }
+        
+        /* Notificações */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 5px;
+            color: white;
+            font-weight: 600;
+            z-index: 10000;
+            display: none;
+            animation: slideIn 0.3s ease;
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        .notification.success {
+            background-color: #28a745;
+            border-left: 5px solid #1e7e34;
+        }
+        
+        .notification.error {
+            background-color: #dc3545;
+            border-left: 5px solid #bd2130;
+        }
+        
+        .notification.info {
+            background-color: #17a2b8;
+            border-left: 5px solid #117a8b;
+        }
+        
+        /* Responsividade */
+        @media (max-width: 768px) {
+            .form-container {
+                padding: 30px 20px;
+            }
+            
+            .form-header h1 {
+                font-size: 28px;
+            }
+            
+            main {
+                padding: 130px 0 40px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .form-container {
+                padding: 25px 15px;
+            }
+            
+            .form-header h1 {
+                font-size: 24px;
+            }
+            
+            .btn {
+                padding: 12px 20px;
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Notificação -->
+    <div id="notification" class="notification"></div>
+    
+    <!-- Header -->
+    <header>
+        <div class="container header-container">
+            <div class="logo-container">
+                <a href="index.html" class="logo-link">
+                    <div class="logo-placeholder">KeepPoker</div>
+                </a>
+            </div>
+            
+            <a href="index.html" class="back-link">
+                <i class="fas fa-arrow-left"></i> Voltar
+            </a>
+        </div>
+    </header>
+    
+    <!-- Main Content -->
+    <main>
+        <div class="container">
+            <div class="form-container">
+                <div class="form-header">
+                    <h1>Criar Conta</h1>
+                    <p>Junte-se ao KeepPoker e comece a jogar agora!</p>
+                </div>
+                
+                <form id="registerForm" onsubmit="registerUser(event)">
+                    <div class="form-group">
+                        <label for="nome">Nome Completo</label>
+                        <div class="input-with-icon">
+                            <i class="fas fa-user"></i>
+                            <input type="text" id="nome" placeholder="Digite seu nome completo" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <div class="input-with-icon">
+                            <i class="fas fa-envelope"></i>
+                            <input type="email" id="email" placeholder="seu@email.com" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="data-nascimento">Data de Nascimento</label>
+                        <div class="input-with-icon">
+                            <i class="fas fa-calendar-alt"></i>
+                            <input type="date" id="data-nascimento" required>
+                        </div>
+                        <small style="color: var(--cinza-claro); font-size: 14px;">Você deve ter pelo menos 18 anos</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="senha">Senha</label>
+                        <div class="input-with-icon">
+                            <i class="fas fa-lock"></i>
+                            <input type="password" id="senha" placeholder="Digite sua senha" required minlength="8">
+                        </div>
+                        <div id="password-strength" class="password-strength"></div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="confirmar-senha">Confirmar Senha</label>
+                        <div class="input-with-icon">
+                            <i class="fas fa-lock"></i>
+                            <input type="password" id="confirmar-senha" placeholder="Confirme sua senha" required minlength="8">
+                        </div>
+                    </div>
+                    
+                    <div class="requirements">
+                        <h4>Requisitos da senha:</h4>
+                        <ul>
+                            <li><i class="fas fa-check"></i> Mínimo de 8 caracteres</li>
+                            <li><i class="fas fa-check"></i> Pelo menos uma letra maiúscula</li>
+                            <li><i class="fas fa-check"></i> Pelo menos uma letra minúscula</li>
+                            <li><i class="fas fa-check"></i> Pelo menos um número</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="form-footer">
+                        <button type="submit" class="btn btn-register" id="submitBtn">
+                            <i class="fas fa-user-plus"></i> Criar Conta
+                        </button>
+                        
+                        <p class="login-link">
+                            Já tem uma conta? <a href="login.html">Faça login</a>
+                        </p>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+    
+    <script>
+        // Adicionar logo
+        document.addEventListener('DOMContentLoaded', function() {
+            const logoPlaceholder = document.querySelector('.logo-placeholder');
+            logoPlaceholder.style.backgroundImage = 'url("logokeeppoker.png")';
+            
+            // Configurar data mínima (18 anos atrás)
+            const today = new Date();
+            const minDate = new Date(today.getFullYear() - 18, today.getMonth(), today.getDate());
+            document.getElementById('data-nascimento').max = minDate.toISOString().split('T')[0];
+            
+            // Verificar força da senha
+            const senhaInput = document.getElementById('senha');
+            const strengthDisplay = document.getElementById('password-strength');
+            
+            senhaInput.addEventListener('input', function() {
+                const password = this.value;
+                let strength = 0;
+                let message = '';
+                
+                // Comprimento
+                if (password.length >= 8) strength++;
+                
+                // Maiúsculas
+                if (/[A-Z]/.test(password)) strength++;
+                
+                // Minúsculas
+                if (/[a-z]/.test(password)) strength++;
+                
+                // Números
+                if (/\d/.test(password)) strength++;
+                
+                // Determinar força
+                switch(strength) {
+                    case 0:
+                    case 1:
+                        message = 'Fraca';
+                        strengthDisplay.className = 'password-strength weak';
+                        break;
+                    case 2:
+                    case 3:
+                        message = 'Média';
+                        strengthDisplay.className = 'password-strength medium';
+                        break;
+                    case 4:
+                        message = 'Forte';
+                        strengthDisplay.className = 'password-strength strong';
+                        break;
+                }
+                
+                if (password.length > 0) {
+                    strengthDisplay.textContent = `Força da senha: ${message}`;
+                    strengthDisplay.style.display = 'block';
+                } else {
+                    strengthDisplay.style.display = 'none';
+                }
+            });
+        });
+        
+        // Função para mostrar notificações
+        function showNotification(message, type = 'info') {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `notification ${type}`;
+            notification.style.display = 'block';
+            
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 5000);
+        }
+    </script>
+</body>
+</html>
