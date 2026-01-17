@@ -296,17 +296,23 @@
                 // 2. GERAR IDS ÚNICOS
                 const playerId = gerarPlayerId();
                 
-                // 3. CRIAR DADOS PARA O FIRESTORE
+                // 3. CRIAR DADOS PARA O FIRESTORE (COM NICKNAME)
                 const userData = {
                     nome: nome,
                     email: email,
                     playerId: playerId,
+                    nickname: nome, // NICKNAME INICIAL É O NOME COMPLETO
                     dataNascimento: dataNascimento,
                     dataCadastro: new Date().toISOString(),
                     saldo: 1000,
                     diamantes: 50,
                     nivel: 1,
                     online: true,
+                    stats: {
+                        handsPlayed: 0,
+                        handsWon: 0,
+                        totalProfit: 0
+                    },
                     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
                     updatedAt: firebase.firestore.FieldValue.serverTimestamp()
                 };
@@ -317,11 +323,12 @@
                 await db.collection('users').doc(user.uid).set(userData);
                 console.log('✅ Dados salvos no Firestore');
                 
-                // 5. SALVAR NO LOCALSTORAGE
+                // 5. SALVAR NO LOCALSTORAGE (COM NICKNAME)
                 const dadosParaLocalStorage = {
                     uid: user.uid,
                     nome: nome,
                     email: email,
+                    nickname: nome, // NICKNAME INCLUÍDO
                     playerId: playerId,
                     saldo: 1000,
                     diamantes: 50,
@@ -334,9 +341,11 @@
                 // 6. MENSAGEM DE SUCESSO
                 const mensagem = `🎉 CADASTRO REALIZADO COM SUCESSO!\n\n` +
                                 `👤 Nome: ${nome}\n` +
+                                `🎮 Nickname: ${nome}\n` +
                                 `🆔 ID do Jogador: ${playerId}\n` +
                                 `💰 Saldo inicial: 1.000 fichas\n` +
                                 `💎 Diamantes: 50\n\n` +
+                                `💡 Dica: Você pode alterar seu nickname na página "Minha Conta".\n\n` +
                                 `✅ Você será redirecionado para a página inicial.`;
                 
                 alert(mensagem);

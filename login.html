@@ -189,7 +189,7 @@
                 const userData = userDoc.data();
                 console.log('Dados encontrados:', userData);
                 
-                // 3. Preparar dados para localStorage
+                // 3. Preparar dados para localStorage (COM TRATAMENTO DE NICKNAME)
                 const dadosParaSalvar = {
                     uid: user.uid,
                     nome: userData.nome,
@@ -197,17 +197,24 @@
                     playerId: userData.playerId,
                     saldo: userData.saldo || 1000,
                     diamantes: userData.diamantes || 50,
-                    nivel: userData.nivel || 1
+                    nivel: userData.nivel || 1,
+                    stats: userData.stats || { handsPlayed: 0, handsWon: 0, totalProfit: 0 }
                 };
                 
-                // Adicionar nickname apenas se existir
-                if (userData.nickname) {
-                    dadosParaSalvar.nickname = userData.nickname;
+                // TRATAMENTO SEGURO DO NICKNAME
+                if (userData.nickname && typeof userData.nickname === 'string' && userData.nickname.trim() !== '') {
+                    // Se tem nickname válido, usa ele
+                    dadosParaSalvar.nickname = userData.nickname.trim();
+                } else {
+                    // Se não tem nickname, usa o nome
+                    dadosParaSalvar.nickname = userData.nome || email.split('@')[0];
                 }
+                
+                console.log('Dados para salvar:', dadosParaSalvar);
                 
                 // 4. Salvar no localStorage
                 localStorage.setItem('keepPokerUser', JSON.stringify(dadosParaSalvar));
-                console.log('Dados salvos no localStorage');
+                console.log('✅ Dados salvos no localStorage');
                 
                 // 5. Atualizar status online
                 await db.collection('users').doc(user.uid).update({

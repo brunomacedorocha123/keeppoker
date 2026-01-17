@@ -471,7 +471,15 @@
         document.addEventListener('DOMContentLoaded', function() {
             console.log('DOM carregado - Minha Conta');
             
-            // Verificar autenticação
+            // Verificar se está autenticado via localStorage primeiro
+            const userLocal = localStorage.getItem('keepPokerUser');
+            if (!userLocal) {
+                console.log('Nenhum usuário no localStorage, redirecionando...');
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            // Verificar autenticação do Firebase
             auth.onAuthStateChanged(async function(user) {
                 if (user) {
                     console.log('Usuário autenticado:', user.uid);
@@ -489,7 +497,7 @@
                 e.preventDefault();
                 auth.signOut().then(() => {
                     localStorage.removeItem('keepPokerUser');
-                    window.location.href = 'index.html';
+                    window.location.href = 'login.html';
                 });
             });
         });
@@ -500,24 +508,57 @@
                 console.log('Carregando dados do usuário...');
                 
                 const userDoc = await db.collection('users').doc(currentUser.uid).get();
-                if (userDoc.exists) {
-                    userData = userDoc.data();
-                    userData.id = userDoc.id;
-                    
-                    console.log('Dados carregados:', userData);
-                    
-                    // Salvar no localStorage
-                    localStorage.setItem('keepPokerUser', JSON.stringify(userData));
-                    
-                    // Atualizar interface
-                    updateUI(userData);
-                } else {
+                if (!userDoc.exists) {
                     console.error('Documento do usuário não encontrado!');
                     showNotification('Erro: usuário não encontrado no banco de dados', 'error');
+                    
+                    // Tentar usar dados do localStorage
+                    const localData = JSON.parse(localStorage.getItem('keepPokerUser'));
+                    if (localData) {
+                        console.log('Usando dados do localStorage como fallback:', localData);
+                        userData = localData;
+                        updateUI(userData);
+                        return;
+                    }
+                    
+                    return;
                 }
+                
+                userData = userDoc.data();
+                userData.id = userDoc.id;
+                
+                console.log('Dados carregados do Firestore:', userData);
+                
+                // Atualizar localStorage com dados mais recentes
+                const dadosAtualizados = {
+                    uid: currentUser.uid,
+                    nome: userData.nome || '',
+                    email: userData.email || '',
+                    nickname: userData.nickname || userData.nome || '',
+                    playerId: userData.playerId || '',
+                    saldo: userData.saldo || 1000,
+                    diamantes: userData.diamantes || 50,
+                    nivel: userData.nivel || 1,
+                    stats: userData.stats || { handsPlayed: 0, handsWon: 0, totalProfit: 0 }
+                };
+                
+                localStorage.setItem('keepPokerUser', JSON.stringify(dadosAtualizados));
+                console.log('LocalStorage atualizado:', dadosAtualizados);
+                
+                // Atualizar interface
+                updateUI(userData);
+                
             } catch (error) {
                 console.error('Erro ao carregar dados:', error);
                 showNotification('Erro ao carregar dados do usuário: ' + error.message, 'error');
+                
+                // Tentar usar dados do localStorage como fallback
+                const localData = JSON.parse(localStorage.getItem('keepPokerUser'));
+                if (localData) {
+                    console.log('Usando dados do localStorage como fallback devido ao erro:', localData);
+                    userData = localData;
+                    updateUI(userData);
+                }
             }
         }
         
@@ -530,25 +571,30 @@
             document.getElementById('playerId').textContent = data.playerId || '-';
             document.getElementById('userLevel').textContent = data.nivel || '1';
             
-            // Nickname - PODE SER undefined inicialmente
-            const nickname = data.nickname || data.nome || 'Sem nickname';
+            // Nickname - tratamento seguro
+            let nickname = 'Sem nickname';
+            if (data.nickname && typeof data.nickname === 'string' && data.nickname.trim() !== '') {
+                nickname = data.nickname.trim();
+            } else if (data.nome && typeof data.nome === 'string') {
+                nickname = data.nome;
+            }
             document.getElementById('userNickname').textContent = nickname;
             
             // Formulários
             document.getElementById('inputName').value = data.nome || '';
-            document.getElementById('inputNickname').value = data.nickname || data.nome || '';
-            document.getElementById('inputEmail').value = data.email || '';
+            document.getElementById('inputNickname').value = nickname;
+            document.getElementById('inputEmail').value = data.email || currentUser.email || '';
             
             // Estatísticas
             document.getElementById('statBalance').textContent = data.saldo || '0';
             document.getElementById('statDiamonds').textContent = data.diamantes || '0';
-            document.getElementById('statHands').textContent = data.stats?.handsPlayed || '0';
-            document.getElementById('statWins').textContent = data.stats?.handsWon || '0';
+            document.getElementById('statHands').textContent = (data.stats && data.stats.handsPlayed) ? data.stats.handsPlayed : '0';
+            document.getElementById('statWins').textContent = (data.stats && data.stats.handsWon) ? data.stats.handsWon : '0';
             
             // Avatar
-            if (data.avatarUrl) {
+            if (data.avatarUrl && typeof data.avatarUrl === 'string' && data.avatarUrl.trim() !== '') {
                 document.getElementById('avatarPreview').innerHTML = `
-                    <img src="${data.avatarUrl}" alt="Avatar" id="avatarImage">
+                    <img src="${data.avatarUrl}" alt="Avatar" id="avatarImage" onerror="this.src=''">
                 `;
             }
         }
@@ -566,16 +612,16 @@
                 if (e.target.files && e.target.files[0]) {
                     selectedFile = e.target.files[0];
                     
-                    // Validar tamanho (max 1MB)
-                    if (selectedFile.size > 1024 * 1024) {
-                        showNotification('A imagem deve ter no máximo 1MB', 'error');
+                    // Validar tamanho (max 2MB)
+                    if (selectedFile.size > 2 * 1024 * 1024) {
+                        showNotification('A imagem deve ter no máximo 2MB', 'error');
                         selectedFile = null;
                         return;
                     }
                     
                     // Validar tipo
                     if (!selectedFile.type.startsWith('image/')) {
-                        showNotification('Selecione uma imagem válida', 'error');
+                        showNotification('Selecione uma imagem válida (JPG, PNG, GIF)', 'error');
                         selectedFile = null;
                         return;
                     }
@@ -626,36 +672,52 @@
                 
                 // Atualizar localmente
                 userData.avatarUrl = downloadURL;
-                localStorage.setItem('keepPokerUser', JSON.stringify(userData));
                 
-                showNotification('Avatar atualizado com sucesso!', 'success');
+                // Atualizar localStorage
+                const localData = JSON.parse(localStorage.getItem('keepPokerUser'));
+                if (localData) {
+                    localData.avatarUrl = downloadURL;
+                    localStorage.setItem('keepPokerUser', JSON.stringify(localData));
+                }
+                
+                showNotification('✅ Avatar atualizado com sucesso!', 'success');
                 
             } catch (error) {
                 console.error('Erro ao fazer upload:', error);
-                showNotification('Erro ao enviar avatar: ' + error.message, 'error');
+                showNotification('❌ Erro ao enviar avatar: ' + error.message, 'error');
+                
+                // Restaurar placeholder em caso de erro
+                document.getElementById('avatarPreview').innerHTML = `
+                    <div class="avatar-placeholder">
+                        <i class="fas fa-user"></i>
+                    </div>
+                `;
+            } finally {
+                selectedFile = null;
             }
         }
         
-        // Salvar perfil - FUNÇÃO SIMPLIFICADA E CORRIGIDA
+        // Salvar perfil
         async function saveProfile() {
             const name = document.getElementById('inputName').value.trim();
-            const nickname = document.getElementById('inputNickname').value.trim();
+            const nicknameInput = document.getElementById('inputNickname');
+            const nickname = nicknameInput.value.trim();
             
             console.log('Tentando salvar perfil...', { name, nickname });
             
             // Validações básicas
             if (!name) {
-                showNotification('O nome é obrigatório', 'error');
+                showNotification('❌ O nome é obrigatório', 'error');
                 return;
             }
             
             if (!nickname) {
-                showNotification('O nickname é obrigatório', 'error');
+                showNotification('❌ O nickname é obrigatório', 'error');
                 return;
             }
             
             if (nickname.length < 3 || nickname.length > 20) {
-                showNotification('Nickname deve ter entre 3 e 20 caracteres', 'error');
+                showNotification('❌ Nickname deve ter entre 3 e 20 caracteres', 'error');
                 return;
             }
             
@@ -673,7 +735,8 @@
                 };
                 
                 // Só adiciona nickname se for diferente do atual
-                if (nickname !== (userData.nickname || userData.nome || '')) {
+                const currentNickname = userData.nickname || userData.nome || '';
+                if (nickname !== currentNickname) {
                     updateData.nickname = nickname;
                 }
                 
@@ -684,39 +747,31 @@
                 
                 // Atualizar dados locais
                 userData.nome = name;
-                if (nickname !== (userData.nickname || userData.nome || '')) {
-                    userData.nickname = nickname;
-                }
+                userData.nickname = nickname;
                 
                 // Atualizar localStorage
-                localStorage.setItem('keepPokerUser', JSON.stringify(userData));
+                const localData = JSON.parse(localStorage.getItem('keepPokerUser'));
+                if (localData) {
+                    localData.nome = name;
+                    localData.nickname = nickname;
+                    localStorage.setItem('keepPokerUser', JSON.stringify(localData));
+                }
                 
                 // Atualizar UI
                 updateUI(userData);
                 
-                showNotification('Perfil atualizado com sucesso!', 'success');
+                showNotification('✅ Perfil atualizado com sucesso!', 'success');
                 
             } catch (error) {
                 console.error('Erro ao salvar perfil:', error);
                 
-                // Verificar tipo de erro
                 if (error.code === 'failed-precondition') {
-                    // ERRO DE ÍNDICE - precisa criar índice no Firestore
-                    const errorMsg = error.message || '';
-                    const indexUrlMatch = errorMsg.match(/https:\/\/console\.firebase\.google\.com[^ ]+/);
-                    
-                    if (indexUrlMatch) {
-                        showNotification(
-                            'É necessário criar um índice no Firestore. ' +
-                            'Clique no link no console (F12) e crie o índice, depois tente novamente.',
-                            'error'
-                        );
-                        console.log('URL para criar índice:', indexUrlMatch[0]);
-                    } else {
-                        showNotification('Erro: ' + error.message, 'error');
-                    }
+                    showNotification(
+                        '⚠️ O nickname pode já estar em uso. Tente outro.',
+                        'error'
+                    );
                 } else {
-                    showNotification('Erro ao salvar: ' + error.message, 'error');
+                    showNotification('❌ Erro ao salvar: ' + error.message, 'error');
                 }
                 
             } finally {
@@ -738,12 +793,12 @@
             if (!confirmPassword) return;
             
             if (newPassword !== confirmPassword) {
-                showNotification('As senhas não coincidem', 'error');
+                showNotification('❌ As senhas não coincidem', 'error');
                 return;
             }
             
             if (newPassword.length < 8) {
-                showNotification('A senha deve ter pelo menos 8 caracteres', 'error');
+                showNotification('❌ A senha deve ter pelo menos 8 caracteres', 'error');
                 return;
             }
             
@@ -759,17 +814,17 @@
                 // Alterar senha
                 await currentUser.updatePassword(newPassword);
                 
-                showNotification('Senha alterada com sucesso!', 'success');
+                showNotification('✅ Senha alterada com sucesso!', 'success');
                 
             } catch (error) {
                 console.error('Erro ao alterar senha:', error);
                 
                 if (error.code === 'auth/wrong-password') {
-                    showNotification('Senha atual incorreta', 'error');
+                    showNotification('❌ Senha atual incorreta', 'error');
                 } else if (error.code === 'auth/weak-password') {
-                    showNotification('A senha é muito fraca. Use letras, números e símbolos', 'error');
+                    showNotification('❌ A senha é muito fraca. Use letras, números e símbolos', 'error');
                 } else {
-                    showNotification('Erro ao alterar senha: ' + error.message, 'error');
+                    showNotification('❌ Erro ao alterar senha: ' + error.message, 'error');
                 }
             }
         }
