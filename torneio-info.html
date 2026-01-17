@@ -587,6 +587,16 @@
             transform: translateY(-3px);
         }
         
+        .btn-cancel {
+            background: var(--vermelho);
+            color: white;
+        }
+        
+        .btn-cancel:hover {
+            background: #c0392b;
+            transform: translateY(-3px);
+        }
+        
         .btn-disabled {
             background: #95a5a6;
             color: white;
@@ -948,7 +958,7 @@
         <div id="notification" class="notification"></div>
     </div>
     
-    <!-- Modal de Confirmação -->
+    <!-- Modal de Confirmação de Inscrição -->
     <div id="confirmationModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -961,6 +971,25 @@
             <div class="modal-actions">
                 <button class="btn-modal btn-cancel" onclick="closeModal()">Cancelar</button>
                 <button class="btn-modal btn-confirm" onclick="confirmRegistration()">Confirmar</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal de Confirmação de Cancelamento -->
+    <div id="cancelModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="cancelModalTitle">Cancelar Inscrição</h3>
+                <button class="modal-close" onclick="closeCancelModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="cancelModalBody">
+                Tem certeza que deseja cancelar sua inscrição neste torneio?
+                <br><br>
+                <strong>⚠️ ATENÇÃO:</strong> Seu buy-in de <span id="cancelBuyIn">0</span> fichas será devolvido.
+            </div>
+            <div class="modal-actions">
+                <button class="btn-modal btn-cancel" onclick="closeCancelModal()">Voltar</button>
+                <button class="btn-modal btn-confirm" onclick="confirmCancelRegistration()">Sim, Cancelar</button>
             </div>
         </div>
     </div>
@@ -1146,6 +1175,12 @@
                         <button class="btn-tournament" id="mainActionButton">
                             <i class="fas fa-spinner fa-spin"></i> Carregando...
                         </button>
+                        
+                        <!-- Botão de Cancelamento (apenas para inscritos) -->
+                        <button class="btn-tournament btn-cancel" id="cancelButton" style="display: none; margin-top: 10px;" onclick="showCancelModal()">
+                            <i class="fas fa-times-circle"></i> Desistir do Torneio
+                        </button>
+                        
                         <div class="action-info" id="actionInfo">
                             Informações sobre a ação disponível
                         </div>
@@ -1441,6 +1476,9 @@
         
         // Atualizar lista de jogadores
         updatePlayersList();
+        
+        // Mostrar/ocultar botão de cancelamento
+        updateCancelButton();
     }
     
     // Atualizar estatísticas do torneio
@@ -1649,6 +1687,26 @@
         }
     }
     
+    // Atualizar botão de cancelamento
+    function updateCancelButton() {
+        const cancelButton = document.getElementById('cancelButton');
+        
+        // Mostrar botão de cancelamento apenas se:
+        // 1. Usuário está inscrito
+        // 2. Torneio ainda não começou (status: 'registering' ou 'starting')
+        // 3. Não está com status 'running' ou 'finished'
+        
+        if (isUserRegistered && 
+            (currentTournament.status === 'registering' || currentTournament.status === 'starting') &&
+            currentTournament.status !== 'running' && 
+            currentTournament.status !== 'finished') {
+            
+            cancelButton.style.display = 'flex';
+        } else {
+            cancelButton.style.display = 'none';
+        }
+    }
+    
     // Atualizar lista de jogadores
     function updatePlayersList() {
         const playersList = document.getElementById('playersList');
@@ -1779,11 +1837,108 @@
         modal.style.display = 'flex';
     }
     
-    // Fechar modal
+    // Fechar modal de inscrição
     function closeModal() {
         const modal = document.getElementById('confirmationModal');
         modal.style.display = 'none';
         currentTournamentToRegister = null;
+    }
+    
+    // Mostrar modal de cancelamento
+    function showCancelModal() {
+        const modal = document.getElementById('cancelModal');
+        const buyInElement = document.getElementById('cancelBuyIn');
+        
+        // Preencher valor do buy-in
+        buyInElement.textContent = currentTournament.buyIn || 100;
+        
+        modal.style.display = 'flex';
+    }
+    
+    // Fechar modal de cancelamento
+    function closeCancelModal() {
+        const modal = document.getElementById('cancelModal');
+        modal.style.display = 'none';
+    }
+    
+    // Confirmar cancelamento de inscrição
+    async function confirmCancelRegistration() {
+        console.log('Cancelando inscrição no torneio:', currentTournament.id);
+        
+        const modal = document.getElementById('cancelModal');
+        modal.style.display = 'none';
+        
+        const cancelButton = document.getElementById('cancelButton');
+        const originalHTML = cancelButton.innerHTML;
+        cancelButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processando...';
+        cancelButton.disabled = true;
+        
+        try {
+            // 1. Buscar dados atualizados do torneio
+            const tournamentDoc = await db.collection('tournaments').doc(currentTournament.id).get();
+            if (!tournamentDoc.exists) {
+                showNotification('❌ Torneio não encontrado', 'error');
+                return;
+            }
+            
+            const tournament = tournamentDoc.data();
+            
+            // 2. Encontrar o jogador na lista de players
+            const playerIndex = tournament.players?.findIndex(p => p.userId === currentUser?.uid);
+            
+            if (playerIndex === -1 || playerIndex === undefined) {
+                showNotification('❌ Você não está inscrito neste torneio', 'error');
+                return;
+            }
+            
+            // 3. Remover jogador da lista de players
+            const updatedPlayers = [...tournament.players];
+            updatedPlayers.splice(playerIndex, 1);
+            
+            // 4. Calcular novo prize pool (subtrair buy-in do jogador)
+            const newPrizePool = Math.max(0, (tournament.prizePool || 0) - tournament.buyIn);
+            
+            // 5. Atualizar torneio no Firestore
+            await db.collection('tournaments').doc(currentTournament.id).update({
+                players: updatedPlayers,
+                registeredPlayers: firebase.firestore.FieldValue.increment(-1),
+                prizePool: newPrizePool,
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            
+            // 6. Devolver buy-in ao saldo do usuário
+            const newBalance = userData.saldo + tournament.buyIn;
+            await db.collection('users').doc(currentUser.uid).update({
+                saldo: newBalance,
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            
+            // 7. Atualizar dados locais do usuário
+            userData.saldo = newBalance;
+            localStorage.setItem('keepPokerUser', JSON.stringify(userData));
+            
+            // 8. Atualizar UI
+            document.getElementById('goldCount').textContent = newBalance;
+            isUserRegistered = false;
+            
+            // 9. Notificar sucesso
+            showNotification(`✅ Inscrição cancelada! ${tournament.buyIn} fichas devolvidas.`, 'success');
+            
+            // 10. Recarregar dados do torneio após 1.5 segundos
+            setTimeout(() => {
+                if (tournamentUnsubscribe) tournamentUnsubscribe();
+                loadTournamentData(currentTournament.id);
+                setupTournamentListener(currentTournament.id);
+            }, 1500);
+            
+        } catch (error) {
+            console.error('Erro ao cancelar inscrição:', error);
+            showNotification('❌ Erro ao cancelar inscrição: ' + error.message, 'error');
+            
+            // Restaurar botão
+            cancelButton.innerHTML = originalHTML;
+            cancelButton.disabled = false;
+        }
     }
     
     // Confirmar inscrição - CORRIGIDA
