@@ -7,12 +7,12 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Firebase SDK -->
     <script type="module">
-        // Import the functions you need from the SDKs you need
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
-        import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js";
-        import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-firestore.js";
+        // Importar Firebase
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         
-        // Your web app's Firebase configuration
+        // Sua configuração Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyBIBucZSzN671VgJQHGIiepHNUqxbqNKAQ",
             authDomain: "keeppoker-b4173.firebaseapp.com",
@@ -22,50 +22,45 @@
             appId: "1:436464592434:web:c5a1e0c10e10acbc14fe2b"
         };
         
-        // Initialize Firebase
+        // Inicializar Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
         
-        // Função para gerar ID único de 7 dígitos (apenas números)
+        // Gerar ID único de 7 dígitos
         function generateUserId() {
-            // Gera número entre 1000000 e 9999999 (7 dígitos)
             return Math.floor(1000000 + Math.random() * 9000000).toString();
         }
         
-        // Função para validar senha
+        // Validar senha
         function validatePassword(password) {
-            const minLength = 8;
-            const hasUpperCase = /[A-Z]/.test(password);
-            const hasLowerCase = /[a-z]/.test(password);
-            const hasNumbers = /\d/.test(password);
-            
-            if (password.length < minLength) {
+            if (password.length < 8) {
                 return { valid: false, message: 'A senha deve ter pelo menos 8 caracteres' };
             }
-            if (!hasUpperCase) {
-                return { valid: false, message: 'A senha deve conter pelo menos uma letra maiúscula' };
+            if (!/[A-Z]/.test(password)) {
+                return { valid: false, message: 'A senha deve ter pelo menos uma letra maiúscula' };
             }
-            if (!hasLowerCase) {
-                return { valid: false, message: 'A senha deve conter pelo menos uma letra minúscula' };
+            if (!/[a-z]/.test(password)) {
+                return { valid: false, message: 'A senha deve ter pelo menos uma letra minúscula' };
             }
-            if (!hasNumbers) {
-                return { valid: false, message: 'A senha deve conter pelo menos um número' };
+            if (!/\d/.test(password)) {
+                return { valid: false, message: 'A senha deve ter pelo menos um número' };
             }
             return { valid: true, message: 'Senha válida' };
         }
         
-        // Função para cadastrar usuário
+        // Função principal de cadastro
         window.registerUser = async function(event) {
             event.preventDefault();
             
+            // Pegar valores dos campos
             const nome = document.getElementById('nome').value.trim();
             const email = document.getElementById('email').value.trim();
             const senha = document.getElementById('senha').value;
             const confirmarSenha = document.getElementById('confirmar-senha').value;
             const dataNascimento = document.getElementById('data-nascimento').value;
             
-            // Validações
+            // Validações básicas
             if (!nome || !email || !senha || !confirmarSenha || !dataNascimento) {
                 showNotification('Por favor, preencha todos os campos.', 'error');
                 return;
@@ -82,12 +77,11 @@
                 return;
             }
             
-            // Calcular idade
+            // Verificar idade (18+)
             const birthDate = new Date(dataNascimento);
             const today = new Date();
             let age = today.getFullYear() - birthDate.getFullYear();
             const monthDiff = today.getMonth() - birthDate.getMonth();
-            
             if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
                 age--;
             }
@@ -97,57 +91,96 @@
                 return;
             }
             
-            // Gerar ID único
+            // Gerar ID do jogador
             const userId = generateUserId();
             
-            // Mostrar loading
+            // Botão de loading
             const submitBtn = document.getElementById('submitBtn');
             const originalText = submitBtn.innerHTML;
             submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Cadastrando...';
             submitBtn.disabled = true;
             
             try {
-                // Criar usuário no Firebase Authentication
+                console.log('Iniciando cadastro...');
+                
+                // 1. Criar usuário no Firebase Authentication
                 const userCredential = await createUserWithEmailAndPassword(auth, email, senha);
                 const user = userCredential.user;
+                console.log('Usuário criado no Auth:', user.uid);
                 
-                // Salvar dados adicionais no Firestore
-                await setDoc(doc(db, "users", user.uid), {
+                // 2. Salvar dados no Firestore
+                const userData = {
+                    uid: user.uid,
                     nome: nome,
                     email: email,
                     userId: userId,
                     dataNascimento: dataNascimento,
                     dataCadastro: new Date().toISOString(),
-                    saldo: 1000, // Saldo inicial
+                    saldo: 1000, // Saldo inicial em Gold
+                    diamantes: 50, // Diamantes iniciais
                     nivel: 1,
                     vitorias: 0,
-                    derrotas: 0
-                });
+                    derrotas: 0,
+                    torneiosJogados: 0,
+                    torneiosGanhos: 0,
+                    XP: 0,
+                    clube: null,
+                    amigos: [],
+                    avatar: 'default',
+                    online: true,
+                    ultimoLogin: new Date().toISOString()
+                };
                 
-                // Mostrar ID gerado
-                showNotification(`Cadastro realizado com sucesso! Seu ID de jogador é: ${userId}`, 'success');
+                await setDoc(doc(db, "usuarios", user.uid), userData);
+                console.log('Dados salvos no Firestore');
                 
-                // Redirecionar para login após 3 segundos
+                // 3. Criar histórico inicial
+                const historicoData = {
+                    userId: user.uid,
+                    acao: 'cadastro',
+                    data: new Date().toISOString(),
+                    detalhes: 'Conta criada com sucesso'
+                };
+                
+                await addDoc(collection(db, "historico"), historicoData);
+                
+                // 4. Mostrar sucesso
+                showNotification(`✅ Cadastro realizado! Seu ID: ${userId}`, 'success');
+                
+                // 5. Salvar dados no localStorage
+                localStorage.setItem('keepPokerUser', JSON.stringify({
+                    uid: user.uid,
+                    nome: nome,
+                    email: email,
+                    userId: userId,
+                    saldo: 1000,
+                    diamantes: 50,
+                    nivel: 1
+                }));
+                
+                // 6. Redirecionar para home
                 setTimeout(() => {
-                    window.location.href = 'login.html?registered=true&userId=' + userId;
-                }, 3000);
+                    window.location.href = 'home.html';
+                }, 2000);
                 
             } catch (error) {
+                console.error('Erro completo:', error);
+                
                 let errorMessage = 'Erro ao cadastrar. Tente novamente.';
                 
-                switch (error.code) {
-                    case 'auth/email-already-in-use':
-                        errorMessage = 'Este email já está em uso.';
-                        break;
-                    case 'auth/invalid-email':
-                        errorMessage = 'Email inválido.';
-                        break;
-                    case 'auth/weak-password':
-                        errorMessage = 'A senha é muito fraca.';
-                        break;
-                    case 'auth/operation-not-allowed':
-                        errorMessage = 'Operação não permitida.';
-                        break;
+                // Erros específicos do Firebase
+                if (error.code === 'auth/email-already-in-use') {
+                    errorMessage = 'Este email já está cadastrado.';
+                } else if (error.code === 'auth/invalid-email') {
+                    errorMessage = 'Email inválido.';
+                } else if (error.code === 'auth/weak-password') {
+                    errorMessage = 'Senha muito fraca.';
+                } else if (error.code === 'auth/operation-not-allowed') {
+                    errorMessage = 'Cadastro por email desativado. Contate o suporte.';
+                } else if (error.code === 'permission-denied') {
+                    errorMessage = 'Permissão negada. Verifique as regras do Firestore.';
+                } else if (error.message.includes('auth/')) {
+                    errorMessage = 'Erro de autenticação: ' + error.message;
                 }
                 
                 showNotification(errorMessage, 'error');
@@ -155,6 +188,10 @@
                 submitBtn.disabled = false;
             }
         };
+        
+        // Expor funções globalmente
+        window.validatePassword = validatePassword;
+        window.showNotification = showNotification;
     </script>
     <style>
         * {
@@ -172,6 +209,8 @@
             --dourado-claro: #f7ef8a;
             --branco: #ffffff;
             --cinza-claro: #e0e1dd;
+            --verde: #2ecc71;
+            --vermelho: #e74c3c;
         }
         
         body {
@@ -244,7 +283,7 @@
             opacity: 0.8;
         }
         
-        /* Main Content */
+        /* Formulário */
         main {
             flex: 1;
             display: flex;
@@ -507,26 +546,26 @@
         </div>
     </header>
     
-    <!-- Main Content -->
+    <!-- Formulário de Cadastro -->
     <main>
         <div class="container">
             <div class="form-container">
                 <div class="form-header">
-                    <h1>Criar Conta</h1>
-                    <p>Junte-se ao KeepPoker e comece a jogar agora!</p>
+                    <h1>Criar Conta KeepPoker</h1>
+                    <p>Cadastre-se e comece a jogar agora!</p>
                 </div>
                 
                 <form id="registerForm" onsubmit="registerUser(event)">
                     <div class="form-group">
-                        <label for="nome">Nome Completo</label>
+                        <label for="nome">Nome Completo *</label>
                         <div class="input-with-icon">
                             <i class="fas fa-user"></i>
-                            <input type="text" id="nome" placeholder="Digite seu nome completo" required>
+                            <input type="text" id="nome" placeholder="Seu nome completo" required>
                         </div>
                     </div>
                     
                     <div class="form-group">
-                        <label for="email">Email</label>
+                        <label for="email">Email *</label>
                         <div class="input-with-icon">
                             <i class="fas fa-envelope"></i>
                             <input type="email" id="email" placeholder="seu@email.com" required>
@@ -534,7 +573,7 @@
                     </div>
                     
                     <div class="form-group">
-                        <label for="data-nascimento">Data de Nascimento</label>
+                        <label for="data-nascimento">Data de Nascimento *</label>
                         <div class="input-with-icon">
                             <i class="fas fa-calendar-alt"></i>
                             <input type="date" id="data-nascimento" required>
@@ -543,19 +582,19 @@
                     </div>
                     
                     <div class="form-group">
-                        <label for="senha">Senha</label>
+                        <label for="senha">Senha *</label>
                         <div class="input-with-icon">
                             <i class="fas fa-lock"></i>
-                            <input type="password" id="senha" placeholder="Digite sua senha" required minlength="8">
+                            <input type="password" id="senha" placeholder="Digite sua senha" required>
                         </div>
                         <div id="password-strength" class="password-strength"></div>
                     </div>
                     
                     <div class="form-group">
-                        <label for="confirmar-senha">Confirmar Senha</label>
+                        <label for="confirmar-senha">Confirmar Senha *</label>
                         <div class="input-with-icon">
                             <i class="fas fa-lock"></i>
-                            <input type="password" id="confirmar-senha" placeholder="Confirme sua senha" required minlength="8">
+                            <input type="password" id="confirmar-senha" placeholder="Confirme sua senha" required>
                         </div>
                     </div>
                     
@@ -563,7 +602,7 @@
                         <h4>Requisitos da senha:</h4>
                         <ul>
                             <li><i class="fas fa-check"></i> Mínimo de 8 caracteres</li>
-                            <li><i class="fas fa-check"></i> Pelo menos uma letra maiúscula</li>
+                            <li><i class="fas fa-check"></i> Pelo menos uma letra MAIÚSCULA</li>
                             <li><i class="fas fa-check"></i> Pelo menos uma letra minúscula</li>
                             <li><i class="fas fa-check"></i> Pelo menos um número</li>
                         </ul>
@@ -571,11 +610,11 @@
                     
                     <div class="form-footer">
                         <button type="submit" class="btn btn-register" id="submitBtn">
-                            <i class="fas fa-user-plus"></i> Criar Conta
+                            <i class="fas fa-user-plus"></i> Criar minha conta
                         </button>
                         
                         <p class="login-link">
-                            Já tem uma conta? <a href="login.html">Faça login</a>
+                            Já tem uma conta? <a href="login.html">Faça login aqui</a>
                         </p>
                     </div>
                 </form>
@@ -584,12 +623,13 @@
     </main>
     
     <script>
-        // Adicionar logo
+        // Inicializar
         document.addEventListener('DOMContentLoaded', function() {
+            // Configurar logo
             const logoPlaceholder = document.querySelector('.logo-placeholder');
             logoPlaceholder.style.backgroundImage = 'url("logokeeppoker.png")';
             
-            // Configurar data mínima (18 anos atrás)
+            // Configurar data máxima (18 anos atrás)
             const today = new Date();
             const minDate = new Date(today.getFullYear() - 18, today.getMonth(), today.getDate());
             document.getElementById('data-nascimento').max = minDate.toISOString().split('T')[0];
@@ -603,47 +643,42 @@
                 let strength = 0;
                 let message = '';
                 
-                // Comprimento
                 if (password.length >= 8) strength++;
-                
-                // Maiúsculas
                 if (/[A-Z]/.test(password)) strength++;
-                
-                // Minúsculas
                 if (/[a-z]/.test(password)) strength++;
-                
-                // Números
                 if (/\d/.test(password)) strength++;
                 
-                // Determinar força
-                switch(strength) {
-                    case 0:
-                    case 1:
-                        message = 'Fraca';
-                        strengthDisplay.className = 'password-strength weak';
-                        break;
-                    case 2:
-                    case 3:
-                        message = 'Média';
-                        strengthDisplay.className = 'password-strength medium';
-                        break;
-                    case 4:
-                        message = 'Forte';
-                        strengthDisplay.className = 'password-strength strong';
-                        break;
+                if (strength === 1) {
+                    message = 'Fraca';
+                    strengthDisplay.className = 'password-strength weak';
+                } else if (strength === 2 || strength === 3) {
+                    message = 'Média';
+                    strengthDisplay.className = 'password-strength medium';
+                } else if (strength === 4) {
+                    message = 'Forte';
+                    strengthDisplay.className = 'password-strength strong';
                 }
                 
                 if (password.length > 0) {
-                    strengthDisplay.textContent = `Força da senha: ${message}`;
+                    strengthDisplay.textContent = `Força: ${message}`;
                     strengthDisplay.style.display = 'block';
                 } else {
                     strengthDisplay.style.display = 'none';
                 }
             });
+            
+            // Verificar se já está logado
+            const user = localStorage.getItem('keepPokerUser');
+            if (user) {
+                showNotification('Você já está logado!', 'info');
+                setTimeout(() => {
+                    window.location.href = 'home.html';
+                }, 1500);
+            }
         });
         
-        // Função para mostrar notificações
-        function showNotification(message, type = 'info') {
+        // Função de notificação
+        function showNotification(message, type) {
             const notification = document.getElementById('notification');
             notification.textContent = message;
             notification.className = `notification ${type}`;
