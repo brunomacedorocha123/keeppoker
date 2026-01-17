@@ -1221,7 +1221,7 @@
         </div>
     </footer>
 <script>
-    // Variáveis globais
+  // Variáveis globais
 let currentUser = null;
 let userData = null;
 let currentTournament = null;
@@ -1419,6 +1419,9 @@ function checkIfTournamentStarted() {
         document.getElementById('tournamentBadge').textContent = 'Iniciando...';
         
         showNotification('🎉 Torneio lotado! Preparando para iniciar...', 'success');
+        
+        // Desabilitar botão "Ver Mesa" e mudar para "Aguardando Início"
+        updateMainAction();
     }
 }
 
@@ -1470,7 +1473,7 @@ function updateTournamentUI() {
     // Atualizar regras
     updateRulesList();
     
-    // Atualizar ação principal
+    // Atualizar ação principal (CORRIGIDO - LÓGICA CLARA)
     updateMainAction();
     
     // Atualizar lista de jogadores
@@ -1601,7 +1604,7 @@ function updateRulesList() {
     rulesList.innerHTML = rules.map(rule => `<li>${rule}</li>`).join('');
 }
 
-// Atualizar ação principal - CORRIGIDA AGORA
+// ATUALIZAÇÃO PRINCIPAL - LÓGICA CLARA DOS BOTÕES
 function updateMainAction() {
     const actionButton = document.getElementById('mainActionButton');
     const actionInfo = document.getElementById('actionInfo');
@@ -1625,32 +1628,45 @@ function updateMainAction() {
     
     // Verificar se usuário está inscrito
     if (isUserRegistered) {
-        // VERIFICAÇÃO IMPORTANTE: Se torneio lotou (6 jogadores), pode entrar mesmo status sendo 'registering'
         const isTournamentFull = (currentTournament.registeredPlayers || 0) >= (currentTournament.maxPlayers || 6);
         
-        if (currentTournament.status === 'running' || currentTournament.status === 'starting' || isTournamentFull) {
-            // Torneio em andamento, iniciando ou LOTADO - entrar na mesa
+        // LÓGICA CLARA E SIMPLES:
+        if (currentTournament.status === 'running') {
+            // 1. Torneio EM ANDAMENTO - ENTRAR PARA JOGAR
             actionButton.innerHTML = '<i class="fas fa-play-circle"></i> Entrar na Mesa';
             actionButton.className = 'btn-tournament btn-enter';
             actionButton.onclick = () => enterTournament();
-            
-            if (isTournamentFull && currentTournament.status === 'registering') {
-                actionInfo.textContent = 'Torneio lotado! Clique para entrar e aguardar início';
-            } else {
-                actionInfo.textContent = 'Clique para entrar no torneio';
-            }
-        } else {
-            // Torneio ainda registrando - PODE VER A MESA AGORA!
+            actionButton.disabled = false;
+            actionInfo.textContent = 'Clique para entrar no torneio em andamento';
+        }
+        else if (currentTournament.status === 'starting') {
+            // 2. Torneio INICIANDO - AGUARDAR INÍCIO
+            actionButton.innerHTML = '<i class="fas fa-hourglass-half"></i> Iniciando em Breve';
+            actionButton.className = 'btn-tournament btn-registered';
+            actionButton.disabled = true;
+            actionButton.onclick = null;
+            actionInfo.textContent = 'Torneio está iniciando. Aguarde...';
+        }
+        else if (isTournamentFull) {
+            // 3. Torneio LOTADO mas status ainda 'registering' - AGUARDAR
+            actionButton.innerHTML = '<i class="fas fa-hourglass-half"></i> Aguardando Início';
+            actionButton.className = 'btn-tournament btn-registered';
+            actionButton.disabled = true;
+            actionButton.onclick = null;
+            actionInfo.textContent = 'Torneio lotado! Será iniciado em breve.';
+        }
+        else {
+            // 4. Torneio com VAGAS DISPONÍVEIS - VER MESA
             actionButton.innerHTML = '<i class="fas fa-eye"></i> Ver Mesa';
             actionButton.className = 'btn-tournament btn-registered';
             actionButton.disabled = false;
             actionButton.onclick = () => enterTournament();
             
             const needed = (currentTournament.maxPlayers || 6) - (currentTournament.registeredPlayers || 0);
-            actionInfo.textContent = `Faltam ${needed} jogadores para iniciar (clique para ver a mesa)`;
+            actionInfo.textContent = `Faltam ${needed} jogadores para iniciar. Clique para ver a mesa.`;
         }
     } else {
-        // Usuário não inscrito
+        // Usuário NÃO inscrito
         if (currentTournament.status === 'registering') {
             // Inscrições abertas
             if (currentTournament.registeredPlayers >= currentTournament.maxPlayers) {
@@ -1760,7 +1776,7 @@ function updatePlayersList() {
     playersList.innerHTML = html;
 }
 
-// Inscrever-se no torneio - CORRIGIDA
+// Inscrever-se no torneio
 async function registerForTournament() {
     console.log('Tentando inscrever-se no torneio:', currentTournament.id);
     
@@ -1942,7 +1958,7 @@ async function confirmCancelRegistration() {
     }
 }
 
-// Confirmar inscrição - CORRIGIDA
+// Confirmar inscrição
 async function confirmRegistration() {
     if (!currentTournamentToRegister) {
         showNotification('❌ Nenhum torneio selecionado', 'error');
@@ -1971,7 +1987,7 @@ async function confirmRegistration() {
             updatedAt: firebase.firestore.FieldValue.serverTimestamp()
         });
         
-        // 2. Preparar dados do jogador (CORRIGIDO: usar timestamp manual)
+        // 2. Preparar dados do jogador
         const playerData = {
             userId: currentUser.uid,
             playerName: userData.nickname || userData.nome || 'Jogador',
@@ -1981,7 +1997,7 @@ async function confirmRegistration() {
             rebuyCount: 0,
             addonUsed: false,
             isActive: true,
-            registeredAt: new Date().toISOString() // TIMESTAMP MANUAL - NÃO usar FieldValue aqui
+            registeredAt: new Date().toISOString()
         };
         
         // 3. Atualizar torneio no Firestore
@@ -2053,15 +2069,26 @@ async function confirmRegistration() {
     }
 }
 
-// Entrar no torneio (quando em andamento)
+// Entrar no torneio (quando em andamento ou para ver mesa)
 function enterTournament() {
-    console.log('Entrando no torneio:', currentTournament.id);
+    console.log('Entrando/Visualizando torneio:', currentTournament.id);
+    
+    // Verificar se pode realmente entrar ou apenas ver
+    if (currentTournament.status === 'registering') {
+        console.log('Visualizando prévia da mesa...');
+        showNotification('🔍 Visualizando prévia da mesa...', 'info');
+    } else if (currentTournament.status === 'running') {
+        console.log('Entrando no torneio em andamento...');
+        showNotification('🎮 Entrando no torneio...', 'success');
+    }
+    
+    // Redirecionar para a página da mesa
     window.location.href = `mesa-torneio.html?tournamentId=${currentTournament.id}`;
 }
 
 // Assistir torneio (como espectador)
 function watchTournament() {
-    console.log('Assistindo torneio:', currentTournament.id);
+    console.log('Assistindo torneio como espectador:', currentTournament.id);
     window.location.href = `mesa-torneio.html?tournamentId=${currentTournament.id}&spectator=true`;
 }
 
