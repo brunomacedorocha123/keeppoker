@@ -1,0 +1,1659 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mesas - KeepPoker</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBIBucZSzN671VgJQHGIiepHNUqxbqNKAQ",
+            authDomain: "keeppoker-b4173.firebaseapp.com",
+            projectId: "keeppoker-b4173",
+            storageBucket: "keeppoker-b4173.firebasestorage.app",
+            messagingSenderId: "436464592434",
+            appId: "1:436464592434:web:c5a1e0c10e10acbc14fe2b"
+        };
+        
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+    </script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        :root {
+            --azul-profundo: #0d1b2a;
+            --azul-medio: #1b263b;
+            --azul-claro: #415a77;
+            --dourado: #d4af37;
+            --dourado-claro: #f7ef8a;
+            --branco: #ffffff;
+            --cinza-claro: #e0e1dd;
+            --verde: #2ecc71;
+            --vermelho: #e74c3c;
+        }
+        
+        body {
+            background-color: var(--azul-profundo);
+            color: var(--cinza-claro);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            width: 90%;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 15px;
+        }
+        
+        /* Header Superior */
+        .top-header {
+            background-color: var(--azul-medio);
+            padding: 10px 0;
+            border-bottom: 2px solid var(--dourado);
+        }
+        
+        .top-header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .player-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .player-id {
+            background-color: rgba(212, 175, 55, 0.1);
+            padding: 8px 15px;
+            border-radius: 20px;
+            border: 1px solid var(--dourado);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .player-id-label {
+            color: var(--cinza-claro);
+            font-size: 14px;
+        }
+        
+        .player-id-value {
+            color: var(--dourado);
+            font-weight: bold;
+            font-size: 16px;
+        }
+        
+        .resources {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .resource-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background-color: rgba(255, 255, 255, 0.05);
+            padding: 8px 15px;
+            border-radius: 20px;
+            transition: all 0.3s ease;
+        }
+        
+        .resource-item:hover {
+            background-color: rgba(212, 175, 55, 0.1);
+            transform: translateY(-2px);
+        }
+        
+        .resource-icon {
+            font-size: 20px;
+        }
+        
+        .diamond {
+            color: #1abc9c;
+        }
+        
+        .gold {
+            color: var(--dourado);
+        }
+        
+        .resource-value {
+            font-weight: bold;
+            font-size: 16px;
+        }
+        
+        .diamond-value {
+            color: #1abc9c;
+        }
+        
+        .gold-value {
+            color: var(--dourado);
+        }
+        
+        .time-section {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--cinza-claro);
+        }
+        
+        .current-time {
+            font-weight: bold;
+            color: var(--dourado);
+        }
+        
+        /* Header Principal */
+        .main-header {
+            background-color: rgba(13, 27, 42, 0.95);
+            padding: 15px 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(5px);
+        }
+        
+        .main-header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo-container {
+            height: 60px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .logo-link {
+            display: block;
+            height: 100%;
+        }
+        
+        .logo {
+            height: 100%;
+            width: auto;
+            max-width: 200px;
+            object-fit: contain;
+        }
+        
+        /* Menu de Navegação */
+        .nav-menu {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .nav-item {
+            position: relative;
+        }
+        
+        .nav-link {
+            color: var(--cinza-claro);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 16px;
+            padding: 12px 18px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
+        
+        .nav-link:hover {
+            color: var(--dourado);
+            background-color: rgba(212, 175, 55, 0.1);
+        }
+        
+        .nav-link.active {
+            color: var(--dourado);
+            background-color: rgba(212, 175, 55, 0.1);
+            border-bottom: 2px solid var(--dourado);
+        }
+        
+        .notification-badge {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background-color: var(--vermelho);
+            color: white;
+            font-size: 12px;
+            padding: 2px 6px;
+            border-radius: 10px;
+            min-width: 18px;
+            text-align: center;
+        }
+        
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-left: 15px;
+        }
+        
+        .btn {
+            padding: 10px 18px;
+            border-radius: 30px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            font-size: 15px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
+        
+        .btn-deposit {
+            background-color: var(--verde);
+            color: white;
+            border: 2px solid var(--verde);
+        }
+        
+        .btn-deposit:hover {
+            background-color: transparent;
+            color: var(--verde);
+        }
+        
+        .btn-logout {
+            background-color: transparent;
+            color: var(--vermelho);
+            border: 2px solid var(--vermelho);
+        }
+        
+        .btn-logout:hover {
+            background-color: var(--vermelho);
+            color: white;
+        }
+        
+        /* Menu Mobile */
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--dourado);
+            font-size: 24px;
+            cursor: pointer;
+            padding: 5px;
+        }
+        
+        /* Conteúdo Principal - MESAS */
+        .tables-main {
+            padding: 40px 0;
+            min-height: 70vh;
+        }
+        
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .page-title h1 {
+            color: var(--branco);
+            font-size: 36px;
+            margin-bottom: 10px;
+        }
+        
+        .page-title p {
+            color: var(--cinza-claro);
+            font-size: 16px;
+        }
+        
+        .btn-create-table {
+            background-color: var(--verde);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 30px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-create-table:hover {
+            background-color: #25a25a;
+            transform: translateY(-2px);
+        }
+        
+        /* Filtros */
+        .filters-section {
+            background-color: var(--azul-medio);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+        
+        .filters-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .filter-label {
+            color: var(--dourado);
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        .filter-select, .filter-input {
+            padding: 10px 15px;
+            border-radius: 5px;
+            border: 1px solid var(--azul-claro);
+            background-color: rgba(255, 255, 255, 0.05);
+            color: var(--cinza-claro);
+            font-size: 14px;
+        }
+        
+        .filter-select:focus, .filter-input:focus {
+            outline: none;
+            border-color: var(--dourado);
+        }
+        
+        /* Grid de Mesas */
+        .tables-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+        
+        .table-card {
+            background: linear-gradient(145deg, var(--azul-medio) 0%, rgba(27, 38, 59, 0.8) 100%);
+            border-radius: 15px;
+            padding: 25px;
+            border: 2px solid rgba(212, 175, 55, 0.2);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .table-card:hover {
+            border-color: var(--dourado);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .table-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .table-name {
+            color: var(--branco);
+            font-size: 20px;
+            font-weight: 600;
+        }
+        
+        .table-status {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .status-waiting {
+            background-color: rgba(46, 204, 113, 0.2);
+            color: var(--verde);
+        }
+        
+        .status-playing {
+            background-color: rgba(231, 76, 60, 0.2);
+            color: var(--vermelho);
+        }
+        
+        .status-full {
+            background-color: rgba(149, 165, 166, 0.2);
+            color: #95a5a6;
+        }
+        
+        .table-details {
+            margin-bottom: 20px;
+        }
+        
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .detail-label {
+            color: var(--cinza-claro);
+            font-size: 14px;
+        }
+        
+        .detail-value {
+            color: var(--dourado);
+            font-weight: 600;
+        }
+        
+        .players-section {
+            margin-bottom: 20px;
+        }
+        
+        .players-title {
+            color: var(--cinza-claro);
+            font-size: 14px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .players-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+        
+        .player-slot {
+            background-color: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .player-slot.empty {
+            border: 2px dashed var(--azul-claro);
+            color: var(--azul-claro);
+        }
+        
+        .player-slot.occupied {
+            border: 2px solid var(--dourado);
+            color: var(--dourado);
+            font-weight: 600;
+        }
+        
+        .table-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn-table {
+            flex: 1;
+            padding: 10px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.3s ease;
+            text-align: center;
+            text-decoration: none;
+        }
+        
+        .btn-enter {
+            background-color: var(--verde);
+            color: white;
+        }
+        
+        .btn-enter:hover {
+            background-color: #25a25a;
+        }
+        
+        .btn-view {
+            background-color: var(--azul-claro);
+            color: white;
+        }
+        
+        .btn-view:hover {
+            background-color: #2c4877;
+        }
+        
+        .btn-full {
+            background-color: #95a5a6;
+            color: white;
+            cursor: not-allowed;
+        }
+        
+        /* Modal Criar Mesa */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            backdrop-filter: blur(5px);
+        }
+        
+        .modal-content {
+            background-color: var(--azul-medio);
+            border-radius: 15px;
+            padding: 30px;
+            width: 90%;
+            max-width: 500px;
+            border: 2px solid var(--dourado);
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+        
+        .modal-title {
+            color: var(--dourado);
+            font-size: 24px;
+            font-weight: 600;
+        }
+        
+        .close-modal {
+            background: none;
+            border: none;
+            color: var(--cinza-claro);
+            font-size: 24px;
+            cursor: pointer;
+            padding: 5px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-label {
+            display: block;
+            color: var(--cinza-claro);
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 12px 15px;
+            border-radius: 8px;
+            border: 1px solid var(--azul-claro);
+            background-color: rgba(255, 255, 255, 0.05);
+            color: var(--cinza-claro);
+            font-size: 16px;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: var(--dourado);
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        .form-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+        
+        .btn-submit {
+            flex: 1;
+            background-color: var(--verde);
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        
+        .btn-cancel {
+            flex: 1;
+            background-color: transparent;
+            color: var(--cinza-claro);
+            border: 2px solid var(--azul-claro);
+            padding: 14px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        
+        .btn-submit:hover {
+            background-color: #25a25a;
+        }
+        
+        .btn-cancel:hover {
+            border-color: var(--dourado);
+            color: var(--dourado);
+        }
+        
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: var(--dourado);
+            font-size: 18px;
+        }
+        
+        .loading i {
+            font-size: 24px;
+            margin-bottom: 15px;
+            display: block;
+        }
+        
+        .empty-message {
+            text-align: center;
+            padding: 40px;
+            color: var(--cinza-claro);
+            font-size: 18px;
+        }
+        
+        .empty-message i {
+            font-size: 48px;
+            margin-bottom: 15px;
+            display: block;
+            color: var(--azul-claro);
+        }
+        
+        /* Notificações */
+        .notification-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10000;
+        }
+        
+        .notification {
+            padding: 15px 20px;
+            border-radius: 5px;
+            color: white;
+            font-weight: 600;
+            margin-bottom: 10px;
+            display: none;
+            animation: slideIn 0.3s ease;
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        .notification.success {
+            background-color: #28a745;
+            border-left: 5px solid #1e7e34;
+        }
+        
+        .notification.error {
+            background-color: #dc3545;
+            border-left: 5px solid #bd2130;
+        }
+        
+        .notification.info {
+            background-color: #17a2b8;
+            border-left: 5px solid #117a8b;
+        }
+        
+        /* Footer */
+        footer {
+            background-color: #0a1520;
+            padding: 50px 0 20px;
+            text-align: center;
+        }
+        
+        .footer-logo {
+            color: var(--dourado);
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .footer-links a {
+            color: var(--cinza-claro);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        
+        .footer-links a:hover {
+            color: var(--dourado);
+        }
+        
+        .copyright {
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--azul-claro);
+            font-size: 14px;
+        }
+        
+        /* Responsividade */
+        @media (max-width: 1200px) {
+            .tables-grid {
+                grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            }
+        }
+        
+        @media (max-width: 992px) {
+            .nav-menu {
+                position: fixed;
+                top: 130px;
+                left: 0;
+                width: 100%;
+                background-color: var(--azul-medio);
+                flex-direction: column;
+                padding: 20px;
+                box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+                display: none;
+                z-index: 999;
+            }
+            
+            .nav-open {
+                display: flex;
+            }
+            
+            .nav-item {
+                width: 100%;
+            }
+            
+            .nav-link {
+                justify-content: center;
+                padding: 15px;
+            }
+            
+            .user-menu {
+                margin-left: 0;
+                width: 100%;
+                justify-content: center;
+                margin-top: 20px;
+            }
+            
+            .mobile-menu-btn {
+                display: block;
+            }
+            
+            .top-header-container {
+                justify-content: center;
+                text-align: center;
+            }
+            
+            .player-info, .resources {
+                justify-content: center;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .tables-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .page-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .players-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .player-info {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .resources {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .filters-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .footer-links {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .btn {
+                padding: 8px 15px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Notificações -->
+    <div class="notification-container">
+        <div id="notification" class="notification"></div>
+    </div>
+    
+    <!-- Header Superior -->
+    <header class="top-header">
+        <div class="container top-header-container">
+            <div class="player-info">
+                <div class="player-id">
+                    <span class="player-id-label">ID do Jogador:</span>
+                    <span class="player-id-value" id="playerId">-</span>
+                </div>
+                
+                <div class="resources">
+                    <div class="resource-item">
+                        <i class="fas fa-gem diamond resource-icon"></i>
+                        <span class="diamond-value resource-value" id="diamondCount">0</span>
+                    </div>
+                    
+                    <div class="resource-item">
+                        <i class="fas fa-coins gold resource-icon"></i>
+                        <span class="gold-value resource-value" id="goldCount">0</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="time-section">
+                <i class="far fa-clock"></i>
+                <span id="currentTime" class="current-time">00:00:00</span>
+            </div>
+        </div>
+    </header>
+    
+    <!-- Header Principal -->
+    <header class="main-header">
+        <div class="container main-header-container">
+            <div class="logo-container">
+                <a href="home.html" class="logo-link">
+                    <img src="logokeeppoker.png" alt="KeepPoker" class="logo">
+                </a>
+            </div>
+            
+            <button class="mobile-menu-btn" id="mobileMenuBtn">
+                <i class="fas fa-bars"></i>
+            </button>
+            
+            <nav class="nav-menu" id="navMenu">
+                <div class="nav-item">
+                    <a href="mesas.html" class="nav-link active">
+                        <i class="fas fa-table"></i>
+                        <span>Mesas</span>
+                    </a>
+                </div>
+                
+                <div class="nav-item">
+                    <a href="ranking.html" class="nav-link">
+                        <i class="fas fa-trophy"></i>
+                        <span>Ranking</span>
+                    </a>
+                </div>
+                
+                <div class="nav-item">
+                    <a href="notificacoes.html" class="nav-link">
+                        <i class="fas fa-bell"></i>
+                        <span>Notificações</span>
+                    </a>
+                </div>
+                
+                <div class="nav-item">
+                    <a href="clube.html" class="nav-link">
+                        <i class="fas fa-users"></i>
+                        <span>Meu Clube</span>
+                    </a>
+                </div>
+                
+                <div class="nav-item">
+                    <a href="conta.html" class="nav-link">
+                        <i class="fas fa-user-circle"></i>
+                        <span>Minha Conta</span>
+                    </a>
+                </div>
+                
+                <div class="user-menu">
+                    <button id="depositBtn" class="btn btn-deposit">
+                        <i class="fas fa-plus-circle"></i> Depositar
+                    </button>
+                    <button id="logoutBtn" class="btn btn-logout">
+                        <i class="fas fa-sign-out-alt"></i> Sair
+                    </button>
+                </div>
+            </nav>
+        </div>
+    </header>
+    
+    <!-- Conteúdo Principal -->
+    <main class="tables-main">
+        <div class="container">
+            <div class="page-header">
+                <div class="page-title">
+                    <h1>Mesas de Poker</h1>
+                    <p>Encontre mesas disponíveis ou crie a sua própria</p>
+                </div>
+                <button id="createTableBtn" class="btn-create-table">
+                    <i class="fas fa-plus-circle"></i> Criar Nova Mesa
+                </button>
+            </div>
+            
+            <!-- Filtros -->
+            <section class="filters-section">
+                <div class="filters-grid">
+                    <div class="filter-group">
+                        <label class="filter-label">Tipo de Jogo</label>
+                        <select id="filterGameType" class="filter-select">
+                            <option value="all">Todos os Tipos</option>
+                            <option value="texas-holdem">Texas Hold'em</option>
+                            <option value="omaha">Omaha</option>
+                            <option value="7-card-stud">7 Card Stud</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label class="filter-label">Status</label>
+                        <select id="filterStatus" class="filter-select">
+                            <option value="all">Todos</option>
+                            <option value="waiting">Aguardando</option>
+                            <option value="playing">Em Andamento</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label class="filter-label">Buy-in Máx.</label>
+                        <select id="filterBuyIn" class="filter-select">
+                            <option value="all">Qualquer</option>
+                            <option value="100">Até 100</option>
+                            <option value="500">Até 500</option>
+                            <option value="1000">Até 1000</option>
+                            <option value="5000">Até 5000</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label class="filter-label">Jogadores</label>
+                        <select id="filterPlayers" class="filter-select">
+                            <option value="all">Qualquer</option>
+                            <option value="2">2 jogadores</option>
+                            <option value="4">4 jogadores</option>
+                            <option value="6">6 jogadores</option>
+                            <option value="9">9 jogadores</option>
+                        </select>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Grid de Mesas -->
+            <div id="tablesContainer" class="tables-grid">
+                <!-- As mesas serão carregadas aqui via JavaScript -->
+                <div class="loading">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <p>Carregando mesas...</p>
+                </div>
+            </div>
+            
+            <!-- Mensagem quando não houver mesas -->
+            <div id="emptyTables" class="empty-message" style="display: none;">
+                <i class="fas fa-table"></i>
+                <h3>Nenhuma mesa disponível</h3>
+                <p>Seja o primeiro a criar uma mesa e comece a jogar!</p>
+            </div>
+        </div>
+    </main>
+    
+    <!-- Modal Criar Mesa -->
+    <div id="createTableModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Criar Nova Mesa</h2>
+                <button class="close-modal" id="closeModalBtn">&times;</button>
+            </div>
+            
+            <form id="createTableForm">
+                <div class="form-group">
+                    <label class="form-label">Nome da Mesa</label>
+                    <input type="text" id="tableName" class="form-input" placeholder="Ex: Mesa Texas $100" required>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Tipo de Jogo</label>
+                        <select id="gameType" class="form-input" required>
+                            <option value="texas-holdem">Texas Hold'em</option>
+                            <option value="omaha">Omaha</option>
+                            <option value="7-card-stud">7 Card Stud</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Máx. Jogadores</label>
+                        <select id="maxPlayers" class="form-input" required>
+                            <option value="2">2</option>
+                            <option value="4">4</option>
+                            <option value="6" selected>6</option>
+                            <option value="8">8</option>
+                            <option value="9">9</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Buy-in (Fichas)</label>
+                        <input type="number" id="buyIn" class="form-input" min="10" max="10000" value="100" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Small Blind</label>
+                        <input type="number" id="smallBlind" class="form-input" min="1" max="100" value="1" required>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Big Blind</label>
+                        <input type="number" id="bigBlind" class="form-input" min="2" max="200" value="2" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Mesa Privada</label>
+                        <select id="isPrivate" class="form-input">
+                            <option value="false">Pública</option>
+                            <option value="true">Privada (só com senha)</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div id="passwordField" class="form-group" style="display: none;">
+                    <label class="form-label">Senha da Mesa</label>
+                    <input type="password" id="tablePassword" class="form-input" placeholder="Senha para entrar na mesa">
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="btn-cancel" id="cancelCreateBtn">Cancelar</button>
+                    <button type="submit" class="btn-submit">Criar Mesa</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-logo">KeepPoker</div>
+            
+            <div class="footer-links">
+                <a href="suporte.html">Suporte</a>
+                <a href="faq.html">FAQ</a>
+                <a href="regras.html">Regras</a>
+                <a href="responsavel.html">Jogo Responsável</a>
+                <a href="termos.html">Termos</a>
+                <a href="privacidade.html">Privacidade</a>
+            </div>
+            
+            <p class="copyright">
+                &copy; 2024 KeepPoker. Todos os direitos reservados. Jogue com responsabilidade.
+            </p>
+        </div>
+    </footer>
+
+        <script>
+        // Variáveis globais
+        let currentUser = null;
+        let userData = null;
+        let tablesUnsubscribe = null;
+        
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', function() {
+            // Verificar autenticação
+            auth.onAuthStateChanged(async function(user) {
+                if (user) {
+                    currentUser = user;
+                    await loadUserData();
+                    initTablesPage();
+                } else {
+                    window.location.href = 'login.html';
+                }
+            });
+            
+            // Inicializar relógio
+            updateClock();
+            setInterval(updateClock, 1000);
+            
+            // Menu mobile
+            const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+            const navMenu = document.getElementById('navMenu');
+            if (mobileMenuBtn) {
+                mobileMenuBtn.addEventListener('click', function() {
+                    navMenu.classList.toggle('nav-open');
+                    const icon = this.querySelector('i');
+                    if (navMenu.classList.contains('nav-open')) {
+                        icon.classList.remove('fa-bars');
+                        icon.classList.add('fa-times');
+                    } else {
+                        icon.classList.remove('fa-times');
+                        icon.classList.add('fa-bars');
+                    }
+                });
+            }
+            
+            // Logout
+            const logoutBtn = document.getElementById('logoutBtn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', function() {
+                    auth.signOut().then(() => {
+                        localStorage.removeItem('keepPokerUser');
+                        window.location.href = 'index.html';
+                    }).catch(error => {
+                        console.error('Erro ao fazer logout:', error);
+                        localStorage.removeItem('keepPokerUser');
+                        window.location.href = 'index.html';
+                    });
+                });
+            }
+            
+            // Depositar
+            const depositBtn = document.getElementById('depositBtn');
+            if (depositBtn) {
+                depositBtn.addEventListener('click', function() {
+                    showNotification('Funcionalidade de depósito em desenvolvimento', 'info');
+                });
+            }
+            
+            // Fechar menu mobile ao clicar em link
+            const navLinks = document.querySelectorAll('.nav-link');
+            navLinks.forEach(link => {
+                link.addEventListener('click', () => {
+                    if (window.innerWidth <= 992) {
+                        navMenu.classList.remove('nav-open');
+                        if (mobileMenuBtn) {
+                            mobileMenuBtn.querySelector('i').classList.remove('fa-times');
+                            mobileMenuBtn.querySelector('i').classList.add('fa-bars');
+                        }
+                    }
+                });
+            });
+        });
+        
+        // Carregar dados do usuário
+        async function loadUserData() {
+            const user = localStorage.getItem('keepPokerUser');
+            if (user) {
+                userData = JSON.parse(user);
+                // Atualizar header
+                if (document.getElementById('playerId')) {
+                    document.getElementById('playerId').textContent = userData.playerId || '-';
+                    document.getElementById('diamondCount').textContent = userData.diamantes || '0';
+                    document.getElementById('goldCount').textContent = userData.saldo || '0';
+                }
+            }
+        }
+        
+        // Inicializar página de mesas
+        function initTablesPage() {
+            // Botão criar mesa
+            document.getElementById('createTableBtn').addEventListener('click', showCreateModal);
+            
+            // Modal criar mesa
+            document.getElementById('closeModalBtn').addEventListener('click', hideCreateModal);
+            document.getElementById('cancelCreateBtn').addEventListener('click', hideCreateModal);
+            
+            // Mostrar/esconder campo de senha
+            document.getElementById('isPrivate').addEventListener('change', function() {
+                const passwordField = document.getElementById('passwordField');
+                passwordField.style.display = this.value === 'true' ? 'block' : 'none';
+            });
+            
+            // Formulário criar mesa
+            document.getElementById('createTableForm').addEventListener('submit', createTable);
+            
+            // Filtros
+            document.getElementById('filterGameType').addEventListener('change', loadTables);
+            document.getElementById('filterStatus').addEventListener('change', loadTables);
+            document.getElementById('filterBuyIn').addEventListener('change', loadTables);
+            document.getElementById('filterPlayers').addEventListener('change', loadTables);
+            
+            // Carregar mesas
+            loadTables();
+        }
+        
+        // Carregar mesas do Firestore
+        function loadTables() {
+            // Remover listener anterior se existir
+            if (tablesUnsubscribe) {
+                tablesUnsubscribe();
+            }
+            
+            const tablesContainer = document.getElementById('tablesContainer');
+            tablesContainer.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i><p>Carregando mesas...</p></div>';
+            
+            // Obter filtros
+            const gameType = document.getElementById('filterGameType').value;
+            const status = document.getElementById('filterStatus').value;
+            const buyIn = document.getElementById('filterBuyIn').value;
+            const players = document.getElementById('filterPlayers').value;
+            
+            // Construir query
+            let query = db.collection('tables')
+                .where('status', '!=', 'finished') // Não mostrar mesas finalizadas
+                .orderBy('createdAt', 'desc');
+            
+            // Aplicar filtros
+            if (status !== 'all') {
+                query = query.where('status', '==', status);
+            }
+            
+            if (gameType !== 'all') {
+                query = query.where('gameType', '==', gameType);
+            }
+            
+            // Escutar mudanças em tempo real
+            tablesUnsubscribe = query.onSnapshot((snapshot) => {
+                const tables = [];
+                snapshot.forEach((doc) => {
+                    const table = doc.data();
+                    table.id = doc.id;
+                    
+                    // Aplicar filtros adicionais (que não podem ser feitos no Firestore diretamente)
+                    if (buyIn !== 'all' && table.buyIn > parseInt(buyIn)) {
+                        return;
+                    }
+                    
+                    if (players !== 'all' && table.maxPlayers !== parseInt(players)) {
+                        return;
+                    }
+                    
+                    tables.push(table);
+                });
+                
+                renderTables(tables);
+            }, (error) => {
+                console.error('Erro ao carregar mesas:', error);
+                showNotification('Erro ao carregar mesas', 'error');
+            });
+        }
+        
+        // Renderizar mesas na tela
+        function renderTables(tables) {
+            const tablesContainer = document.getElementById('tablesContainer');
+            const emptyMessage = document.getElementById('emptyTables');
+            
+            if (tables.length === 0) {
+                tablesContainer.innerHTML = '';
+                emptyMessage.style.display = 'block';
+                return;
+            }
+            
+            emptyMessage.style.display = 'none';
+            let tablesHTML = '';
+            
+            tables.forEach((table) => {
+                // Determinar status da mesa
+                let statusClass = 'status-waiting';
+                let statusText = 'Aguardando';
+                
+                if (table.status === 'playing') {
+                    statusClass = 'status-playing';
+                    statusText = 'Em Andamento';
+                } else if (table.currentPlayers >= table.maxPlayers) {
+                    statusClass = 'status-full';
+                    statusText = 'Lotada';
+                }
+                
+                // Gerar slots de jogadores
+                let playersHTML = '';
+                const totalSlots = table.maxPlayers;
+                const occupiedSlots = table.players ? table.players.length : 0;
+                
+                for (let i = 0; i < totalSlots; i++) {
+                    if (i < occupiedSlots) {
+                        playersHTML += `<div class="player-slot occupied">J${i + 1}</div>`;
+                    } else {
+                        playersHTML += `<div class="player-slot empty">Vazio</div>`;
+                    }
+                }
+                
+                // Verificar se usuário pode entrar
+                const canEnter = table.status === 'waiting' && 
+                                 table.currentPlayers < table.maxPlayers &&
+                                 (!table.isPrivate || table.createdBy === currentUser.uid);
+                
+                // Botão de ação
+                let actionButton;
+                if (table.status === 'playing') {
+                    actionButton = `<button class="btn-table btn-view" onclick="viewTable('${table.id}')">Assistir</button>`;
+                } else if (canEnter) {
+                    actionButton = `<button class="btn-table btn-enter" onclick="enterTable('${table.id}')">Entrar</button>`;
+                } else {
+                    actionButton = `<button class="btn-table btn-full" disabled>Lotada</button>`;
+                }
+                
+                tablesHTML += `
+                    <div class="table-card">
+                        <div class="table-card-header">
+                            <h3 class="table-name">${table.name}</h3>
+                            <span class="table-status ${statusClass}">${statusText}</span>
+                        </div>
+                        
+                        <div class="table-details">
+                            <div class="detail-row">
+                                <span class="detail-label">Tipo de Jogo</span>
+                                <span class="detail-value">${getGameTypeName(table.gameType)}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Buy-in</span>
+                                <span class="detail-value">${table.buyIn} fichas</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Blinds</span>
+                                <span class="detail-value">${table.smallBlind}/${table.bigBlind}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="players-section">
+                            <div class="players-title">
+                                <i class="fas fa-users"></i>
+                                <span>Jogadores (${table.currentPlayers || 0}/${table.maxPlayers})</span>
+                            </div>
+                            <div class="players-grid">
+                                ${playersHTML}
+                            </div>
+                        </div>
+                        
+                        <div class="table-actions">
+                            ${actionButton}
+                            <button class="btn-table btn-view" onclick="viewTableDetails('${table.id}')">Detalhes</button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            tablesContainer.innerHTML = tablesHTML;
+        }
+        
+        // Obter nome do tipo de jogo
+        function getGameTypeName(gameType) {
+            const names = {
+                'texas-holdem': 'Texas Hold\'em',
+                'omaha': 'Omaha',
+                '7-card-stud': '7 Card Stud'
+            };
+            return names[gameType] || gameType;
+        }
+        
+        // Mostrar modal de criação
+        function showCreateModal() {
+            // Verificar saldo do usuário
+            if (userData && userData.saldo < 100) {
+                showNotification('Saldo insuficiente para criar uma mesa', 'error');
+                return;
+            }
+            
+            document.getElementById('createTableModal').style.display = 'flex';
+            document.getElementById('tableName').focus();
+        }
+        
+        // Esconder modal
+        function hideCreateModal() {
+            document.getElementById('createTableModal').style.display = 'none';
+            document.getElementById('createTableForm').reset();
+            document.getElementById('passwordField').style.display = 'none';
+        }
+        
+        // Criar nova mesa
+        async function createTable(e) {
+            e.preventDefault();
+            
+            const tableName = document.getElementById('tableName').value;
+            const gameType = document.getElementById('gameType').value;
+            const maxPlayers = parseInt(document.getElementById('maxPlayers').value);
+            const buyIn = parseInt(document.getElementById('buyIn').value);
+            const smallBlind = parseInt(document.getElementById('smallBlind').value);
+            const bigBlind = parseInt(document.getElementById('bigBlind').value);
+            const isPrivate = document.getElementById('isPrivate').value === 'true';
+            const password = document.getElementById('tablePassword').value;
+            
+            // Validações
+            if (bigBlind <= smallBlind) {
+                showNotification('Big Blind deve ser maior que Small Blind', 'error');
+                return;
+            }
+            
+            if (buyIn < 10) {
+                showNotification('Buy-in mínimo é 10 fichas', 'error');
+                return;
+            }
+            
+            if (isPrivate && !password) {
+                showNotification('Digite uma senha para mesa privada', 'error');
+                return;
+            }
+            
+            // Verificar saldo novamente
+            if (userData.saldo < buyIn) {
+                showNotification(`Saldo insuficiente. Você precisa de ${buyIn} fichas`, 'error');
+                return;
+            }
+            
+            // Criar objeto da mesa
+            const newTable = {
+                name: tableName,
+                gameType: gameType,
+                maxPlayers: maxPlayers,
+                currentPlayers: 1,
+                buyIn: buyIn,
+                smallBlind: smallBlind,
+                bigBlind: bigBlind,
+                status: 'waiting',
+                createdBy: currentUser.uid,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                isPrivate: isPrivate,
+                clubId: null,
+                password: isPrivate ? password : null,
+                players: [{
+                    userId: currentUser.uid,
+                    position: 1,
+                    chips: buyIn,
+                    status: 'ready',
+                    isOwner: true
+                }]
+            };
+            
+            try {
+                // Adicionar ao Firestore
+                const docRef = await db.collection('tables').add(newTable);
+                
+                // Subtrair buy-in do saldo do usuário
+                await db.collection('users').doc(currentUser.uid).update({
+                    saldo: firebase.firestore.FieldValue.increment(-buyIn)
+                });
+                
+                // Atualizar localmente
+                userData.saldo -= buyIn;
+                localStorage.setItem('keepPokerUser', JSON.stringify(userData));
+                document.getElementById('goldCount').textContent = userData.saldo;
+                
+                showNotification(`Mesa "${tableName}" criada com sucesso!`, 'success');
+                hideCreateModal();
+                
+                // Redirecionar para a mesa após 1.5 segundos
+                setTimeout(() => {
+                    window.location.href = `mesa.html?tableId=${docRef.id}`;
+                }, 1500);
+                
+            } catch (error) {
+                console.error('Erro ao criar mesa:', error);
+                showNotification('Erro ao criar mesa. Tente novamente.', 'error');
+            }
+        }
+        
+        // Entrar em uma mesa
+        async function enterTable(tableId) {
+            try {
+                // Buscar dados da mesa
+                const tableDoc = await db.collection('tables').doc(tableId).get();
+                if (!tableDoc.exists) {
+                    showNotification('Mesa não encontrada', 'error');
+                    return;
+                }
+                
+                const table = tableDoc.data();
+                
+                // Verificar se mesa está cheia
+                if (table.currentPlayers >= table.maxPlayers) {
+                    showNotification('Mesa está lotada', 'error');
+                    return;
+                }
+                
+                // Verificar se usuário já está na mesa
+                const isAlreadyInTable = table.players?.some(p => p.userId === currentUser.uid);
+                if (isAlreadyInTable) {
+                    showNotification('Você já está nesta mesa', 'error');
+                    window.location.href = `mesa.html?tableId=${tableId}`;
+                    return;
+                }
+                
+                // Verificar saldo
+                if (userData.saldo < table.buyIn) {
+                    showNotification(`Saldo insuficiente. Você precisa de ${table.buyIn} fichas`, 'error');
+                    return;
+                }
+                
+                // Verificar senha se for privada
+                if (table.isPrivate && table.createdBy !== currentUser.uid) {
+                    const password = prompt('Digite a senha da mesa:');
+                    if (password !== table.password) {
+                        showNotification('Senha incorreta', 'error');
+                        return;
+                    }
+                }
+                
+                // Encontrar próxima posição disponível
+                let position = 1;
+                const occupiedPositions = table.players?.map(p => p.position) || [];
+                while (occupiedPositions.includes(position)) {
+                    position++;
+                }
+                
+                // Adicionar jogador à mesa
+                const newPlayer = {
+                    userId: currentUser.uid,
+                    position: position,
+                    chips: table.buyIn,
+                    status: 'waiting',
+                    isOwner: false
+                };
+                
+                // Atualizar mesa
+                await db.collection('tables').doc(tableId).update({
+                    currentPlayers: firebase.firestore.FieldValue.increment(1),
+                    players: firebase.firestore.FieldValue.arrayUnion(newPlayer)
+                });
+                
+                // Subtrair buy-in do saldo
+                await db.collection('users').doc(currentUser.uid).update({
+                    saldo: firebase.firestore.FieldValue.increment(-table.buyIn)
+                });
+                
+                // Atualizar localmente
+                userData.saldo -= table.buyIn;
+                localStorage.setItem('keepPokerUser', JSON.stringify(userData));
+                document.getElementById('goldCount').textContent = userData.saldo;
+                
+                // Redirecionar para a mesa
+                window.location.href = `mesa.html?tableId=${tableId}`;
+                
+            } catch (error) {
+                console.error('Erro ao entrar na mesa:', error);
+                showNotification('Erro ao entrar na mesa', 'error');
+            }
+        }
+        
+        // Visualizar detalhes da mesa
+        function viewTableDetails(tableId) {
+            showNotification('Redirecionando para detalhes da mesa...', 'info');
+        }
+        
+        // Visualizar mesa (assistir)
+        function viewTable(tableId) {
+            window.location.href = `mesa.html?tableId=${tableId}&spectator=true`;
+        }
+        
+        // Atualizar relógio
+        function updateClock() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('pt-BR', {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            document.getElementById('currentTime').textContent = timeString;
+        }
+        
+        // Mostrar notificação
+        function showNotification(message, type) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = 'notification ' + type;
+            notification.style.display = 'block';
+            
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 4000);
+        }
+    </script>
+</body>
+</html>
