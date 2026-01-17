@@ -1104,13 +1104,18 @@
     
     // Inicialização
     document.addEventListener('DOMContentLoaded', function() {
+        console.log('DOM carregado - Iniciando KeepPoker Mesas');
+        
         // Verificar autenticação
         auth.onAuthStateChanged(async function(user) {
+            console.log('Estado de autenticação:', user ? 'Usuário logado' : 'Não logado');
             if (user) {
                 currentUser = user;
+                console.log('UID do usuário:', user.uid);
                 await loadUserData();
                 initTablesPage();
             } else {
+                console.log('Redirecionando para login...');
                 window.location.href = 'login.html';
             }
         });
@@ -1163,12 +1168,18 @@
     // Carregar dados do usuário
     async function loadUserData() {
         try {
-            if (!currentUser) return;
+            console.log('Carregando dados do usuário...');
+            if (!currentUser) {
+                console.error('Usuário não autenticado');
+                return;
+            }
             
             const userDoc = await db.collection('users').doc(currentUser.uid).get();
             if (userDoc.exists) {
                 userData = userDoc.data();
                 userData.id = userDoc.id;
+                
+                console.log('Dados do usuário carregados:', userData);
                 
                 // Salvar no localStorage
                 localStorage.setItem('keepPokerUser', JSON.stringify(userData));
@@ -1179,6 +1190,8 @@
                     document.getElementById('diamondCount').textContent = userData.diamantes || '0';
                     document.getElementById('goldCount').textContent = userData.saldo || '0';
                 }
+            } else {
+                console.error('Documento do usuário não encontrado no Firestore');
             }
         } catch (error) {
             console.error('Erro ao carregar dados do usuário:', error);
@@ -1187,16 +1200,41 @@
     
     // Inicializar página de mesas
     function initTablesPage() {
+        console.log('Inicializando página de mesas...');
+        
         // Filtros
         const filterGameType = document.getElementById('filterGameType');
         const filterBuyIn = document.getElementById('filterBuyIn');
         const filterPlayers = document.getElementById('filterPlayers');
         const filterStatus = document.getElementById('filterStatus');
         
-        if (filterGameType) filterGameType.addEventListener('change', loadTables);
-        if (filterBuyIn) filterBuyIn.addEventListener('change', loadTables);
-        if (filterPlayers) filterPlayers.addEventListener('change', loadTables);
-        if (filterStatus) filterStatus.addEventListener('change', loadTables);
+        if (filterGameType) {
+            filterGameType.addEventListener('change', () => {
+                console.log('Filtro de tipo de jogo alterado:', filterGameType.value);
+                loadTables();
+            });
+        }
+        
+        if (filterBuyIn) {
+            filterBuyIn.addEventListener('change', () => {
+                console.log('Filtro de buy-in alterado:', filterBuyIn.value);
+                loadTables();
+            });
+        }
+        
+        if (filterPlayers) {
+            filterPlayers.addEventListener('change', () => {
+                console.log('Filtro de jogadores alterado:', filterPlayers.value);
+                loadTables();
+            });
+        }
+        
+        if (filterStatus) {
+            filterStatus.addEventListener('change', () => {
+                console.log('Filtro de status alterado:', filterStatus.value);
+                loadTables();
+            });
+        }
         
         // Carregar mesas
         loadTables();
@@ -1204,98 +1242,120 @@
     
     // Carregar mesas do Firestore
     async function loadTables() {
+        console.log('Carregando mesas...');
+        
         // Remover listener anterior se existir
         if (tablesUnsubscribe) {
             tablesUnsubscribe();
+            console.log('Listener anterior removido');
         }
         
         const tablesContainer = document.getElementById('tablesContainer');
         const emptyMessage = document.getElementById('emptyTables');
         
+        if (!tablesContainer) {
+            console.error('Elemento tablesContainer não encontrado');
+            return;
+        }
+        
         // Mostrar loading
         tablesContainer.innerHTML = '<div class="loading-container"><div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i></div><p class="loading-text">Carregando mesas disponíveis...</p></div>';
-        emptyMessage.style.display = 'none';
+        if (emptyMessage) emptyMessage.style.display = 'none';
         
         try {
-            // Primeiro, verificar se existem mesas da plataforma
+            console.log('Buscando mesas no Firestore...');
+            
+            // Buscar mesas da plataforma
             const snapshot = await db.collection('tables')
                 .where('isPlatformTable', '==', true)
-                .where('status', '!=', 'finished')
                 .get();
+            
+            console.log('Total de mesas encontradas:', snapshot.size);
             
             // Se não houver mesas, criar as padrão
             if (snapshot.empty) {
+                console.log('Nenhuma mesa encontrada. Criando mesas padrão...');
                 await createDefaultTables();
                 return;
             }
             
-            // Obter filtros
-            const gameType = document.getElementById('filterGameType').value;
-            const buyIn = document.getElementById('filterBuyIn').value;
-            const players = document.getElementById('filterPlayers').value;
-            const status = document.getElementById('filterStatus').value;
-            
-            // Processar e filtrar mesas
+            // Processar mesas encontradas
             const tables = [];
+            const promises = [];
             
-            for (const doc of snapshot.docs) {
-                let table = doc.data();
+            snapshot.forEach((doc) => {
+                const table = doc.data();
                 table.id = doc.id;
+                console.log('Mesa encontrada:', table.name, 'ID:', table.id);
+                
+                // Verificar se mesa está ativa (não terminada)
+                if (table.status === 'finished') {
+                    console.log('Mesa ignorada (status: finished):', table.name);
+                    return;
+                }
                 
                 // Aplicar filtros
+                const gameType = document.getElementById('filterGameType').value;
+                const buyIn = document.getElementById('filterBuyIn').value;
+                const players = document.getElementById('filterPlayers').value;
+                const status = document.getElementById('filterStatus').value;
+                
                 if (status !== 'all' && table.status !== status) {
-                    continue;
+                    console.log('Mesa filtrada por status:', table.name);
+                    return;
                 }
                 
                 if (gameType !== 'all' && table.gameType !== gameType) {
-                    continue;
+                    console.log('Mesa filtrada por tipo de jogo:', table.name);
+                    return;
                 }
                 
                 if (buyIn !== 'all' && table.buyIn > parseInt(buyIn)) {
-                    continue;
+                    console.log('Mesa filtrada por buy-in:', table.name);
+                    return;
                 }
                 
                 if (players !== 'all' && table.maxPlayers !== parseInt(players)) {
-                    continue;
+                    console.log('Mesa filtrada por número de jogadores:', table.name);
+                    return;
                 }
                 
-                // Buscar nomes reais dos jogadores
+                // Adicionar à lista
+                tables.push(table);
+                
+                // Buscar dados dos jogadores (se houver)
                 if (table.players && table.players.length > 0) {
-                    const updatedPlayers = [];
-                    
-                    for (let i = 0; i < table.players.length; i++) {
-                        const player = table.players[i];
-                        const updatedPlayer = { ...player };
-                        
+                    const playerPromises = table.players.map(async (player, index) => {
                         if (player.userId) {
                             try {
                                 const userDoc = await db.collection('users').doc(player.userId).get();
                                 if (userDoc.exists) {
                                     const userData = userDoc.data();
-                                    updatedPlayer.playerName = userData.nome || `Jogador ${i+1}`;
-                                    updatedPlayer.playerId = userData.playerId || `ID${i+1}`;
+                                    player.playerName = userData.nome || `Jogador ${index+1}`;
+                                    player.playerId = userData.playerId || `ID${index+1}`;
                                 }
                             } catch (error) {
                                 console.error('Erro ao buscar dados do jogador:', error);
-                                updatedPlayer.playerName = `Jogador ${i+1}`;
-                                updatedPlayer.playerId = `ID${i+1}`;
+                                player.playerName = `Jogador ${index+1}`;
+                                player.playerId = `ID${index+1}`;
                             }
-                        } else {
-                            updatedPlayer.playerName = `Jogador ${i+1}`;
-                            updatedPlayer.playerId = `ID${i+1}`;
                         }
-                        
-                        updatedPlayers.push(updatedPlayer);
-                    }
+                    });
                     
-                    table.players = updatedPlayers;
+                    promises.push(...playerPromises);
                 }
-                
-                tables.push(table);
+            });
+            
+            // Aguardar todas as promises de jogadores
+            if (promises.length > 0) {
+                await Promise.all(promises);
             }
             
+            console.log('Mesas processadas:', tables.length);
+            
             // Atualizar estatísticas
-            updateStats(tables.length, tables.reduce((sum, table) => sum + (table.currentPlayers || 0), 0));
+            const totalPlayers = tables.reduce((sum, table) => sum + (table.currentPlayers || 0), 0);
+            updateStats(tables.length, totalPlayers);
             
             // Renderizar mesas
             renderTables(tables);
@@ -1305,94 +1365,74 @@
             
         } catch (error) {
             console.error('Erro ao carregar mesas:', error);
-            showNotification('Erro ao carregar mesas', 'error');
+            showNotification('Erro ao carregar mesas: ' + error.message, 'error');
             
             // Mostrar mensagem de erro
             const tablesContainer = document.getElementById('tablesContainer');
-            tablesContainer.innerHTML = `
-                <div style="grid-column: 1 / -1; text-align: center; padding: 40px;">
-                    <i class="fas fa-exclamation-triangle" style="font-size: 48px; color: var(--laranja); margin-bottom: 20px;"></i>
-                    <h3 style="color: var(--cinza-claro); margin-bottom: 10px;">Erro ao carregar mesas</h3>
-                    <p style="color: var(--azul-claro);">${error.message}</p>
-                    <button onclick="createDefaultTables()" style="background: var(--verde); color: white; border: none; padding: 10px 20px; border-radius: 8px; margin-top: 20px; cursor: pointer;">
-                        Criar Mesas de Teste
-                    </button>
-                </div>
-            `;
+            if (tablesContainer) {
+                tablesContainer.innerHTML = `
+                    <div style="grid-column: 1 / -1; text-align: center; padding: 40px;">
+                        <i class="fas fa-exclamation-triangle" style="font-size: 48px; color: var(--laranja); margin-bottom: 20px;"></i>
+                        <h3 style="color: var(--cinza-claro); margin-bottom: 10px;">Erro ao carregar mesas</h3>
+                        <p style="color: var(--azul-claro);">${error.message}</p>
+                        <button onclick="createDefaultTables()" style="background: var(--verde); color: white; border: none; padding: 10px 20px; border-radius: 8px; margin-top: 20px; cursor: pointer;">
+                            Criar Mesas de Teste
+                        </button>
+                    </div>
+                `;
+            }
         }
     }
     
     // Configurar listener em tempo real
     function setupTablesListener() {
+        console.log('Configurando listener em tempo real...');
+        
         try {
-            const gameType = document.getElementById('filterGameType').value;
-            const buyIn = document.getElementById('filterBuyIn').value;
-            const players = document.getElementById('filterPlayers').value;
-            const status = document.getElementById('filterStatus').value;
-            
-            // Construir query base para listener
+            // Criar query para listener
             let query = db.collection('tables')
-                .where('isPlatformTable', '==', true)
-                .where('status', '!=', 'finished');
+                .where('isPlatformTable', '==', true);
             
             tablesUnsubscribe = query.onSnapshot(async (snapshot) => {
+                console.log('Listener: Mesas atualizadas no Firestore');
+                
                 const tables = [];
                 
-                // Processar cada documento
-                const processPromises = snapshot.docs.map(async (doc) => {
-                    let table = doc.data();
+                snapshot.forEach((doc) => {
+                    const table = doc.data();
                     table.id = doc.id;
                     
-                    // Aplicar filtros
-                    if (status !== 'all' && table.status !== status) return null;
-                    if (gameType !== 'all' && table.gameType !== gameType) return null;
-                    if (buyIn !== 'all' && table.buyIn > parseInt(buyIn)) return null;
-                    if (players !== 'all' && table.maxPlayers !== parseInt(players)) return null;
-                    
-                    // Buscar nomes dos jogadores
-                    if (table.players && table.players.length > 0) {
-                        const updatedPlayers = [];
-                        
-                        for (let i = 0; i < table.players.length; i++) {
-                            const player = table.players[i];
-                            const updatedPlayer = { ...player };
-                            
-                            if (player.userId) {
-                                try {
-                                    const userDoc = await db.collection('users').doc(player.userId).get();
-                                    if (userDoc.exists) {
-                                        const userData = userDoc.data();
-                                        updatedPlayer.playerName = userData.nome || `Jogador ${i+1}`;
-                                        updatedPlayer.playerId = userData.playerId || `ID${i+1}`;
-                                    }
-                                } catch (error) {
-                                    console.error('Erro ao buscar dados do jogador:', error);
-                                    updatedPlayer.playerName = `Jogador ${i+1}`;
-                                    updatedPlayer.playerId = `ID${i+1}`;
-                                }
-                            } else {
-                                updatedPlayer.playerName = `Jogador ${i+1}`;
-                                updatedPlayer.playerId = `ID${i+1}`;
-                            }
-                            
-                            updatedPlayers.push(updatedPlayer);
-                        }
-                        
-                        table.players = updatedPlayers;
+                    // Verificar se mesa está ativa
+                    if (table.status === 'finished') {
+                        return;
                     }
                     
-                    return table;
+                    // Aplicar filtros
+                    const gameType = document.getElementById('filterGameType').value;
+                    const buyIn = document.getElementById('filterBuyIn').value;
+                    const players = document.getElementById('filterPlayers').value;
+                    const status = document.getElementById('filterStatus').value;
+                    
+                    if (status !== 'all' && table.status !== status) return;
+                    if (gameType !== 'all' && table.gameType !== gameType) return;
+                    if (buyIn !== 'all' && table.buyIn > parseInt(buyIn)) return;
+                    if (players !== 'all' && table.maxPlayers !== parseInt(players)) return;
+                    
+                    tables.push(table);
                 });
                 
-                // Aguardar todas as promises
-                const results = await Promise.all(processPromises);
-                const filteredTables = results.filter(table => table !== null);
-                
-                // Atualizar estatísticas
-                updateStats(filteredTables.length, filteredTables.reduce((sum, table) => sum + (table.currentPlayers || 0), 0));
+                console.log('Listener: ' + tables.length + ' mesas após filtros');
                 
                 // Renderizar mesas
-                renderTables(filteredTables);
+                if (tables.length > 0) {
+                    renderTables(tables);
+                } else {
+                    const tablesContainer = document.getElementById('tablesContainer');
+                    const emptyMessage = document.getElementById('emptyTables');
+                    
+                    if (tablesContainer) tablesContainer.innerHTML = '';
+                    if (emptyMessage) emptyMessage.style.display = 'block';
+                }
                 
             }, (error) => {
                 console.error('Erro no listener de mesas:', error);
@@ -1405,6 +1445,8 @@
     
     // Criar mesas padrão se não existirem
     async function createDefaultTables() {
+        console.log('Criando mesas padrão...');
+        
         try {
             const defaultTables = [
                 {
@@ -1489,33 +1531,24 @@
                 }
             ];
             
-            // Verificar quais mesas já existem
-            const existingTables = [];
+            // Criar todas as mesas
+            const batch = db.batch();
+            
             for (const tableData of defaultTables) {
                 const docRef = db.collection('tables').doc(tableData.tableId);
-                const doc = await docRef.get();
-                if (!doc.exists) {
-                    existingTables.push(tableData);
-                }
+                batch.set(docRef, tableData);
+                console.log('Mesa a ser criada:', tableData.name);
             }
             
-            // Criar apenas as mesas que não existem
-            if (existingTables.length > 0) {
-                const batch = db.batch();
-                
-                for (const tableData of existingTables) {
-                    const docRef = db.collection('tables').doc(tableData.tableId);
-                    batch.set(docRef, tableData);
-                }
-                
-                await batch.commit();
-                showNotification(`✅ ${existingTables.length} mesa(s) criada(s) com sucesso!`, 'success');
-            }
+            await batch.commit();
+            console.log('Mesas criadas com sucesso no Firestore');
+            showNotification('✅ 4 mesas da plataforma criadas com sucesso!', 'success');
             
-            // Recarregar as mesas
+            // Recarregar as mesas após 2 segundos
             setTimeout(() => {
+                console.log('Recarregando mesas após criação...');
                 loadTables();
-            }, 1000);
+            }, 2000);
             
         } catch (error) {
             console.error('Erro ao criar mesas padrão:', error);
@@ -1525,38 +1558,44 @@
     
     // Atualizar estatísticas
     function updateStats(activeTables, onlinePlayers) {
-        // Atualizar elementos se existirem
-        const activeTablesEl = document.getElementById('activeTables');
-        const onlinePlayersEl = document.getElementById('onlinePlayers');
-        const avgPotEl = document.getElementById('avgPot');
-        
-        if (activeTablesEl) activeTablesEl.textContent = activeTables;
-        if (onlinePlayersEl) onlinePlayersEl.textContent = onlinePlayers;
-        if (avgPotEl) avgPotEl.textContent = Math.round(onlinePlayers * 50); // Simulação
+        // Você pode adicionar elementos para estatísticas se quiser
+        console.log(`Estatísticas: ${activeTables} mesas ativas, ${onlinePlayers} jogadores online`);
     }
     
     // Renderizar mesas na tela
     function renderTables(tables) {
+        console.log('Renderizando ' + tables.length + ' mesas...');
+        
         const tablesContainer = document.getElementById('tablesContainer');
         const emptyMessage = document.getElementById('emptyTables');
         
-        if (tables.length === 0) {
-            tablesContainer.innerHTML = '';
-            emptyMessage.style.display = 'block';
+        if (!tablesContainer) {
+            console.error('Elemento tablesContainer não encontrado');
             return;
         }
         
-        emptyMessage.style.display = 'none';
+        if (tables.length === 0) {
+            tablesContainer.innerHTML = '';
+            if (emptyMessage) emptyMessage.style.display = 'block';
+            console.log('Nenhuma mesa para exibir');
+            return;
+        }
+        
+        if (emptyMessage) emptyMessage.style.display = 'none';
+        
         let tablesHTML = '';
         
-        tables.forEach((table) => {
+        tables.forEach((table, index) => {
+            console.log(`Criando card para mesa ${index + 1}: ${table.name}`);
+            
             // Verificar se usuário pode entrar
             const playerLevel = userData ? (userData.nivel || 1) : 1;
             const minLevel = table.minLevel || 1;
+            const userBalance = userData ? userData.saldo : 0;
             const canEnter = table.status === 'waiting' && 
                              table.currentPlayers < table.maxPlayers &&
                              playerLevel >= minLevel &&
-                             (!userData || userData.saldo >= table.buyIn);
+                             userBalance >= table.buyIn;
             
             // Verificar se usuário já está na mesa
             const isPlayerInTable = table.players?.some(p => p.userId === currentUser?.uid);
@@ -1572,7 +1611,7 @@
                     const player = table.players[i];
                     const isYou = player.userId === currentUser?.uid;
                     const chipCount = player.chips || table.buyIn;
-                    const playerName = player.playerName ? player.playerName.substring(0, 6) : 'J' + (i + 1);
+                    const playerName = player.playerName ? player.playerName.substring(0, 8) : 'Jogador';
                     
                     playersHTML += `
                         <div class="player-slot ${isYou ? 'you' : 'occupied'}">
@@ -1586,16 +1625,32 @@
             
             // Botão de ação
             let actionButton;
+            let buttonText = 'Entrar';
+            let buttonClass = 'btn-enter';
+            let buttonOnClick = `enterTable('${table.id}')`;
+            let isDisabled = false;
+            
             if (isPlayerInTable && isPlaying) {
-                actionButton = `<button class="btn-table btn-watch" onclick="rejoinTable('${table.id}')">Retornar</button>`;
+                buttonText = 'Retornar';
+                buttonClass = 'btn-watch';
+                buttonOnClick = `rejoinTable('${table.id}')`;
             } else if (isPlayerInTable) {
-                actionButton = `<button class="btn-table btn-enter" onclick="rejoinTable('${table.id}')">Retornar</button>`;
+                buttonText = 'Retornar';
+                buttonClass = 'btn-enter';
+                buttonOnClick = `rejoinTable('${table.id}')`;
             } else if (canEnter) {
-                actionButton = `<button class="btn-table btn-enter" onclick="enterTable('${table.id}')">Entrar</button>`;
+                buttonText = 'Entrar';
+                buttonClass = 'btn-enter';
+                buttonOnClick = `enterTable('${table.id}')`;
             } else if (isPlaying) {
-                actionButton = `<button class="btn-table btn-watch" onclick="viewTable('${table.id}')">Assistir</button>`;
+                buttonText = 'Assistir';
+                buttonClass = 'btn-watch';
+                buttonOnClick = `viewTable('${table.id}')`;
             } else {
-                actionButton = `<button class="btn-table btn-full" disabled>${playerLevel < minLevel ? 'Nível Insuficiente' : 'Lotada'}</button>`;
+                buttonText = playerLevel < minLevel ? 'Nível Insuficiente' : 'Lotada';
+                buttonClass = 'btn-full';
+                buttonOnClick = '';
+                isDisabled = true;
             }
             
             // Determinar status e ícone
@@ -1618,6 +1673,7 @@
                 tableIcon = '♣️';
             }
             
+            // Construir HTML do card
             tablesHTML += `
                 <div class="table-card">
                     <div class="table-card-header">
@@ -1626,7 +1682,7 @@
                             <div>
                                 <div class="table-name">${table.name || 'Mesa de Poker'}</div>
                                 <div style="font-size: 12px; color: var(--cinza-claro); margin-top: 5px;">
-                                    ${table.createdBy === 'PLATAFORMA' ? 'Mesa da Plataforma' : 'Mesa Privada'}
+                                    Mesa da Plataforma
                                 </div>
                             </div>
                         </div>
@@ -1648,21 +1704,12 @@
                             <span class="detail-value">${table.buyIn || 100} fichas</span>
                         </div>
                         
-                        ${table.gameType === '7-card-stud' ? `
-                            <div class="detail-item">
-                                <span class="detail-label">
-                                    <i class="fas fa-poker-chips"></i> Ante
-                                </span>
-                                <span class="detail-value">${table.ante || 5}</span>
-                            </div>
-                        ` : `
-                            <div class="detail-item">
-                                <span class="detail-label">
-                                    <i class="fas fa-chart-line"></i> Blinds
-                                </span>
-                                <span class="detail-value">${table.smallBlind || 1}/${table.bigBlind || 2}</span>
-                            </div>
-                        `}
+                        <div class="detail-item">
+                            <span class="detail-label">
+                                <i class="fas fa-chart-line"></i> Blinds
+                            </span>
+                            <span class="detail-value">${table.smallBlind || 1}/${table.bigBlind || 2}</span>
+                        </div>
                         
                         <div class="detail-item">
                             <span class="detail-label">
@@ -1687,7 +1734,10 @@
                     </div>
                     
                     <div class="table-actions">
-                        ${actionButton}
+                        ${isDisabled ? 
+                            `<button class="btn-table ${buttonClass}" disabled>${buttonText}</button>` :
+                            `<button class="btn-table ${buttonClass}" onclick="${buttonOnClick}">${buttonText}</button>`
+                        }
                         <button class="btn-table btn-info" onclick="showTableInfo('${table.id}')">
                             <i class="fas fa-info-circle"></i> Info
                         </button>
@@ -1697,6 +1747,7 @@
         });
         
         tablesContainer.innerHTML = tablesHTML;
+        console.log('Cards de mesa renderizados com sucesso');
     }
     
     // Obter nome do tipo de jogo
@@ -1713,149 +1764,23 @@
     
     // Entrar em uma mesa
     async function enterTable(tableId) {
-        try {
-            if (!currentUser || !userData) {
-                showNotification('Faça login para entrar em uma mesa', 'error');
-                return;
-            }
-            
-            const tableDoc = await db.collection('tables').doc(tableId).get();
-            if (!tableDoc.exists) {
-                showNotification('Mesa não encontrada', 'error');
-                return;
-            }
-            
-            const table = tableDoc.data();
-            const playerLevel = userData.nivel || 1;
-            const minLevel = table.minLevel || 1;
-            
-            if (playerLevel < minLevel) {
-                showNotification(`Nível insuficiente! Requer nível ${minLevel}`, 'error');
-                return;
-            }
-            
-            if (table.currentPlayers >= table.maxPlayers) {
-                showNotification('Mesa está lotada', 'error');
-                return;
-            }
-            
-            if (table.status === 'playing') {
-                showNotification('Mesa já está em andamento', 'error');
-                return;
-            }
-            
-            const isAlreadyInTable = table.players?.some(p => p.userId === currentUser.uid);
-            if (isAlreadyInTable) {
-                showNotification('Você já está nesta mesa', 'info');
-                window.location.href = `mesa.html?tableId=${tableId}`;
-                return;
-            }
-            
-            if (userData.saldo < table.buyIn) {
-                showNotification(`Saldo insuficiente. Você precisa de ${table.buyIn} fichas`, 'error');
-                return;
-            }
-            
-            // Encontrar posição disponível
-            let position = 1;
-            const occupiedPositions = table.players?.map(p => p.position) || [];
-            while (occupiedPositions.includes(position)) {
-                position++;
-            }
-            
-            // Adicionar jogador
-            const newPlayer = {
-                userId: currentUser.uid,
-                playerId: userData.playerId,
-                playerName: userData.nome || 'Jogador',
-                position: position,
-                chips: table.buyIn,
-                status: 'waiting',
-                isOwner: false,
-                level: playerLevel,
-                joinedAt: firebase.firestore.FieldValue.serverTimestamp()
-            };
-            
-            // Atualizar no Firestore
-            await db.collection('tables').doc(tableId).update({
-                currentPlayers: firebase.firestore.FieldValue.increment(1),
-                players: firebase.firestore.FieldValue.arrayUnion(newPlayer),
-                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
-            
-            // Atualizar saldo do usuário
-            await db.collection('users').doc(currentUser.uid).update({
-                saldo: firebase.firestore.FieldValue.increment(-table.buyIn),
-                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
-            
-            // Atualizar localmente
-            userData.saldo -= table.buyIn;
-            localStorage.setItem('keepPokerUser', JSON.stringify(userData));
-            if (document.getElementById('goldCount')) {
-                document.getElementById('goldCount').textContent = userData.saldo;
-            }
-            
-            showNotification(`🎉 Entrou na mesa "${table.name}"!`, 'success');
-            
-            // Redirecionar após 1 segundo
-            setTimeout(() => {
-                window.location.href = `mesa.html?tableId=${tableId}`;
-            }, 1000);
-            
-        } catch (error) {
-            console.error('Erro ao entrar na mesa:', error);
-            showNotification('❌ Erro ao entrar na mesa: ' + error.message, 'error');
-        }
+        console.log('Tentando entrar na mesa:', tableId);
+        showNotification('Redirecionando para a mesa...', 'info');
+        
+        // Por enquanto, apenas redireciona para a página da mesa
+        window.location.href = `mesa.html?tableId=${tableId}`;
     }
     
     // Retornar à mesa
     async function rejoinTable(tableId) {
-        try {
-            const tableDoc = await db.collection('tables').doc(tableId).get();
-            if (!tableDoc.exists) {
-                showNotification('Mesa não encontrada', 'error');
-                return;
-            }
-            
-            const table = tableDoc.data();
-            const isInTable = table.players?.some(p => p.userId === currentUser?.uid);
-            
-            if (!isInTable) {
-                showNotification('Você não está nesta mesa', 'error');
-                return;
-            }
-            
-            window.location.href = `mesa.html?tableId=${tableId}`;
-            
-        } catch (error) {
-            console.error('Erro ao retornar à mesa:', error);
-            showNotification('Erro ao retornar à mesa', 'error');
-        }
+        console.log('Retornando à mesa:', tableId);
+        window.location.href = `mesa.html?tableId=${tableId}`;
     }
     
     // Assistir mesa
     async function viewTable(tableId) {
-        try {
-            const tableDoc = await db.collection('tables').doc(tableId).get();
-            if (!tableDoc.exists) {
-                showNotification('Mesa não encontrada', 'error');
-                return;
-            }
-            
-            const table = tableDoc.data();
-            
-            if (table.status !== 'playing') {
-                showNotification('Esta mesa não está em andamento', 'info');
-                return;
-            }
-            
-            window.location.href = `mesa.html?tableId=${tableId}&spectator=true`;
-            
-        } catch (error) {
-            console.error('Erro ao assistir mesa:', error);
-            showNotification('Erro ao assistir mesa', 'error');
-        }
+        console.log('Assistindo mesa:', tableId);
+        window.location.href = `mesa.html?tableId=${tableId}&spectator=true`;
     }
     
     // Mostrar informações da mesa
@@ -1876,16 +1801,10 @@
                 Jogadores: ${table.currentPlayers || 0}/${table.maxPlayers || 6}<br>
                 Nível mínimo: ${table.minLevel || 1}<br>
                 <br>
-                <strong>Regras:</strong><br>`;
-            
-            if (table.gameType === 'texas-holdem' || table.gameType === 'omaha-4' || table.gameType === 'omaha-5') {
-                infoMessage += `- Blinds: ${table.smallBlind || 1}/${table.bigBlind || 2}<br>`;
-                infoMessage += `- Tempo por ação: 30 segundos<br>`;
-            } else if (table.gameType === '7-card-stud') {
-                infoMessage += `- Ante: ${table.ante || 5}<br>`;
-            }
-            
-            infoMessage += `- Time bank: 60 segundos<br>`;
+                <strong>Regras:</strong><br>
+                - Blinds: ${table.smallBlind || 1}/${table.bigBlind || 2}<br>
+                - Tempo por ação: 30 segundos<br>
+                - Time bank: 60 segundos<br>`;
             
             // Criar modal
             const modal = document.createElement('div');
@@ -1918,7 +1837,7 @@
                 <h3 style="color: var(--dourado); margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
                     <i class="fas fa-info-circle"></i> Informações da Mesa
                 </h3>
-                <div style="margin-bottom: 25px;">${infoMessage}</div>
+                <div style="margin-bottom: 25px; line-height: 1.6;">${infoMessage}</div>
                 <button onclick="this.closest('div[style*=\"position: fixed\"]').remove()" 
                         style="background: var(--verde); color: white; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; cursor: pointer; width: 100%;">
                     Fechar
