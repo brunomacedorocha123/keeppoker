@@ -1,0 +1,1719 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mesa de Poker - KeepPoker</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBIBucZSzN671VgJQHGIiepHNUqxbqNKAQ",
+            authDomain: "keeppoker-b4173.firebaseapp.com",
+            projectId: "keeppoker-b4173",
+            storageBucket: "keeppoker-b4173.firebasestorage.app",
+            messagingSenderId: "436464592434",
+            appId: "1:436464592434:web:c5a1e0c10e10acbc14fe2b"
+        };
+        
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+    </script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        :root {
+            --azul-profundo: #0d1b2a;
+            --azul-medio: #1b263b;
+            --azul-claro: #415a77;
+            --dourado: #d4af37;
+            --dourado-claro: #f7ef8a;
+            --branco: #ffffff;
+            --cinza-claro: #e0e1dd;
+            --verde: #2ecc71;
+            --vermelho: #e74c3c;
+            --roxo: #9b59b6;
+            --laranja: #e67e22;
+            --turquesa: #1abc9c;
+            --verde-feltro: #2d5016;
+            --verde-feltro-escuro: #1a300d;
+        }
+        
+        body {
+            background-color: var(--azul-profundo);
+            color: var(--cinza-claro);
+            min-height: 100vh;
+            overflow-x: hidden;
+            background-image: radial-gradient(circle at 50% 50%, var(--azul-medio) 0%, var(--azul-profundo) 100%);
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        /* Header do Torneio */
+        .tournament-header {
+            background: rgba(27, 38, 59, 0.9);
+            border-radius: 15px;
+            padding: 15px 30px;
+            margin-bottom: 20px;
+            border: 2px solid var(--dourado);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .tournament-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .tournament-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--dourado), var(--laranja));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+        }
+        
+        .tournament-details h1 {
+            font-size: 22px;
+            color: var(--branco);
+            margin-bottom: 5px;
+        }
+        
+        .tournament-details p {
+            font-size: 14px;
+            color: var(--cinza-claro);
+        }
+        
+        .tournament-stats {
+            display: flex;
+            gap: 25px;
+            flex-wrap: wrap;
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--dourado-claro);
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: var(--cinza-claro);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        /* Container Principal da Mesa */
+        .poker-table-container {
+            display: flex;
+            flex-direction: column;
+            min-height: calc(100vh - 200px);
+            position: relative;
+        }
+        
+        /* A Mesa de Poker */
+        .poker-table {
+            flex: 1;
+            background: var(--verde-feltro);
+            border-radius: 50% / 40%;
+            border: 15px solid #8B4513;
+            box-shadow: 
+                0 0 50px rgba(0, 0, 0, 0.8),
+                inset 0 0 100px rgba(0, 0, 0, 0.3);
+            margin: 40px auto;
+            width: 95%;
+            max-width: 1200px;
+            height: 600px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* Design da mesa */
+        .table-inner {
+            width: 90%;
+            height: 80%;
+            background: var(--verde-feltro-escuro);
+            border-radius: 50% / 40%;
+            border: 3px solid rgba(212, 175, 55, 0.3);
+            position: relative;
+            box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.5);
+        }
+        
+        /* Área Central */
+        .table-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 300px;
+            height: 150px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            border: 2px solid rgba(212, 175, 55, 0.2);
+        }
+        
+        .community-cards {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .pot-display {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 10px 20px;
+            border-radius: 10px;
+            border: 2px solid var(--dourado);
+        }
+        
+        .pot-label {
+            font-size: 12px;
+            color: var(--cinza-claro);
+            text-align: center;
+        }
+        
+        .pot-amount {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--dourado-claro);
+            text-align: center;
+        }
+        
+        /* Posições dos Jogadores */
+        .player-position {
+            position: absolute;
+            width: 200px;
+            height: 120px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+        
+        /* Posições específicas (6 jogadores) */
+        .position-0 { /* Bottom Center - Jogador atual */
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        
+        .position-1 { /* Bottom Right */
+            bottom: 40px;
+            right: 100px;
+        }
+        
+        .position-2 { /* Right Middle */
+            top: 50%;
+            right: 20px;
+            transform: translateY(-50%);
+        }
+        
+        .position-3 { /* Top Right */
+            top: 40px;
+            right: 100px;
+        }
+        
+        .position-4 { /* Top Center */
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        
+        .position-5 { /* Top Left */
+            top: 40px;
+            left: 100px;
+        }
+        
+        .position-6 { /* Left Middle */
+            top: 50%;
+            left: 20px;
+            transform: translateY(-50%);
+        }
+        
+        .position-7 { /* Bottom Left */
+            bottom: 40px;
+            left: 100px;
+        }
+        
+        /* Card do Jogador */
+        .player-card {
+            background: rgba(27, 38, 59, 0.9);
+            border-radius: 15px;
+            padding: 15px;
+            min-width: 180px;
+            border: 3px solid transparent;
+            transition: all 0.3s ease;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+        
+        .player-card.active {
+            border-color: var(--dourado);
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.5);
+        }
+        
+        .player-card.dealer {
+            border-color: var(--verde);
+        }
+        
+        .player-card.small-blind {
+            border-color: var(--azul-claro);
+        }
+        
+        .player-card.big-blind {
+            border-color: var(--laranja);
+        }
+        
+        .player-card.folded {
+            opacity: 0.5;
+            filter: grayscale(0.7);
+        }
+        
+        .player-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        
+        .player-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--azul-claro), var(--azul-medio));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: var(--cinza-claro);
+            overflow: hidden;
+        }
+        
+        .player-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .player-name {
+            flex: 1;
+            margin-left: 10px;
+            font-weight: 600;
+            color: var(--branco);
+            text-align: left;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .player-stack {
+            font-size: 18px;
+            font-weight: bold;
+            color: var(--dourado-claro);
+            margin: 10px 0;
+        }
+        
+        .player-bet {
+            background: rgba(212, 175, 55, 0.2);
+            padding: 5px 10px;
+            border-radius: 8px;
+            font-size: 14px;
+            color: var(--dourado-claro);
+            margin-top: 5px;
+        }
+        
+        .player-cards {
+            display: flex;
+            gap: 5px;
+            justify-content: center;
+            margin-top: 10px;
+        }
+        
+        /* Cartas */
+        .card {
+            width: 60px;
+            height: 90px;
+            background: white;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            font-weight: bold;
+            position: relative;
+            transition: transform 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .card-back {
+            background: linear-gradient(45deg, #1a237e, #283593);
+            border: 3px solid white;
+        }
+        
+        .card-back:before {
+            content: "♠";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 40px;
+            color: white;
+            opacity: 0.3;
+        }
+        
+        .card-heart, .card-diamond {
+            color: #e74c3c;
+        }
+        
+        .card-spade, .card-club {
+            color: #2c3e50;
+        }
+        
+        .card-top, .card-bottom {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .card-rank {
+            font-size: 20px;
+            line-height: 1;
+        }
+        
+        .card-suit {
+            font-size: 16px;
+            line-height: 1;
+        }
+        
+        .card-center {
+            font-size: 32px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        
+        /* Controles do Jogador */
+        .player-controls {
+            background: rgba(27, 38, 59, 0.95);
+            border-radius: 15px 15px 0 0;
+            padding: 20px;
+            margin-top: 20px;
+            border-top: 3px solid var(--dourado);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            position: relative;
+            z-index: 100;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .action-btn {
+            padding: 15px 25px;
+            border-radius: 10px;
+            border: none;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 120px;
+            justify-content: center;
+        }
+        
+        .btn-fold {
+            background: var(--vermelho);
+            color: white;
+        }
+        
+        .btn-fold:hover {
+            background: #c0392b;
+            transform: translateY(-2px);
+        }
+        
+        .btn-check {
+            background: var(--azul-claro);
+            color: white;
+        }
+        
+        .btn-check:hover {
+            background: #2c4877;
+            transform: translateY(-2px);
+        }
+        
+        .btn-call {
+            background: var(--verde);
+            color: white;
+        }
+        
+        .btn-call:hover {
+            background: #27ae60;
+            transform: translateY(-2px);
+        }
+        
+        .btn-raise {
+            background: var(--dourado);
+            color: var(--azul-profundo);
+        }
+        
+        .btn-raise:hover {
+            background: var(--dourado-claro);
+            transform: translateY(-2px);
+        }
+        
+        .btn-allin {
+            background: linear-gradient(45deg, var(--vermelho), var(--laranja));
+            color: white;
+        }
+        
+        .btn-allin:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(230, 126, 34, 0.4);
+        }
+        
+        .bet-controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .bet-input-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .bet-input {
+            padding: 12px;
+            border-radius: 8px;
+            border: 2px solid var(--azul-claro);
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 18px;
+            width: 150px;
+            text-align: center;
+        }
+        
+        .bet-input:focus {
+            outline: none;
+            border-color: var(--dourado);
+        }
+        
+        .bet-slider {
+            width: 200px;
+            -webkit-appearance: none;
+            height: 8px;
+            background: var(--azul-claro);
+            border-radius: 4px;
+            outline: none;
+        }
+        
+        .bet-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            background: var(--dourado);
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        
+        .bet-actions {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .bet-quick-btn {
+            padding: 8px 15px;
+            background: rgba(212, 175, 55, 0.2);
+            border: 1px solid var(--dourado);
+            color: var(--dourado-claro);
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+        
+        .bet-quick-btn:hover {
+            background: rgba(212, 175, 55, 0.3);
+        }
+        
+        .timer-display {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px 20px;
+            border-radius: 10px;
+            border: 2px solid var(--dourado);
+        }
+        
+        .timer {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--dourado-claro);
+        }
+        
+        /* Chips */
+        .chip {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            margin: 2px;
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
+        }
+        
+        .chip-10 { background: #3498db; } /* Azul */
+        .chip-25 { background: #2ecc71; } /* Verde */
+        .chip-50 { background: #e74c3c; } /* Vermelho */
+        .chip-100 { background: #f39c12; } /* Laranja */
+        .chip-500 { background: #9b59b6; } /* Roxo */
+        .chip-1000 { background: #2c3e50; border: 2px solid var(--dourado); } /* Preto com dourado */
+        
+        /* Modal de Aposta */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 10000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background: var(--azul-medio);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 500px;
+            width: 90%;
+            border: 3px solid var(--dourado);
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+        
+        .modal-title {
+            color: var(--dourado);
+            font-size: 24px;
+            font-weight: bold;
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--cinza-claro);
+            font-size: 28px;
+            cursor: pointer;
+        }
+        
+        .modal-body {
+            margin-bottom: 30px;
+        }
+        
+        .modal-actions {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .btn-modal {
+            flex: 1;
+            padding: 15px;
+            border-radius: 10px;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .btn-confirm {
+            background: var(--verde);
+            color: white;
+        }
+        
+        .btn-cancel {
+            background: var(--vermelho);
+            color: white;
+        }
+        
+        /* Notificações */
+        .notification-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10000;
+        }
+        
+        .notification {
+            padding: 15px 25px;
+            border-radius: 10px;
+            color: white;
+            font-weight: bold;
+            margin-bottom: 15px;
+            display: none;
+            animation: slideIn 0.3s ease;
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        .notification.success {
+            background: var(--verde);
+        }
+        
+        .notification.error {
+            background: var(--vermelho);
+        }
+        
+        .notification.info {
+            background: var(--azul-claro);
+        }
+        
+        /* Loading */
+        .loading-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(13, 27, 42, 0.95);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+        }
+        
+        .loading-spinner {
+            font-size: 50px;
+            color: var(--dourado);
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Responsividade */
+        @media (max-width: 1200px) {
+            .poker-table {
+                height: 500px;
+            }
+            
+            .player-position {
+                width: 170px;
+                height: 110px;
+            }
+            
+            .card {
+                width: 50px;
+                height: 75px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .poker-table {
+                height: 400px;
+            }
+            
+            .player-position {
+                width: 140px;
+                height: 90px;
+            }
+            
+            .player-card {
+                padding: 10px;
+                min-width: 140px;
+            }
+            
+            .card {
+                width: 40px;
+                height: 60px;
+            }
+            
+            .action-btn {
+                padding: 12px 15px;
+                min-width: 90px;
+                font-size: 14px;
+            }
+            
+            .tournament-header {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .tournament-stats {
+                justify-content: center;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .poker-table {
+                height: 350px;
+            }
+            
+            .player-position {
+                width: 120px;
+                height: 80px;
+            }
+            
+            .player-name {
+                font-size: 12px;
+            }
+            
+            .player-stack {
+                font-size: 14px;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .action-btn {
+                width: 90%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Notificações -->
+    <div class="notification-container">
+        <div id="notification" class="notification"></div>
+    </div>
+    
+    <!-- Modal de Aposta -->
+    <div id="betModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modalTitle">Fazer Aposta</h3>
+                <button class="modal-close" onclick="closeBetModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <div class="bet-input-container">
+                    <input type="number" id="betAmount" class="bet-input" min="0" value="0">
+                    <div>fichas</div>
+                </div>
+                <div style="margin-top: 15px;">
+                    <input type="range" id="betSlider" class="bet-slider" min="0" max="1000" value="0">
+                </div>
+                <div class="bet-actions" style="margin-top: 15px;">
+                    <button class="bet-quick-btn" onclick="setBetAmount(50)">50</button>
+                    <button class="bet-quick-btn" onclick="setBetAmount(100)">100</button>
+                    <button class="bet-quick-btn" onclick="setBetAmount(250)">250</button>
+                    <button class="bet-quick-btn" onclick="setBetAmount(500)">500</button>
+                    <button class="bet-quick-btn" onclick="setBetAmount(1000)">1000</button>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn-modal btn-cancel" onclick="closeBetModal()">Cancelar</button>
+                <button class="btn-modal btn-confirm" onclick="confirmBet()">Apostar</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Loading -->
+    <div id="loading" class="loading-container">
+        <div class="loading-spinner">
+            <i class="fas fa-spinner fa-spin"></i>
+        </div>
+    </div>
+    
+    <div class="container">
+        <!-- Header do Torneio -->
+        <div class="tournament-header">
+            <div class="tournament-info">
+                <div class="tournament-icon">
+                    <i class="fas fa-trophy"></i>
+                </div>
+                <div class="tournament-details">
+                    <h1 id="tournamentName">Texas Hold'em Tournament</h1>
+                    <p id="tournamentInfo">Blinds: 10/20 | Stack: 1500 fichas</p>
+                </div>
+            </div>
+            
+            <div class="tournament-stats">
+                <div class="stat-item">
+                    <div class="stat-value" id="currentPlayers">1/6</div>
+                    <div class="stat-label">Jogadores</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="totalPot">0</div>
+                    <div class="stat-label">Pote Total</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="currentBet">20</div>
+                    <div class="stat-label">Aposta Atual</div>
+                </div>
+            </div>
+            
+            <!-- Timer -->
+            <div class="timer-display">
+                <div class="timer" id="actionTimer">30s</div>
+            </div>
+        </div>
+        
+        <!-- Mesa de Poker -->
+        <div class="poker-table-container">
+            <div class="poker-table">
+                <div class="table-inner">
+                    <!-- Área Central -->
+                    <div class="table-center">
+                        <div class="community-cards" id="communityCards">
+                            <!-- Cartas comunitárias serão inseridas aqui -->
+                        </div>
+                        <div class="pot-display">
+                            <div class="pot-label">POTE TOTAL</div>
+                            <div class="pot-amount" id="potAmount">0</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Posições dos Jogadores -->
+                    <div class="player-position position-0" id="position-0">
+                        <div class="player-card active" id="player-0">
+                            <div class="player-header">
+                                <div class="player-avatar" id="avatar-0">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                <div class="player-name" id="name-0">Você</div>
+                            </div>
+                            <div class="player-stack" id="stack-0">1500</div>
+                            <div class="player-bet" id="bet-0" style="display: none;">Aposta: 0</div>
+                            <div class="player-cards" id="cards-0">
+                                <!-- Cartas do jogador -->
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- As outras posições serão criadas dinamicamente -->
+                </div>
+            </div>
+            
+            <!-- Controles do Jogador -->
+            <div class="player-controls" id="playerControls">
+                <div class="action-buttons">
+                    <button class="action-btn btn-fold" onclick="playerAction('fold')">
+                        <i class="fas fa-times"></i> Desistir
+                    </button>
+                    <button class="action-btn btn-check" onclick="playerAction('check')" id="checkBtn">
+                        <i class="fas fa-check"></i> Check
+                    </button>
+                    <button class="action-btn btn-call" onclick="playerAction('call')" id="callBtn">
+                        <i class="fas fa-hand-holding-usd"></i> Pagar
+                    </button>
+                    <button class="action-btn btn-raise" onclick="openBetModal()" id="raiseBtn">
+                        <i class="fas fa-arrow-up"></i> Aumentar
+                    </button>
+                    <button class="action-btn btn-allin" onclick="playerAction('allin')">
+                        <i class="fas fa-fire"></i> All-in
+                    </button>
+                </div>
+                
+                <div class="bet-controls">
+                    <div class="bet-input-container">
+                        <input type="number" id="quickBet" class="bet-input" value="50" min="20">
+                        <div>fichas</div>
+                    </div>
+                    <div class="bet-actions">
+                        <button class="bet-quick-btn" onclick="setQuickBet(20)">BB</button>
+                        <button class="bet-quick-btn" onclick="setQuickBet(50)">2.5x</button>
+                        <button class="bet-quick-btn" onclick="setQuickBet(100)">5x</button>
+                        <button class="bet-quick-btn" onclick="setQuickBet(250)">12.5x</button>
+                        <button class="bet-quick-btn" onclick="setQuickBet(500)">25x</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // ============================================
+    // VARIÁVEIS GLOBAIS E CONSTANTES
+    // ============================================
+    
+    let currentUser = null;
+    let userData = null;
+    let currentTournament = null;
+    let gameState = null;
+    let playerIndex = -1;
+    let tableId = null;
+    let gameListener = null;
+    let actionTimer = null;
+    let timeLeft = 30;
+    
+    // Constantes do jogo
+    const SUITS = ['hearts', 'diamonds', 'clubs', 'spades'];
+    const RANKS = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
+    const SUIT_SYMBOLS = {
+        'hearts': '♥',
+        'diamonds': '♦',
+        'clubs': '♣',
+        'spades': '♠'
+    };
+    
+    // ============================================
+    // INICIALIZAÇÃO
+    // ============================================
+    
+    document.addEventListener('DOMContentLoaded', async function() {
+        console.log('Iniciando Mesa de Poker...');
+        
+        // Obter parâmetros da URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const tournamentId = urlParams.get('tournamentId');
+        const spectator = urlParams.get('spectator') === 'true';
+        
+        if (!tournamentId) {
+            showNotification('❌ ID do torneio não especificado', 'error');
+            setTimeout(() => window.location.href = 'torneios.html', 2000);
+            return;
+        }
+        
+        // Verificar autenticação
+        auth.onAuthStateChanged(async function(user) {
+            if (user) {
+                currentUser = user;
+                console.log('Usuário logado:', user.uid);
+                await loadUserData();
+                await loadTournament(tournamentId);
+                
+                if (!spectator) {
+                    await joinGameTable(tournamentId);
+                } else {
+                    await watchGame(tournamentId);
+                }
+            } else {
+                console.log('Redirecionando para login...');
+                window.location.href = 'login.html';
+            }
+        });
+    });
+    
+    // ============================================
+    // FUNÇÕES DE CARREGAMENTO
+    // ============================================
+    
+    async function loadUserData() {
+        try {
+            const userDoc = await db.collection('users').doc(currentUser.uid).get();
+            if (userDoc.exists) {
+                userData = userDoc.data();
+                console.log('Dados do usuário carregados:', userData);
+            }
+        } catch (error) {
+            console.error('Erro ao carregar dados do usuário:', error);
+        }
+    }
+    
+    async function loadTournament(tournamentId) {
+        try {
+            const tournamentDoc = await db.collection('tournaments').doc(tournamentId).get();
+            if (tournamentDoc.exists) {
+                currentTournament = tournamentDoc.data();
+                currentTournament.id = tournamentId;
+                
+                console.log('Torneio carregado:', currentTournament);
+                
+                // Atualizar header
+                document.getElementById('tournamentName').textContent = currentTournament.name;
+                document.getElementById('tournamentInfo').textContent = 
+                    `Blinds: ${currentTournament.blindStructure?.[0]?.smallBlind || 10}/${currentTournament.blindStructure?.[0]?.bigBlind || 20} | Stack: ${currentTournament.startingStack || 1500} fichas`;
+            }
+        } catch (error) {
+            console.error('Erro ao carregar torneio:', error);
+        }
+    }
+    
+    // ============================================
+    // FUNÇÕES DO JOGO
+    // ============================================
+    
+    async function joinGameTable(tournamentId) {
+        console.log('Entrando na mesa do torneio:', tournamentId);
+        
+        try {
+            // Esconder loading
+            document.getElementById('loading').style.display = 'none';
+            
+            // Criar ou juntar à mesa
+            const tableRef = db.collection('game_tables').doc(tournamentId);
+            const tableDoc = await tableRef.get();
+            
+            if (!tableDoc.exists) {
+                // Criar nova mesa
+                await createNewTable(tournamentId, tableRef);
+            }
+            
+            // Configurar listener em tempo real
+            setupGameListener(tournamentId);
+            
+        } catch (error) {
+            console.error('Erro ao entrar na mesa:', error);
+            showNotification('❌ Erro ao entrar na mesa: ' + error.message, 'error');
+        }
+    }
+    
+    async function createNewTable(tournamentId, tableRef) {
+        const initialGameState = {
+            tournamentId: tournamentId,
+            status: 'waiting',
+            players: [],
+            communityCards: [],
+            pot: 0,
+            currentBet: currentTournament.blindStructure?.[0]?.bigBlind || 20,
+            dealerPosition: 0,
+            smallBlind: currentTournament.blindStructure?.[0]?.smallBlind || 10,
+            bigBlind: currentTournament.blindStructure?.[0]?.bigBlind || 20,
+            currentPlayerTurn: 0,
+            round: 'preflop',
+            deck: generateShuffledDeck(),
+            activePlayers: 0,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        };
+        
+        await tableRef.set(initialGameState);
+        console.log('Nova mesa criada:', tournamentId);
+    }
+    
+    async function watchGame(tournamentId) {
+        console.log('Assistindo jogo como espectador');
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('playerControls').style.display = 'none';
+        setupGameListener(tournamentId);
+    }
+    
+    function setupGameListener(tournamentId) {
+        console.log('Configurando listener do jogo...');
+        
+        gameListener = db.collection('game_tables').doc(tournamentId)
+            .onSnapshot((doc) => {
+                if (doc.exists) {
+                    gameState = doc.data();
+                    gameState.id = doc.id;
+                    console.log('Estado do jogo atualizado:', gameState);
+                    
+                    updateGameUI();
+                    updatePlayerPositions();
+                    
+                    // Verificar se é a vez do jogador
+                    checkPlayerTurn();
+                } else {
+                    console.log('Mesa não encontrada, criando...');
+                    // Mesa foi deletada, recriar
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 2000);
+                }
+            }, (error) => {
+                console.error('Erro no listener do jogo:', error);
+            });
+    }
+    
+    // ============================================
+    // FUNÇÕES DA UI
+    // ============================================
+    
+    function updateGameUI() {
+        if (!gameState) return;
+        
+        // Atualizar estatísticas
+        document.getElementById('currentPlayers').textContent = 
+            `${gameState.players.length || 0}/6`;
+        document.getElementById('totalPot').textContent = gameState.pot || 0;
+        document.getElementById('currentBet').textContent = gameState.currentBet || 0;
+        document.getElementById('potAmount').textContent = gameState.pot || 0;
+        
+        // Atualizar cartas comunitárias
+        updateCommunityCards();
+        
+        // Atualizar posições dos jogadores
+        updatePlayerPositions();
+    }
+    
+    function updateCommunityCards() {
+        const container = document.getElementById('communityCards');
+        container.innerHTML = '';
+        
+        if (gameState.communityCards && gameState.communityCards.length > 0) {
+            gameState.communityCards.forEach(cardCode => {
+                const card = createCardElement(cardCode);
+                container.appendChild(card);
+            });
+        } else {
+            // Mostrar backs das cartas para cada estágio
+            const stages = gameState.round === 'preflop' ? 0 : 
+                          gameState.round === 'flop' ? 3 : 
+                          gameState.round === 'turn' ? 4 : 5;
+            
+            for (let i = 0; i < stages; i++) {
+                const card = document.createElement('div');
+                card.className = 'card card-back';
+                container.appendChild(card);
+            }
+        }
+    }
+    
+    function updatePlayerPositions() {
+        if (!gameState || !gameState.players) return;
+        
+        // Primeiro, remover posições antigas (exceto posição 0)
+        for (let i = 1; i < 8; i++) {
+            const existing = document.getElementById(`position-${i}`);
+            if (existing) existing.remove();
+        }
+        
+        // Criar posições para os outros jogadores
+        gameState.players.forEach((player, index) => {
+            if (index === 0) {
+                // Atualizar jogador local (posição 0)
+                updatePlayerCard(0, player);
+            } else {
+                // Criar posição para jogador remoto
+                createRemotePlayerPosition(index, player);
+            }
+        });
+    }
+    
+    function updatePlayerCard(positionIndex, player) {
+        const card = document.getElementById(`player-${positionIndex}`);
+        if (!card) return;
+        
+        // Nome
+        document.getElementById(`name-${positionIndex}`).textContent = 
+            player.userId === currentUser?.uid ? 'Você' : (player.nickname || `Jogador ${positionIndex + 1}`);
+        
+        // Stack
+        document.getElementById(`stack-${positionIndex}`).textContent = player.chips || 0;
+        
+        // Bet
+        const betEl = document.getElementById(`bet-${positionIndex}`);
+        if (player.betAmount && player.betAmount > 0) {
+            betEl.textContent = `Aposta: ${player.betAmount}`;
+            betEl.style.display = 'block';
+        } else {
+            betEl.style.display = 'none';
+        }
+        
+        // Avatar
+        const avatarEl = document.getElementById(`avatar-${positionIndex}`);
+        if (player.avatarUrl) {
+            avatarEl.innerHTML = `<img src="${player.avatarUrl}" alt="Avatar">`;
+        } else {
+            avatarEl.innerHTML = `<i class="fas fa-user"></i>`;
+        }
+        
+        // Cartas
+        const cardsContainer = document.getElementById(`cards-${positionIndex}`);
+        cardsContainer.innerHTML = '';
+        
+        if (player.cards && player.userId === currentUser?.uid && gameState.round !== 'showdown') {
+            // Mostrar cartas do jogador atual
+            player.cards.forEach(cardCode => {
+                const cardEl = createCardElement(cardCode);
+                cardsContainer.appendChild(cardEl);
+            });
+        } else if (player.cards && gameState.round === 'showdown') {
+            // Mostrar todas as cartas no showdown
+            player.cards.forEach(cardCode => {
+                const cardEl = createCardElement(cardCode);
+                cardsContainer.appendChild(cardEl);
+            });
+        } else {
+            // Mostrar backs das cartas
+            for (let i = 0; i < 2; i++) {
+                const cardEl = document.createElement('div');
+                cardEl.className = 'card card-back';
+                cardsContainer.appendChild(cardEl);
+            }
+        }
+        
+        // Status do jogador
+        card.classList.remove('active', 'dealer', 'small-blind', 'big-blind', 'folded');
+        
+        if (player.userId === currentUser?.uid) {
+            card.classList.add('active');
+        }
+        
+        if (player.position === gameState.dealerPosition) {
+            card.classList.add('dealer');
+        }
+        
+        if (player.hasFolded) {
+            card.classList.add('folded');
+        }
+    }
+    
+    function createRemotePlayerPosition(positionIndex, player) {
+        // Determinar posição visual baseada no índice
+        const visualPositions = [0, 1, 2, 3, 4, 5, 6, 7]; // Mapeamento
+        const visualIndex = visualPositions[positionIndex] || positionIndex;
+        
+        const positionDiv = document.createElement('div');
+        positionDiv.className = `player-position position-${visualIndex}`;
+        positionDiv.id = `position-${visualIndex}`;
+        
+        const playerCard = document.createElement('div');
+        playerCard.className = 'player-card';
+        playerCard.id = `player-${visualIndex}`;
+        
+        playerCard.innerHTML = `
+            <div class="player-header">
+                <div class="player-avatar" id="avatar-${visualIndex}">
+                    ${player.avatarUrl ? 
+                        `<img src="${player.avatarUrl}" alt="Avatar">` : 
+                        `<i class="fas fa-user"></i>`}
+                </div>
+                <div class="player-name" id="name-${visualIndex}">${player.nickname || `Jogador ${positionIndex + 1}`}</div>
+            </div>
+            <div class="player-stack" id="stack-${visualIndex}">${player.chips || 0}</div>
+            <div class="player-bet" id="bet-${visualIndex}" style="display: none;">Aposta: 0</div>
+            <div class="player-cards" id="cards-${visualIndex}">
+                <!-- Cartas serão adicionadas dinamicamente -->
+            </div>
+        `;
+        
+        positionDiv.appendChild(playerCard);
+        document.querySelector('.table-inner').appendChild(positionDiv);
+        
+        // Atualizar o card
+        updatePlayerCard(visualIndex, player);
+    }
+    
+    // ============================================
+    // FUNÇÕES DE CARTA
+    // ============================================
+    
+    function generateShuffledDeck() {
+        const deck = [];
+        for (let suit of SUITS) {
+            for (let rank of RANKS) {
+                deck.push(`${rank}${suit.charAt(0)}`); // Ex: "Ah" para Ás de copas
+            }
+        }
+        
+        // Embaralhar
+        for (let i = deck.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [deck[i], deck[j]] = [deck[j], deck[i]];
+        }
+        
+        return deck;
+    }
+    
+    function createCardElement(cardCode) {
+        const card = document.createElement('div');
+        
+        if (!cardCode || cardCode === 'back') {
+            card.className = 'card card-back';
+            return card;
+        }
+        
+        const rank = cardCode.slice(0, -1); // Remove último caractere (suit)
+        const suitChar = cardCode.slice(-1); // Último caractere
+        const suit = suitChar === 'h' ? 'hearts' :
+                    suitChar === 'd' ? 'diamonds' :
+                    suitChar === 'c' ? 'clubs' : 'spades';
+        
+        const isRed = suit === 'hearts' || suit === 'diamonds';
+        const suitSymbol = SUIT_SYMBOLS[suit];
+        
+        card.className = `card ${isRed ? 'card-heart' : 'card-spade'}`;
+        
+        card.innerHTML = `
+            <div class="card-top">
+                <div class="card-rank">${rank}</div>
+                <div class="card-suit">${suitSymbol}</div>
+            </div>
+            <div class="card-center">${suitSymbol}</div>
+            <div class="card-bottom">
+                <div class="card-suit">${suitSymbol}</div>
+                <div class="card-rank">${rank}</div>
+            </div>
+        `;
+        
+        return card;
+    }
+    
+    // ============================================
+    // FUNÇÕES DO JOGADOR
+    // ============================================
+    
+    function checkPlayerTurn() {
+        if (!gameState || !gameState.players || playerIndex === -1) return;
+        
+        const currentPlayer = gameState.players[gameState.currentPlayerTurn];
+        const isMyTurn = currentPlayer && currentPlayer.userId === currentUser?.uid;
+        
+        if (isMyTurn) {
+            startActionTimer();
+            enablePlayerControls();
+        } else {
+            stopActionTimer();
+            disablePlayerControls();
+        }
+    }
+    
+    function startActionTimer() {
+        timeLeft = 30;
+        updateTimerDisplay();
+        
+        if (actionTimer) clearInterval(actionTimer);
+        
+        actionTimer = setInterval(() => {
+            timeLeft--;
+            updateTimerDisplay();
+            
+            if (timeLeft <= 0) {
+                clearInterval(actionTimer);
+                // Timeout - fold automático
+                playerAction('fold');
+            }
+        }, 1000);
+    }
+    
+    function stopActionTimer() {
+        if (actionTimer) {
+            clearInterval(actionTimer);
+            actionTimer = null;
+        }
+    }
+    
+    function updateTimerDisplay() {
+        document.getElementById('actionTimer').textContent = `${timeLeft}s`;
+        
+        // Mudar cor conforme o tempo diminui
+        const timerEl = document.getElementById('actionTimer');
+        if (timeLeft <= 10) {
+            timerEl.style.color = '#e74c3c';
+        } else if (timeLeft <= 20) {
+            timerEl.style.color = '#f39c12';
+        } else {
+            timerEl.style.color = 'var(--dourado-claro)';
+        }
+    }
+    
+    function enablePlayerControls() {
+        document.getElementById('playerControls').style.display = 'flex';
+        
+        // Atualizar texto dos botões baseado na aposta atual
+        const callBtn = document.getElementById('callBtn');
+        const checkBtn = document.getElementById('checkBtn');
+        const raiseBtn = document.getElementById('raiseBtn');
+        
+        const toCall = gameState.currentBet - (getCurrentPlayer().betAmount || 0);
+        
+        if (toCall > 0) {
+            callBtn.innerHTML = `<i class="fas fa-hand-holding-usd"></i> Pagar ${toCall}`;
+            callBtn.style.display = 'flex';
+            checkBtn.style.display = 'none';
+        } else {
+            checkBtn.innerHTML = `<i class="fas fa-check"></i> Check`;
+            checkBtn.style.display = 'flex';
+            callBtn.style.display = 'none';
+        }
+        
+        raiseBtn.innerHTML = `<i class="fas fa-arrow-up"></i> Aumentar`;
+    }
+    
+    function disablePlayerControls() {
+        // Não desabilitar completamente, apenas mostrar que não é a vez
+        // document.getElementById('playerControls').style.display = 'none';
+    }
+    
+    function getCurrentPlayer() {
+        if (!gameState || !gameState.players) return null;
+        return gameState.players.find(p => p.userId === currentUser?.uid);
+    }
+    
+    // ============================================
+    // AÇÕES DO JOGADOR
+    // ============================================
+    
+    async function playerAction(action, amount = null) {
+        if (!gameState || !getCurrentPlayer()) return;
+        
+        try {
+            const player = getCurrentPlayer();
+            const tableRef = db.collection('game_tables').doc(currentTournament.id);
+            
+            let updateData = {
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            };
+            
+            switch(action) {
+                case 'fold':
+                    // Marcar jogador como fold
+                    const players = gameState.players.map(p => {
+                        if (p.userId === currentUser?.uid) {
+                            return { ...p, hasFolded: true, isActive: false };
+                        }
+                        return p;
+                    });
+                    
+                    updateData.players = players;
+                    updateData.currentPlayerTurn = (gameState.currentPlayerTurn + 1) % players.length;
+                    break;
+                    
+                case 'check':
+                    // Só pode check se não houver aposta para pagar
+                    const toCall = gameState.currentBet - (player.betAmount || 0);
+                    if (toCall > 0) {
+                        showNotification('❌ Não pode check com aposta para pagar', 'error');
+                        return;
+                    }
+                    
+                    updateData.currentPlayerTurn = (gameState.currentPlayerTurn + 1) % gameState.players.length;
+                    break;
+                    
+                case 'call':
+                    const callAmount = gameState.currentBet - (player.betAmount || 0);
+                    if (callAmount > player.chips) {
+                        showNotification('❌ Saldo insuficiente para pagar', 'error');
+                        return;
+                    }
+                    
+                    const updatedPlayersCall = gameState.players.map(p => {
+                        if (p.userId === currentUser?.uid) {
+                            const newBetAmount = (p.betAmount || 0) + callAmount;
+                            return {
+                                ...p,
+                                chips: p.chips - callAmount,
+                                betAmount: newBetAmount
+                            };
+                        }
+                        return p;
+                    });
+                    
+                    updateData.players = updatedPlayersCall;
+                    updateData.pot = (gameState.pot || 0) + callAmount;
+                    updateData.currentPlayerTurn = (gameState.currentPlayerTurn + 1) % gameState.players.length;
+                    break;
+                    
+                case 'raise':
+                    if (!amount || amount <= gameState.currentBet) {
+                        openBetModal();
+                        return;
+                    }
+                    
+                    const raiseAmount = amount - (player.betAmount || 0);
+                    if (raiseAmount > player.chips) {
+                        showNotification('❌ Saldo insuficiente', 'error');
+                        return;
+                    }
+                    
+                    const updatedPlayersRaise = gameState.players.map(p => {
+                        if (p.userId === currentUser?.uid) {
+                            return {
+                                ...p,
+                                chips: p.chips - raiseAmount,
+                                betAmount: amount
+                            };
+                        }
+                        return p;
+                    });
+                    
+                    updateData.players = updatedPlayersRaise;
+                    updateData.pot = (gameState.pot || 0) + raiseAmount;
+                    updateData.currentBet = amount;
+                    updateData.currentPlayerTurn = (gameState.currentPlayerTurn + 1) % gameState.players.length;
+                    break;
+                    
+                case 'allin':
+                    const allinAmount = player.chips;
+                    const totalBet = (player.betAmount || 0) + allinAmount;
+                    
+                    const updatedPlayersAllin = gameState.players.map(p => {
+                        if (p.userId === currentUser?.uid) {
+                            return {
+                                ...p,
+                                chips: 0,
+                                betAmount: totalBet
+                            };
+                        }
+                        return p;
+                    });
+                    
+                    updateData.players = updatedPlayersAllin;
+                    updateData.pot = (gameState.pot || 0) + allinAmount;
+                    
+                    if (totalBet > gameState.currentBet) {
+                        updateData.currentBet = totalBet;
+                    }
+                    
+                    updateData.currentPlayerTurn = (gameState.currentPlayerTurn + 1) % gameState.players.length;
+                    break;
+            }
+            
+            await tableRef.update(updateData);
+            stopActionTimer();
+            showNotification(`✅ Ação realizada: ${action}`, 'success');
+            
+        } catch (error) {
+            console.error('Erro ao realizar ação:', error);
+            showNotification('❌ Erro ao realizar ação: ' + error.message, 'error');
+        }
+    }
+    
+    // ============================================
+    // MODAL DE APOSTA
+    // ============================================
+    
+    function openBetModal() {
+        const player = getCurrentPlayer();
+        if (!player) return;
+        
+        const modal = document.getElementById('betModal');
+        const slider = document.getElementById('betSlider');
+        const input = document.getElementById('betAmount');
+        
+        const minBet = gameState.currentBet * 2;
+        const maxBet = player.chips + (player.betAmount || 0);
+        
+        slider.min = minBet;
+        slider.max = maxBet;
+        slider.value = minBet;
+        
+        input.min = minBet;
+        input.max = maxBet;
+        input.value = minBet;
+        
+        // Atualizar valor quando slider mudar
+        slider.oninput = function() {
+            input.value = this.value;
+        };
+        
+        // Atualizar slider quando input mudar
+        input.oninput = function() {
+            slider.value = this.value;
+        };
+        
+        modal.style.display = 'flex';
+    }
+    
+    function closeBetModal() {
+        document.getElementById('betModal').style.display = 'none';
+    }
+    
+    function setBetAmount(amount) {
+        document.getElementById('betAmount').value = amount;
+        document.getElementById('betSlider').value = amount;
+    }
+    
+    async function confirmBet() {
+        const amount = parseInt(document.getElementById('betAmount').value);
+        if (isNaN(amount) || amount <= gameState.currentBet) {
+            showNotification('❌ Valor de aumento inválido', 'error');
+            return;
+        }
+        
+        closeBetModal();
+        await playerAction('raise', amount);
+    }
+    
+    function setQuickBet(multiplier) {
+        const base = gameState.currentBet || 20;
+        const amount = base * multiplier;
+        document.getElementById('quickBet').value = amount;
+    }
+    
+    // ============================================
+    // UTILITÁRIOS
+    // ============================================
+    
+    function showNotification(message, type) {
+        const notification = document.getElementById('notification');
+        notification.textContent = message;
+        notification.className = `notification ${type}`;
+        notification.style.display = 'block';
+        
+        setTimeout(() => {
+            notification.style.display = 'none';
+        }, 3000);
+    }
+    
+    // ============================================
+    // LIMPEZA
+    // ============================================
+    
+    window.addEventListener('beforeunload', function() {
+        if (gameListener) {
+            gameListener();
+        }
+        stopActionTimer();
+    });
+    </script>
+</body>
+</html>
