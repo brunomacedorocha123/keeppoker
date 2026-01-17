@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minha Conta - KeepPoker</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
+    
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBIBucZSzN671VgJQHGIiepHNUqxbqNKAQ",
+            authDomain: "keeppoker-b4173.firebaseapp.com",
+            projectId: "keeppoker-b4173",
+            storageBucket: "keeppoker-b4173.firebasestorage.app",
+            messagingSenderId: "436464592434",
+            appId: "1:436464592434:web:c5a1e0c10e10acbc14fe2b"
+        };
+        
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        const storage = firebase.storage();
+    </script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        :root {
+            --azul-profundo: #0d1b2a;
+            --azul-medio: #1b263b;
+            --azul-claro: #415a77;
+            --dourado: #d4af37;
+            --dourado-claro: #f7ef8a;
+            --branco: #ffffff;
+            --cinza-claro: #e0e1dd;
+            --verde: #2ecc71;
+            --vermelho: #e74c3c;
+        }
+        
+        body {
+            background-color: var(--azul-profundo);
+            color: var(--cinza-claro);
+            min-height: 100vh;
+        }
+        
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            border-bottom: 2px solid var(--dourado);
+            margin-bottom: 30px;
+        }
+        
+        .logo {
+            font-size: 28px;
+            font-weight: bold;
+            color: var(--dourado);
+            text-decoration: none;
+        }
+        
+        .nav-menu {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .nav-link {
+            color: var(--cinza-claro);
+            text-decoration: none;
+            padding: 10px 15px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-link:hover {
+            background: rgba(212, 175, 55, 0.1);
+        }
+        
+        .nav-link.active {
+            background: rgba(212, 175, 55, 0.2);
+            color: var(--dourado-claro);
+        }
+        
+        /* Main Content */
+        .main-content {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 30px;
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* Sidebar */
+        .sidebar {
+            background: var(--azul-medio);
+            border-radius: 15px;
+            padding: 25px;
+            border: 2px solid rgba(212, 175, 55, 0.3);
+            height: fit-content;
+        }
+        
+        .avatar-section {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        
+        .avatar-preview {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            border: 4px solid var(--dourado);
+            margin: 0 auto 15px;
+            overflow: hidden;
+            background: var(--azul-claro);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 60px;
+            color: var(--cinza-claro);
+        }
+        
+        .avatar-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .avatar-placeholder {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--azul-claro), var(--azul-medio));
+        }
+        
+        .avatar-upload-btn {
+            background: var(--verde);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            width: 100%;
+            margin-top: 10px;
+        }
+        
+        .avatar-upload-btn:hover {
+            background: #27ae60;
+        }
+        
+        #fileInput {
+            display: none;
+        }
+        
+        /* Account Info */
+        .account-info {
+            margin-top: 20px;
+        }
+        
+        .info-item {
+            margin-bottom: 15px;
+        }
+        
+        .info-label {
+            font-size: 12px;
+            color: var(--azul-claro);
+            margin-bottom: 5px;
+        }
+        
+        .info-value {
+            font-weight: 600;
+            color: var(--dourado-claro);
+        }
+        
+        /* Main Panel */
+        .main-panel {
+            background: var(--azul-medio);
+            border-radius: 15px;
+            padding: 30px;
+            border: 2px solid rgba(212, 175, 55, 0.3);
+        }
+        
+        .section-title {
+            color: var(--dourado);
+            font-size: 22px;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid rgba(212, 175, 55, 0.2);
+        }
+        
+        .form-section {
+            margin-bottom: 40px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--cinza-claro);
+            font-weight: 600;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 12px 15px;
+            border-radius: 8px;
+            border: 2px solid var(--azul-claro);
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--cinza-claro);
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: var(--dourado);
+            box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.2);
+        }
+        
+        .form-note {
+            font-size: 14px;
+            color: var(--azul-claro);
+            margin-top: 8px;
+        }
+        
+        .save-btn {
+            background: var(--dourado);
+            color: var(--azul-profundo);
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .save-btn:hover {
+            background: var(--dourado-claro);
+            transform: translateY(-2px);
+        }
+        
+        .save-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        /* Stats Section */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .stat-card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            border: 1px solid rgba(212, 175, 55, 0.2);
+        }
+        
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--dourado);
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            font-size: 14px;
+            color: var(--azul-claro);
+        }
+        
+        /* Notifications */
+        .notification {
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+            animation: slideIn 0.3s ease;
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateY(-10px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        .notification.success {
+            background: var(--verde);
+            color: white;
+        }
+        
+        .notification.error {
+            background: var(--vermelho);
+            color: white;
+        }
+        
+        .notification.info {
+            background: var(--azul-claro);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <a href="home.html" class="logo">KeepPoker</a>
+            <div class="nav-menu">
+                <a href="mesas.html" class="nav-link"><i class="fas fa-table"></i> Mesas</a>
+                <a href="minha-conta.html" class="nav-link active"><i class="fas fa-user-circle"></i> Minha Conta</a>
+                <a href="login.html" class="nav-link" id="logoutLink"><i class="fas fa-sign-out-alt"></i> Sair</a>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <div class="avatar-section">
+                    <div class="avatar-preview" id="avatarPreview">
+                        <div class="avatar-placeholder">
+                            <i class="fas fa-user"></i>
+                        </div>
+                    </div>
+                    
+                    <button class="avatar-upload-btn" id="uploadBtn">
+                        <i class="fas fa-camera"></i> Alterar Avatar
+                    </button>
+                    <input type="file" id="fileInput" accept="image/*">
+                    
+                    <div class="account-info">
+                        <div class="info-item">
+                            <div class="info-label">Nome</div>
+                            <div class="info-value" id="userName">-</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Nickname</div>
+                            <div class="info-value" id="userNickname">-</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">ID do Jogador</div>
+                            <div class="info-value" id="playerId">-</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Nível</div>
+                            <div class="info-value" id="userLevel">-</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Main Panel -->
+            <div class="main-panel">
+                <!-- Notifications -->
+                <div class="notification" id="notification"></div>
+                
+                <!-- Profile Settings -->
+                <div class="form-section">
+                    <h2 class="section-title"><i class="fas fa-user-edit"></i> Editar Perfil</h2>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Nome Completo</label>
+                        <input type="text" class="form-input" id="inputName" placeholder="Seu nome completo">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Nickname</label>
+                        <input type="text" class="form-input" id="inputNickname" placeholder="Seu nickname no jogo">
+                        <div class="form-note">Escolha um nome único que será exibido nas mesas</div>
+                    </div>
+                    
+                    <button class="save-btn" id="saveProfileBtn">
+                        <i class="fas fa-save"></i> Salvar Alterações
+                    </button>
+                </div>
+                
+                <!-- Statistics -->
+                <div class="form-section">
+                    <h2 class="section-title"><i class="fas fa-chart-line"></i> Minhas Estatísticas</h2>
+                    
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-value" id="statBalance">0</div>
+                            <div class="stat-label">Saldo (Fichas)</div>
+                        </div>
+                        
+                        <div class="stat-card">
+                            <div class="stat-value" id="statDiamonds">0</div>
+                            <div class="stat-label">Diamantes</div>
+                        </div>
+                        
+                        <div class="stat-card">
+                            <div class="stat-value" id="statHands">0</div>
+                            <div class="stat-label">Mãos Jogadas</div>
+                        </div>
+                        
+                        <div class="stat-card">
+                            <div class="stat-value" id="statWins">0</div>
+                            <div class="stat-label">Vitórias</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Security -->
+                <div class="form-section">
+                    <h2 class="section-title"><i class="fas fa-shield-alt"></i> Segurança</h2>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-input" id="inputEmail" disabled>
+                        <div class="form-note">Para alterar o email, entre em contato com o suporte</div>
+                    </div>
+                    
+                    <button class="save-btn" id="changePasswordBtn" style="background: var(--azul-claro);">
+                        <i class="fas fa-key"></i> Alterar Senha
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Variáveis globais
+        let currentUser = null;
+        let userData = null;
+        let selectedFile = null;
+        
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', function() {
+            // Verificar autenticação
+            auth.onAuthStateChanged(async function(user) {
+                if (user) {
+                    currentUser = user;
+                    await loadUserData();
+                    setupEventListeners();
+                } else {
+                    window.location.href = 'login.html';
+                }
+            });
+            
+            // Logout
+            document.getElementById('logoutLink').addEventListener('click', function(e) {
+                e.preventDefault();
+                auth.signOut().then(() => {
+                    localStorage.removeItem('keepPokerUser');
+                    window.location.href = 'index.html';
+                });
+            });
+        });
+        
+        // Carregar dados do usuário
+        async function loadUserData() {
+            try {
+                const userDoc = await db.collection('users').doc(currentUser.uid).get();
+                if (userDoc.exists) {
+                    userData = userDoc.data();
+                    updateUI(userData);
+                }
+            } catch (error) {
+                console.error('Erro ao carregar dados:', error);
+                showNotification('Erro ao carregar dados do usuário', 'error');
+            }
+        }
+        
+        // Atualizar interface
+        function updateUI(data) {
+            // Informações básicas
+            document.getElementById('userName').textContent = data.nome || '-';
+            document.getElementById('playerId').textContent = data.playerId || '-';
+            document.getElementById('userLevel').textContent = data.nivel || '1';
+            
+            // Nickname (se existir)
+            const nickname = data.nickname || data.nome || '-';
+            document.getElementById('userNickname').textContent = nickname;
+            
+            // Formulários
+            document.getElementById('inputName').value = data.nome || '';
+            document.getElementById('inputNickname').value = data.nickname || data.nome || '';
+            document.getElementById('inputEmail').value = data.email || '';
+            
+            // Estatísticas
+            document.getElementById('statBalance').textContent = data.saldo || '0';
+            document.getElementById('statDiamonds').textContent = data.diamantes || '0';
+            document.getElementById('statHands').textContent = data.stats?.handsPlayed || '0';
+            document.getElementById('statWins').textContent = data.stats?.handsWon || '0';
+            
+            // Avatar
+            if (data.avatarUrl) {
+                document.getElementById('avatarPreview').innerHTML = `
+                    <img src="${data.avatarUrl}" alt="Avatar" id="avatarImage">
+                `;
+            }
+        }
+        
+        // Configurar event listeners
+        function setupEventListeners() {
+            // Upload de avatar
+            document.getElementById('uploadBtn').addEventListener('click', function() {
+                document.getElementById('fileInput').click();
+            });
+            
+            document.getElementById('fileInput').addEventListener('change', function(e) {
+                if (e.target.files && e.target.files[0]) {
+                    selectedFile = e.target.files[0];
+                    
+                    // Validar tamanho (max 1MB)
+                    if (selectedFile.size > 1024 * 1024) {
+                        showNotification('A imagem deve ter no máximo 1MB', 'error');
+                        selectedFile = null;
+                        return;
+                    }
+                    
+                    // Validar tipo
+                    if (!selectedFile.type.startsWith('image/')) {
+                        showNotification('Selecione uma imagem válida', 'error');
+                        selectedFile = null;
+                        return;
+                    }
+                    
+                    // Pré-visualização
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        document.getElementById('avatarPreview').innerHTML = `
+                            <img src="${e.target.result}" alt="Pré-visualização" id="avatarImage">
+                        `;
+                    };
+                    reader.readAsDataURL(selectedFile);
+                    
+                    // Upload automático após seleção
+                    uploadAvatar();
+                }
+            });
+            
+            // Salvar perfil
+            document.getElementById('saveProfileBtn').addEventListener('click', saveProfile);
+            
+            // Alterar senha
+            document.getElementById('changePasswordBtn').addEventListener('click', changePassword);
+        }
+        
+        // Upload do avatar
+        async function uploadAvatar() {
+            if (!selectedFile) return;
+            
+            try {
+                showNotification('Enviando avatar...', 'info');
+                
+                // Referência no Storage
+                const storageRef = storage.ref();
+                const avatarRef = storageRef.child(`avatars/${currentUser.uid}/${selectedFile.name}`);
+                
+                // Upload
+                await avatarRef.put(selectedFile);
+                
+                // Obter URL
+                const downloadURL = await avatarRef.getDownloadURL();
+                
+                // Atualizar Firestore
+                await db.collection('users').doc(currentUser.uid).update({
+                    avatarUrl: downloadURL,
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                // Atualizar localmente
+                userData.avatarUrl = downloadURL;
+                localStorage.setItem('keepPokerUser', JSON.stringify(userData));
+                
+                showNotification('Avatar atualizado com sucesso!', 'success');
+                
+            } catch (error) {
+                console.error('Erro ao fazer upload:', error);
+                showNotification('Erro ao enviar avatar', 'error');
+            }
+        }
+        
+        // Salvar perfil
+        async function saveProfile() {
+            const name = document.getElementById('inputName').value.trim();
+            const nickname = document.getElementById('inputNickname').value.trim();
+            
+            // Validações
+            if (!name) {
+                showNotification('O nome é obrigatório', 'error');
+                return;
+            }
+            
+            if (!nickname) {
+                showNotification('O nickname é obrigatório', 'error');
+                return;
+            }
+            
+            if (nickname.length < 3 || nickname.length > 20) {
+                showNotification('Nickname deve ter entre 3 e 20 caracteres', 'error');
+                return;
+            }
+            
+            try {
+                // Verificar se nickname já existe (exceto se for o mesmo do usuário atual)
+                if (nickname !== userData.nickname) {
+                    const snapshot = await db.collection('users')
+                        .where('nickname', '==', nickname)
+                        .get();
+                    
+                    if (!snapshot.empty) {
+                        showNotification('Este nickname já está em uso', 'error');
+                        return;
+                    }
+                }
+                
+                // Atualizar no Firestore
+                await db.collection('users').doc(currentUser.uid).update({
+                    nome: name,
+                    nickname: nickname,
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                // Atualizar localmente
+                userData.nome = name;
+                userData.nickname = nickname;
+                localStorage.setItem('keepPokerUser', JSON.stringify(userData));
+                
+                // Atualizar UI
+                updateUI(userData);
+                
+                showNotification('Perfil atualizado com sucesso!', 'success');
+                
+            } catch (error) {
+                console.error('Erro ao salvar perfil:', error);
+                showNotification('Erro ao salvar alterações', 'error');
+            }
+        }
+        
+        // Alterar senha
+        async function changePassword() {
+            const currentPassword = prompt('Digite sua senha atual:');
+            if (!currentPassword) return;
+            
+            const newPassword = prompt('Digite a nova senha:');
+            if (!newPassword) return;
+            
+            const confirmPassword = prompt('Confirme a nova senha:');
+            if (!confirmPassword) return;
+            
+            if (newPassword !== confirmPassword) {
+                showNotification('As senhas não coincidem', 'error');
+                return;
+            }
+            
+            if (newPassword.length < 8) {
+                showNotification('A senha deve ter pelo menos 8 caracteres', 'error');
+                return;
+            }
+            
+            try {
+                // Reautenticar
+                const credential = firebase.auth.EmailAuthProvider.credential(
+                    currentUser.email,
+                    currentPassword
+                );
+                
+                await currentUser.reauthenticateWithCredential(credential);
+                
+                // Alterar senha
+                await currentUser.updatePassword(newPassword);
+                
+                showNotification('Senha alterada com sucesso!', 'success');
+                
+            } catch (error) {
+                console.error('Erro ao alterar senha:', error);
+                
+                if (error.code === 'auth/wrong-password') {
+                    showNotification('Senha atual incorreta', 'error');
+                } else if (error.code === 'auth/weak-password') {
+                    showNotification('A senha é muito fraca', 'error');
+                } else {
+                    showNotification('Erro ao alterar senha', 'error');
+                }
+            }
+        }
+        
+        // Mostrar notificação
+        function showNotification(message, type) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `notification ${type}`;
+            notification.style.display = 'block';
+            
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 4000);
+        }
+    </script>
+</body>
+</html>
