@@ -1564,7 +1564,7 @@
         rulesList.innerHTML = rules.map(rule => `<li>${rule}</li>`).join('');
     }
     
-    // Atualizar ação principal - CORRIGIDA
+    // Atualizar ação principal - COMPLETAMENTE CORRIGIDA E FUNCIONAL
     function updateMainAction() {
         const actionButton = document.getElementById('mainActionButton');
         const actionInfo = document.getElementById('actionInfo');
@@ -1588,12 +1588,20 @@
         
         // Verificar se usuário está inscrito
         if (isUserRegistered) {
-            if (currentTournament.status === 'running' || currentTournament.status === 'starting') {
-                // Torneio em andamento ou iniciando - entrar na mesa
+            // VERIFICAÇÃO IMPORTANTE: Se torneio lotou (6 jogadores), pode entrar mesmo status sendo 'registering'
+            const isTournamentFull = (currentTournament.registeredPlayers || 0) >= (currentTournament.maxPlayers || 6);
+            
+            if (currentTournament.status === 'running' || currentTournament.status === 'starting' || isTournamentFull) {
+                // Torneio em andamento, iniciando ou LOTADO - entrar na mesa
                 actionButton.innerHTML = '<i class="fas fa-play-circle"></i> Entrar na Mesa';
                 actionButton.className = 'btn-tournament btn-enter';
                 actionButton.onclick = () => enterTournament();
-                actionInfo.textContent = 'Clique para entrar no torneio';
+                
+                if (isTournamentFull && currentTournament.status === 'registering') {
+                    actionInfo.textContent = 'Torneio lotado! Clique para entrar e aguardar início';
+                } else {
+                    actionInfo.textContent = 'Clique para entrar no torneio';
+                }
             } else {
                 // Torneio ainda registrando - aguardar início
                 actionButton.innerHTML = '<i class="fas fa-clock"></i> Aguardando Jogadores';
@@ -1779,115 +1787,115 @@
     }
     
     // Confirmar inscrição - CORRIGIDA
-async function confirmRegistration() {
-    if (!currentTournamentToRegister) {
-        showNotification('❌ Nenhum torneio selecionado', 'error');
-        closeModal();
-        return;
-    }
-    
-    console.log('Confirmando inscrição no torneio:', currentTournamentToRegister.name);
-    
-    const modal = document.getElementById('confirmationModal');
-    modal.style.display = 'none';
-    
-    const actionButton = document.getElementById('mainActionButton');
-    const originalHTML = actionButton.innerHTML;
-    actionButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processando...';
-    actionButton.className = 'btn-tournament btn-disabled';
-    actionButton.disabled = true;
-    
-    try {
-        // 1. Deduzir buy-in do saldo do usuário
-        const newBalance = userData.saldo - currentTournamentToRegister.buyIn;
+    async function confirmRegistration() {
+        if (!currentTournamentToRegister) {
+            showNotification('❌ Nenhum torneio selecionado', 'error');
+            closeModal();
+            return;
+        }
         
-        // Atualizar saldo do usuário no Firestore
-        await db.collection('users').doc(currentUser.uid).update({
-            saldo: newBalance,
-            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
+        console.log('Confirmando inscrição no torneio:', currentTournamentToRegister.name);
         
-        // 2. Preparar dados do jogador (CORRIGIDO: usar timestamp manual)
-        const playerData = {
-            userId: currentUser.uid,
-            playerName: userData.nickname || userData.nome || 'Jogador',
-            playerId: userData.playerId,
-            chips: currentTournamentToRegister.startingStack,
-            position: 0,
-            rebuyCount: 0,
-            addonUsed: false,
-            isActive: true,
-            registeredAt: new Date().toISOString() // TIMESTAMP MANUAL - NÃO usar FieldValue aqui
-        };
+        const modal = document.getElementById('confirmationModal');
+        modal.style.display = 'none';
         
-        // 3. Atualizar torneio no Firestore
-        await db.collection('tournaments').doc(currentTournamentToRegister.id).update({
-            registeredPlayers: firebase.firestore.FieldValue.increment(1),
-            prizePool: firebase.firestore.FieldValue.increment(currentTournamentToRegister.buyIn),
-            players: firebase.firestore.FieldValue.arrayUnion(playerData),
-            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
+        const actionButton = document.getElementById('mainActionButton');
+        const originalHTML = actionButton.innerHTML;
+        actionButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processando...';
+        actionButton.className = 'btn-tournament btn-disabled';
+        actionButton.disabled = true;
         
-        // 4. Atualizar dados locais do usuário
-        userData.saldo = newBalance;
-        localStorage.setItem('keepPokerUser', JSON.stringify(userData));
-        
-        // 5. Atualizar UI
-        document.getElementById('goldCount').textContent = newBalance;
-        
-        // 6. Marcar usuário como inscrito localmente
-        isUserRegistered = true;
-        
-        // 7. Notificar sucesso
-        showNotification(`✅ Inscrição realizada com sucesso!`, 'success');
-        
-        // 8. Verificar se torneio lotou
-        const newPlayersCount = (currentTournamentToRegister.registeredPlayers || 0) + 1;
-        if (newPlayersCount >= currentTournamentToRegister.maxPlayers) {
-            showNotification('🎉 Torneio lotado! Iniciando em breve...', 'success');
+        try {
+            // 1. Deduzir buy-in do saldo do usuário
+            const newBalance = userData.saldo - currentTournamentToRegister.buyIn;
             
-            // Atualizar status do torneio para "starting" (iniciando)
-            await db.collection('tournaments').doc(currentTournamentToRegister.id).update({
-                status: 'starting',
+            // Atualizar saldo do usuário no Firestore
+            await db.collection('users').doc(currentUser.uid).update({
+                saldo: newBalance,
                 updatedAt: firebase.firestore.FieldValue.serverTimestamp()
             });
             
-            // Mostrar contador de início
+            // 2. Preparar dados do jogador (CORRIGIDO: usar timestamp manual)
+            const playerData = {
+                userId: currentUser.uid,
+                playerName: userData.nickname || userData.nome || 'Jogador',
+                playerId: userData.playerId,
+                chips: currentTournamentToRegister.startingStack,
+                position: 0,
+                rebuyCount: 0,
+                addonUsed: false,
+                isActive: true,
+                registeredAt: new Date().toISOString() // TIMESTAMP MANUAL - NÃO usar FieldValue aqui
+            };
+            
+            // 3. Atualizar torneio no Firestore
+            await db.collection('tournaments').doc(currentTournamentToRegister.id).update({
+                registeredPlayers: firebase.firestore.FieldValue.increment(1),
+                prizePool: firebase.firestore.FieldValue.increment(currentTournamentToRegister.buyIn),
+                players: firebase.firestore.FieldValue.arrayUnion(playerData),
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            
+            // 4. Atualizar dados locais do usuário
+            userData.saldo = newBalance;
+            localStorage.setItem('keepPokerUser', JSON.stringify(userData));
+            
+            // 5. Atualizar UI
+            document.getElementById('goldCount').textContent = newBalance;
+            
+            // 6. Marcar usuário como inscrito localmente
+            isUserRegistered = true;
+            
+            // 7. Notificar sucesso
+            showNotification(`✅ Inscrição realizada com sucesso!`, 'success');
+            
+            // 8. Verificar se torneio lotou
+            const newPlayersCount = (currentTournamentToRegister.registeredPlayers || 0) + 1;
+            if (newPlayersCount >= currentTournamentToRegister.maxPlayers) {
+                showNotification('🎉 Torneio lotado! Iniciando em breve...', 'success');
+                
+                // Atualizar status do torneio para "starting" (iniciando)
+                await db.collection('tournaments').doc(currentTournamentToRegister.id).update({
+                    status: 'starting',
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                // Mostrar contador de início
+                setTimeout(() => {
+                    showNotification('⏳ Torneio iniciando em 30 segundos...', 'info');
+                }, 1000);
+            }
+            
+            // 9. Recarregar dados do torneio após 1.5 segundos
             setTimeout(() => {
-                showNotification('⏳ Torneio iniciando em 30 segundos...', 'info');
-            }, 1000);
+                if (tournamentUnsubscribe) tournamentUnsubscribe();
+                loadTournamentData(currentTournamentToRegister.id);
+                setupTournamentListener(currentTournamentToRegister.id);
+            }, 1500);
+            
+        } catch (error) {
+            console.error('Erro ao realizar inscrição:', error);
+            
+            // Verificar tipo de erro
+            if (error.code === 'failed-precondition') {
+                showNotification('❌ Erro: campo "players" não é um array no Firestore', 'error');
+                console.log('Solução: Verifique se o campo "players" no Firestore é um array vazio []');
+            } else if (error.message.includes('arrayUnion')) {
+                showNotification('❌ Erro na estrutura do torneio. O campo "players" pode não ser um array.', 'error');
+            } else if (error.code === 'permission-denied') {
+                showNotification('❌ Permissão negada. Verifique as regras do Firestore.', 'error');
+            } else {
+                showNotification('❌ Erro ao realizar inscrição: ' + error.message, 'error');
+            }
+            
+            // Restaurar botão
+            actionButton.innerHTML = originalHTML;
+            actionButton.disabled = false;
+            updateMainAction();
+        } finally {
+            currentTournamentToRegister = null;
         }
-        
-        // 9. Recarregar dados do torneio após 1.5 segundos
-        setTimeout(() => {
-            if (tournamentUnsubscribe) tournamentUnsubscribe();
-            loadTournamentData(currentTournamentToRegister.id);
-            setupTournamentListener(currentTournamentToRegister.id);
-        }, 1500);
-        
-    } catch (error) {
-        console.error('Erro ao realizar inscrição:', error);
-        
-        // Verificar tipo de erro
-        if (error.code === 'failed-precondition') {
-            showNotification('❌ Erro: campo "players" não é um array no Firestore', 'error');
-            console.log('Solução: Verifique se o campo "players" no Firestore é um array vazio []');
-        } else if (error.message.includes('arrayUnion')) {
-            showNotification('❌ Erro na estrutura do torneio. O campo "players" pode não ser um array.', 'error');
-        } else if (error.code === 'permission-denied') {
-            showNotification('❌ Permissão negada. Verifique as regras do Firestore.', 'error');
-        } else {
-            showNotification('❌ Erro ao realizar inscrição: ' + error.message, 'error');
-        }
-        
-        // Restaurar botão
-        actionButton.innerHTML = originalHTML;
-        actionButton.disabled = false;
-        updateMainAction();
-    } finally {
-        currentTournamentToRegister = null;
     }
-}
     
     // Entrar no torneio (quando em andamento)
     function enterTournament() {
