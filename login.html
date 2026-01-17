@@ -6,13 +6,13 @@
     <title>Login - KeepPoker</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- FIREBASE MESMA VERSÃO -->
+    <!-- FIREBASE -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     
     <script>
-        // MESMA CONFIGURAÇÃO
+        // CONFIGURAÇÃO DO SEU FIREBASE
         const firebaseConfig = {
             apiKey: "AIzaSyBIBucZSzN671VgJQHGIiepHNUqxbqNKAQ",
             authDomain: "keeppoker-b4173.firebaseapp.com",
@@ -22,10 +22,12 @@
             appId: "1:436464592434:web:c5a1e0c10e10acbc14fe2b"
         };
         
+        // INICIALIZAR FIREBASE
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
         
+        // FUNÇÃO DE LOGIN ORIGINAL
         async function loginUser(event) {
             event.preventDefault();
             
@@ -38,19 +40,20 @@
             }
             
             const btn = document.getElementById('submitBtn');
+            const originalText = btn.innerHTML;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Entrando...';
             btn.disabled = true;
             
             try {
-                console.log('🔐 Tentando login para:', email);
+                console.log('Tentando login para:', email);
                 
-                // 1. LOGIN NO FIREBASE AUTH
+                // 1. Fazer login no Firebase Auth
                 const userCredential = await auth.signInWithEmailAndPassword(email, senha);
                 const user = userCredential.user;
                 
-                console.log('✅ Auth OK! UID:', user.uid);
+                console.log('Login auth OK! UID:', user.uid);
                 
-                // 2. BUSCAR DADOS NO FIRESTORE
+                // 2. Buscar dados do usuário no Firestore
                 const userDoc = await db.collection('users').doc(user.uid).get();
                 
                 if (!userDoc.exists) {
@@ -58,83 +61,34 @@
                 }
                 
                 const userData = userDoc.data();
-                console.log('📄 Dados do Firestore:', userData);
+                console.log('Dados encontrados:', userData);
                 
-                // 3. VERIFICAR E CORRIGIR DADOS SE NECESSÁRIO
-                let dadosCorrigidos = { ...userData };
-                
-                // Se não tem playerId, criar um
-                if (!dadosCorrigidos.playerId) {
-                    dadosCorrigidos.playerId = 'KP' + Math.floor(10000 + Math.random() * 90000);
-                    console.log('🔧 Criando playerId:', dadosCorrigidos.playerId);
-                }
-                
-                // Se não tem nickname, usar o nome
-                if (!dadosCorrigidos.nickname) {
-                    dadosCorrigidos.nickname = dadosCorrigidos.nome || 'Jogador';
-                    console.log('🔧 Definindo nickname:', dadosCorrigidos.nickname);
-                }
-                
-                // Se não tem saldo, definir 1000
-                if (!dadosCorrigidos.saldo && dadosCorrigidos.saldo !== 0) {
-                    dadosCorrigidos.saldo = 1000;
-                    console.log('🔧 Definindo saldo: 1000');
-                }
-                
-                // Se não tem diamantes, definir 50
-                if (!dadosCorrigidos.diamantes && dadosCorrigidos.diamantes !== 0) {
-                    dadosCorrigidos.diamantes = 50;
-                    console.log('🔧 Definindo diamantes: 50');
-                }
-                
-                // Se não tem nível, definir 1
-                if (!dadosCorrigidos.nivel) {
-                    dadosCorrigidos.nivel = 1;
-                    console.log('🔧 Definindo nível: 1');
-                }
-                
-                // 4. ATUALIZAR FIRESTORE SE PRECISOU CORRIGIR
-                const precisaAtualizar = 
-                    !userData.playerId || 
-                    !userData.nickname || 
-                    !userData.saldo || 
-                    !userData.diamantes || 
-                    !userData.nivel;
-                
-                if (precisaAtualizar) {
-                    console.log('🔄 Atualizando dados no Firestore...');
-                    await db.collection('users').doc(user.uid).update({
-                        playerId: dadosCorrigidos.playerId,
-                        nickname: dadosCorrigidos.nickname,
-                        saldo: dadosCorrigidos.saldo,
-                        diamantes: dadosCorrigidos.diamantes,
-                        nivel: dadosCorrigidos.nivel,
-                        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-                    });
-                    console.log('✅ Dados atualizados no Firestore');
-                }
-                
-                // 5. SALVAR NO LOCALSTORAGE
+                // 3. Salvar no localStorage (APENAS OS CAMPOS QUE EXISTEM)
                 const dadosParaSalvar = {
                     uid: user.uid,
-                    nome: dadosCorrigidos.nome,
-                    email: dadosCorrigidos.email || email,
-                    playerId: dadosCorrigidos.playerId,
-                    nickname: dadosCorrigidos.nickname,
-                    saldo: dadosCorrigidos.saldo,
-                    diamantes: dadosCorrigidos.diamantes,
-                    nivel: dadosCorrigidos.nivel
+                    nome: userData.nome,
+                    email: userData.email,
+                    playerId: userData.playerId,
+                    saldo: userData.saldo,
+                    diamantes: userData.diamantes,
+                    nivel: userData.nivel || 1
                 };
                 
-                localStorage.setItem('keepPokerUser', JSON.stringify(dadosParaSalvar));
-                console.log('💾 Salvo no localStorage:', dadosParaSalvar);
+                // NICKNAME É OPCIONAL - só adiciona se existir
+                if (userData.nickname) {
+                    dadosParaSalvar.nickname = userData.nickname;
+                }
                 
-                // 6. REDIRECIONAR
-                alert(`✅ Bem-vindo de volta, ${dadosCorrigidos.nome}!`);
+                localStorage.setItem('keepPokerUser', JSON.stringify(dadosParaSalvar));
+                
+                console.log('Login completo! Redirecionando...');
+                
+                // 4. Redirecionar para home
+                alert('✅ Bem-vindo de volta, ' + userData.nome + '!');
                 window.location.href = 'home.html';
                 
             } catch (error) {
-                console.error('❌ ERRO NO LOGIN:', error);
+                console.error('ERRO NO LOGIN:', error);
                 
                 let mensagem = 'Erro ao fazer login!';
                 
@@ -147,13 +101,13 @@
                 } else if (error.code === 'auth/too-many-requests') {
                     mensagem = 'Muitas tentativas. Tente mais tarde.';
                 } else if (error.message.includes('não encontrado no banco')) {
-                    mensagem = 'Sua conta precisa ser recriada. Faça cadastro novamente.';
+                    mensagem = 'Conta não encontrada. Faça cadastro primeiro.';
                 } else {
                     mensagem = error.message || 'Erro desconhecido';
                 }
                 
-                alert(mensagem);
-                btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Entrar';
+                alert('❌ ' + mensagem);
+                btn.innerHTML = originalText;
                 btn.disabled = false;
             }
         }
@@ -166,24 +120,12 @@
             margin: 0; 
             padding: 0; 
             box-sizing: border-box; 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            font-family: 'Segoe UI', sans-serif; 
         }
         
-        :root {
-            --azul-profundo: #0d1b2a;
-            --azul-medio: #1b263b;
-            --azul-claro: #415a77;
-            --dourado: #d4af37;
-            --dourado-claro: #f7ef8a;
-            --branco: #ffffff;
-            --cinza-claro: #e0e1dd;
-            --verde: #2ecc71;
-            --vermelho: #e74c3c;
-        }
-        
-        body { 
-            background: var(--azul-profundo); 
-            color: var(--cinza-claro);
+        body {
+            background: #0d1b2a;
+            color: #e0e1dd;
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -191,132 +133,95 @@
             padding: 20px;
         }
         
-        .container { 
+        .container {
             width: 100%;
             max-width: 400px;
         }
         
-        .login-box { 
-            background: var(--azul-medio); 
-            padding: 40px;
-            border-radius: 15px; 
-            border: 2px solid var(--dourado);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        .login-box {
+            background: #1b263b;
+            padding: 30px;
+            border-radius: 10px;
+            border: 2px solid #d4af37;
         }
         
-        h1 { 
-            color: var(--dourado); 
-            text-align: center; 
-            margin-bottom: 30px;
-            font-size: 28px;
+        h1 {
+            color: #d4af37;
+            text-align: center;
+            margin-bottom: 20px;
         }
         
-        .input-group { 
-            margin-bottom: 25px; 
+        .input-group {
+            margin-bottom: 15px;
         }
         
-        label { 
-            display: block; 
-            margin-bottom: 10px; 
-            color: var(--cinza-claro);
-            font-weight: 600;
-            font-size: 14px;
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #e0e1dd;
         }
         
-        input { 
-            width: 100%; 
-            padding: 15px;
-            border-radius: 10px; 
-            border: 2px solid var(--azul-claro);
-            background: rgba(255,255,255,0.1); 
-            color: var(--branco);
-            font-size: 16px;
-            transition: all 0.3s ease;
+        input {
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #415a77;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
         }
         
-        input:focus { 
-            outline: none; 
-            border-color: var(--dourado);
-            box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.2);
+        input:focus {
+            outline: none;
+            border-color: #d4af37;
         }
         
-        button { 
-            width: 100%; 
-            padding: 16px; 
-            background: var(--dourado); 
-            color: var(--azul-profundo); 
-            border: none; 
-            border-radius: 10px; 
-            font-size: 16px; 
-            font-weight: bold; 
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #d4af37;
+            color: #0d1b2a;
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
             cursor: pointer;
-            transition: all 0.3s ease;
             margin-top: 10px;
         }
         
-        button:hover { 
-            background: var(--dourado-claro);
-            transform: translateY(-2px);
+        button:hover {
+            background: #f7ef8a;
         }
         
         button:disabled {
-            opacity: 0.6;
+            opacity: 0.5;
             cursor: not-allowed;
-            transform: none;
         }
         
-        .register-link { 
-            text-align: center; 
-            margin-top: 25px;
-            padding-top: 20px;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        .register-link a { 
-            color: var(--dourado); 
-            text-decoration: none; 
-            font-weight: bold;
-            font-size: 15px;
-        }
-        
-        .register-link a:hover {
-            text-decoration: underline;
-        }
-        
-        .forgot-password {
+        .register-link {
             text-align: center;
             margin-top: 15px;
+            color: #888;
         }
         
-        .forgot-password a {
-            color: var(--azul-claro);
+        .register-link a {
+            color: #d4af37;
             text-decoration: none;
-            font-size: 14px;
-        }
-        
-        .forgot-password a:hover {
-            color: var(--dourado);
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="login-box">
-            <h1><i class="fas fa-poker-chips"></i> KeepPoker</h1>
+            <h1>Login KeepPoker</h1>
             
             <form onsubmit="loginUser(event)">
                 <div class="input-group">
-                    <label><i class="fas fa-envelope"></i> Email</label>
-                    <input type="email" id="email" placeholder="seu@email.com" required autofocus>
+                    <label>Email</label>
+                    <input type="email" id="email" placeholder="seu@email.com" required>
                 </div>
                 
                 <div class="input-group">
-                    <label><i class="fas fa-lock"></i> Senha</label>
+                    <label>Senha</label>
                     <input type="password" id="senha" placeholder="Sua senha" required>
-                </div>
-                
-                <div class="forgot-password">
-                    <a href="#" onclick="alert('Use o mesmo email do cadastro para recuperar senha')">Esqueceu a senha?</a>
                 </div>
                 
                 <button type="submit" id="submitBtn">
@@ -324,36 +229,19 @@
                 </button>
                 
                 <div class="register-link">
-                    Não tem conta? <a href="cadastro.html">Cadastre-se aqui</a>
+                    Não tem conta? <a href="cadastro.html">Cadastre-se</a>
                 </div>
             </form>
         </div>
     </div>
     
     <script>
-        // SE JÁ ESTIVER LOGADO, REDIRECIONAR
+        // Se já estiver logado, redirecionar
         document.addEventListener('DOMContentLoaded', function() {
             if (localStorage.getItem('keepPokerUser')) {
-                console.log('Já logado, redirecionando...');
                 window.location.href = 'home.html';
             }
-            
-            // Focar no campo email automaticamente
-            document.getElementById('email').focus();
         });
-        
-        // Função para recuperar senha
-        async function resetPassword() {
-            const email = prompt('Digite seu email para recuperar a senha:');
-            if (!email) return;
-            
-            try {
-                await auth.sendPasswordResetEmail(email);
-                alert('Email de recuperação enviado! Verifique sua caixa de entrada.');
-            } catch (error) {
-                alert('Erro: ' + (error.message || 'Não foi possível enviar o email'));
-            }
-        }
     </script>
 </body>
 </html>
