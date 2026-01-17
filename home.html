@@ -5,6 +5,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Home - KeepPoker</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBIBucZSzN671VgJQHGIiepHNUqxbqNKAQ",
+            authDomain: "keeppoker-b4173.firebaseapp.com",
+            projectId: "keeppoker-b4173",
+            storageBucket: "keeppoker-b4173.firebasestorage.app",
+            messagingSenderId: "436464592434",
+            appId: "1:436464592434:web:c5a1e0c10e10acbc14fe2b"
+        };
+        
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+    </script>
+    
     <style>
         * {
             margin: 0;
@@ -57,7 +79,8 @@
         .player-info {
             display: flex;
             align-items: center;
-            gap: 25px;
+            gap: 20px;
+            flex-wrap: wrap;
         }
         
         .player-id {
@@ -84,7 +107,7 @@
         .resources {
             display: flex;
             align-items: center;
-            gap: 20px;
+            gap: 15px;
         }
         
         .resource-item {
@@ -157,7 +180,6 @@
         }
         
         .logo-container {
-            position: relative;
             height: 60px;
             display: flex;
             align-items: center;
@@ -165,17 +187,14 @@
         
         .logo-link {
             display: block;
-            position: relative;
             height: 100%;
         }
         
-        .logo-placeholder {
-            background-size: contain;
-            background-repeat: no-repeat;
-            background-position: left center;
-            width: 200px;
-            height: 60px;
-            text-indent: -9999px;
+        .logo {
+            height: 100%;
+            width: auto;
+            max-width: 200px;
+            object-fit: contain;
         }
         
         /* Menu de Navegação */
@@ -194,12 +213,13 @@
             text-decoration: none;
             font-weight: 600;
             font-size: 16px;
-            padding: 12px 20px;
+            padding: 12px 18px;
             border-radius: 8px;
             transition: all 0.3s ease;
             display: flex;
             align-items: center;
             gap: 8px;
+            white-space: nowrap;
         }
         
         .nav-link:hover {
@@ -229,21 +249,24 @@
         .user-menu {
             display: flex;
             align-items: center;
-            gap: 15px;
-            margin-left: 20px;
+            gap: 10px;
+            margin-left: 15px;
         }
         
         .btn {
-            padding: 10px 20px;
+            padding: 10px 18px;
             border-radius: 30px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
             border: none;
-            font-size: 16px;
+            font-size: 15px;
             text-decoration: none;
-            display: inline-block;
-            text-align: center;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            white-space: nowrap;
         }
         
         .btn-deposit {
@@ -315,33 +338,6 @@
             color: var(--cinza-claro);
         }
         
-        .quick-stats {
-            display: flex;
-            gap: 20px;
-            margin-bottom: 30px;
-            flex-wrap: wrap;
-        }
-        
-        .stat-card {
-            background-color: rgba(255, 255, 255, 0.05);
-            padding: 15px 20px;
-            border-radius: 10px;
-            border-left: 4px solid var(--dourado);
-            min-width: 180px;
-        }
-        
-        .stat-label {
-            font-size: 14px;
-            color: var(--cinza-claro);
-            margin-bottom: 5px;
-        }
-        
-        .stat-value {
-            font-size: 24px;
-            font-weight: bold;
-            color: var(--dourado);
-        }
-        
         .hero-image-container {
             flex: 1;
             display: flex;
@@ -359,8 +355,8 @@
             border: 3px solid var(--dourado);
         }
         
-        /* Seção de Mesas Rápidas */
-        .quick-tables {
+        /* Seção de Destaques */
+        .highlights {
             padding: 60px 0;
         }
         
@@ -394,145 +390,49 @@
             margin: 0 auto;
         }
         
-        .tables-grid {
+        .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
             gap: 25px;
             margin-bottom: 40px;
         }
         
-        .table-card {
+        .stat-card {
             background-color: rgba(27, 38, 59, 0.8);
             border-radius: 15px;
-            overflow: hidden;
-            transition: all 0.3s ease;
+            padding: 30px;
+            text-align: center;
             border: 2px solid transparent;
-        }
-        
-        .table-card:hover {
-            transform: translateY(-10px);
-            border-color: var(--dourado);
-            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4);
-        }
-        
-        .table-header {
-            background-color: var(--azul-claro);
-            padding: 20px;
-            text-align: center;
-            position: relative;
-        }
-        
-        .table-header h3 {
-            color: var(--branco);
-            font-size: 22px;
-            margin-bottom: 5px;
-        }
-        
-        .table-type {
-            color: var(--dourado);
-            font-weight: 600;
-            font-size: 14px;
-        }
-        
-        .table-badge {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            background-color: var(--dourado);
-            color: var(--azul-profundo);
-            font-size: 12px;
-            padding: 3px 10px;
-            border-radius: 12px;
-            font-weight: bold;
-        }
-        
-        .table-content {
-            padding: 20px;
-        }
-        
-        .table-info {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 15px;
-        }
-        
-        .info-item {
-            text-align: center;
-        }
-        
-        .info-label {
-            font-size: 12px;
-            color: var(--cinza-claro);
-            margin-bottom: 5px;
-        }
-        
-        .info-value {
-            font-size: 18px;
-            font-weight: bold;
-            color: var(--dourado);
-        }
-        
-        .players-count {
-            margin-bottom: 20px;
-            text-align: center;
-        }
-        
-        .players-count span {
-            color: var(--dourado);
-            font-weight: bold;
-        }
-        
-        .players-visual {
-            display: flex;
-            justify-content: center;
-            gap: 5px;
-            margin-top: 10px;
-        }
-        
-        .player-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background-color: var(--verde);
-        }
-        
-        .player-dot.empty {
-            background-color: var(--azul-claro);
-        }
-        
-        .table-actions {
-            display: flex;
-            gap: 10px;
-        }
-        
-        .btn-table {
-            flex: 1;
-            padding: 12px;
-            border-radius: 8px;
-            font-weight: 600;
-            text-align: center;
-            cursor: pointer;
             transition: all 0.3s ease;
-            border: none;
-            font-size: 14px;
         }
         
-        .btn-join {
-            background-color: var(--verde);
-            color: white;
+        .stat-card:hover {
+            border-color: var(--dourado);
+            transform: translateY(-5px);
         }
         
-        .btn-join:hover {
-            background-color: #27ae60;
+        .stat-icon {
+            font-size: 40px;
+            color: var(--dourado);
+            margin-bottom: 20px;
         }
         
-        .btn-spectate {
-            background-color: var(--azul-claro);
-            color: white;
+        .stat-card h3 {
+            font-size: 22px;
+            margin-bottom: 15px;
+            color: var(--branco);
         }
         
-        .btn-spectate:hover {
-            background-color: var(--azul-medio);
+        .stat-card .stat-number {
+            font-size: 32px;
+            font-weight: bold;
+            color: var(--dourado);
+            margin-bottom: 10px;
+        }
+        
+        .stat-card p {
+            color: var(--cinza-claro);
+            font-size: 15px;
         }
         
         /* Seção de Recursos */
@@ -578,6 +478,13 @@
             background-color: #0a1520;
             padding: 50px 0 20px;
             text-align: center;
+        }
+        
+        .footer-logo {
+            color: var(--dourado);
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 20px;
         }
         
         .footer-links {
@@ -680,14 +587,6 @@
                 justify-content: center;
             }
             
-            .quick-stats {
-                justify-content: center;
-            }
-            
-            .stat-card {
-                min-width: 150px;
-            }
-            
             .welcome-section h1 {
                 font-size: 36px;
             }
@@ -696,7 +595,7 @@
                 font-size: 32px;
             }
             
-            .tables-grid {
+            .stats-grid {
                 grid-template-columns: 1fr;
             }
         }
@@ -710,10 +609,6 @@
                 font-size: 28px;
             }
             
-            .table-actions {
-                flex-direction: column;
-            }
-            
             .features-grid {
                 grid-template-columns: 1fr;
             }
@@ -723,20 +618,10 @@
                 gap: 15px;
             }
             
-            .stat-card {
-                min-width: 100%;
+            .btn {
+                padding: 8px 15px;
+                font-size: 14px;
             }
-        }
-        
-        /* Animações */
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
-        
-        .pulse {
-            animation: pulse 2s infinite;
         }
         
         /* Notificações */
@@ -819,7 +704,7 @@
         <div class="container main-header-container">
             <div class="logo-container">
                 <a href="home.html" class="logo-link">
-                    <div class="logo-placeholder">KeepPoker</div>
+                    <img src="logokeeppoker.png" alt="KeepPoker" class="logo">
                 </a>
             </div>
             
@@ -829,59 +714,44 @@
             
             <nav class="nav-menu" id="navMenu">
                 <div class="nav-item">
-                    <a href="#tables" class="nav-link active">
+                    <a href="mesas.html" class="nav-link">
                         <i class="fas fa-table"></i>
                         <span>Mesas</span>
                     </a>
                 </div>
                 
                 <div class="nav-item">
-                    <a href="#ranking" class="nav-link">
+                    <a href="ranking.html" class="nav-link">
                         <i class="fas fa-trophy"></i>
                         <span>Ranking</span>
                     </a>
                 </div>
                 
                 <div class="nav-item">
-                    <a href="#notifications" class="nav-link">
+                    <a href="notificacoes.html" class="nav-link">
                         <i class="fas fa-bell"></i>
                         <span>Notificações</span>
-                        <span class="notification-badge">3</span>
                     </a>
                 </div>
                 
                 <div class="nav-item">
-                    <a href="#club" class="nav-link">
+                    <a href="clube.html" class="nav-link">
                         <i class="fas fa-users"></i>
                         <span>Meu Clube</span>
                     </a>
                 </div>
                 
                 <div class="nav-item">
-                    <a href="#account" class="nav-link">
+                    <a href="conta.html" class="nav-link">
                         <i class="fas fa-user-circle"></i>
                         <span>Minha Conta</span>
                     </a>
                 </div>
                 
-                <div class="nav-item">
-                    <a href="#dictionary" class="nav-link">
-                        <i class="fas fa-book"></i>
-                        <span>Dicionário</span>
-                    </a>
-                </div>
-                
-                <div class="nav-item">
-                    <a href="#schedule" class="nav-link">
-                        <i class="fas fa-calendar-alt"></i>
-                        <span>Horários</span>
-                    </a>
-                </div>
-                
                 <div class="user-menu">
-                    <a href="#deposit" class="btn btn-deposit">
+                    <button id="depositBtn" class="btn btn-deposit">
                         <i class="fas fa-plus-circle"></i> Depositar
-                    </a>
+                    </button>
                     <button id="logoutBtn" class="btn btn-logout">
                         <i class="fas fa-sign-out-alt"></i> Sair
                     </button>
@@ -895,32 +765,12 @@
         <div class="container">
             <div class="hero-content">
                 <div class="welcome-section">
-                    <h1>Bem-vindo, <span id="playerName">Jogador</span>!</h1>
-                    <p>Escolha uma mesa, participe de torneios ou crie seu próprio clube. A diversão está apenas começando!</p>
+                    <h1>Bem-vindo ao <span id="playerName">KeepPoker</span>!</h1>
+                    <p>A melhor plataforma de poker online. Encontre mesas, participe de torneios, crie clubes e divirta-se com jogadores de todo o Brasil!</p>
                     
-                    <div class="quick-stats">
-                        <div class="stat-card">
-                            <div class="stat-label">Nível</div>
-                            <div class="stat-value" id="playerLevel">1</div>
-                        </div>
-                        
-                        <div class="stat-card">
-                            <div class="stat-label">Vitórias</div>
-                            <div class="stat-value" id="playerWins">0</div>
-                        </div>
-                        
-                        <div class="stat-card">
-                            <div class="stat-label">Torneios</div>
-                            <div class="stat-value" id="playerTournaments">0</div>
-                        </div>
-                    </div>
-                    
-                    <div class="table-actions">
-                        <a href="#create-table" class="btn btn-join" style="margin-right: 10px;">
-                            <i class="fas fa-plus"></i> Criar Mesa
-                        </a>
-                        <a href="#tournaments" class="btn btn-spectate">
-                            <i class="fas fa-trophy"></i> Torneios
+                    <div style="margin-top: 30px;">
+                        <a href="mesas.html" class="btn btn-deposit" style="padding: 12px 30px;">
+                            <i class="fas fa-play-circle"></i> Jogar Agora
                         </a>
                     </div>
                 </div>
@@ -932,31 +782,50 @@
         </div>
     </section>
     
-    <!-- Mesas Rápidas -->
-    <section class="quick-tables" id="tables">
+    <!-- Seção de Destaques -->
+    <section class="highlights">
         <div class="container">
             <div class="section-title">
-                <h2>Mesas Disponíveis</h2>
-                <p>Escolha uma mesa para começar a jogar. Partidas rápidas, torneios ou mesas privadas.</p>
+                <h2>Sua Jornada no KeepPoker</h2>
+                <p>Acompanhe seu progresso e conquistas na plataforma</p>
             </div>
             
-            <div class="tables-grid" id="tablesGrid">
-                <!-- As mesas serão carregadas via JavaScript -->
-            </div>
-            
-            <div style="text-align: center;">
-                <a href="#all-tables" class="btn btn-deposit" style="padding: 12px 40px;">
-                    <i class="fas fa-list"></i> Ver Todas as Mesas
-                </a>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h3>Seu Nível</h3>
+                    <div class="stat-number" id="playerLevel">1</div>
+                    <p>Suba de nível jogando e ganhando partidas</p>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-trophy"></i>
+                    </div>
+                    <h3>Vitórias</h3>
+                    <div class="stat-number" id="playerWins">0</div>
+                    <p>Partidas vencidas no KeepPoker</p>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-medal"></i>
+                    </div>
+                    <h3>Torneios</h3>
+                    <div class="stat-number" id="playerTournaments">0</div>
+                    <p>Torneios concluídos</p>
+                </div>
             </div>
         </div>
     </section>
     
-    <!-- Recursos Adicionais -->
+    <!-- Seção de Recursos -->
     <section class="features-section">
         <div class="container">
             <div class="section-title">
-                <h2>Recursos do KeepPoker</h2>
+                <h2>Recursos Exclusivos</h2>
                 <p>Tudo o que você precisa para uma experiência completa de poker</p>
             </div>
             
@@ -999,44 +868,35 @@
     <!-- Footer -->
     <footer>
         <div class="container">
-            <div class="footer-logo-placeholder" style="color: var(--dourado); font-size: 32px; font-weight: bold; margin-bottom: 20px;">
-                KeepPoker
-            </div>
+            <div class="footer-logo">KeepPoker</div>
             
             <div class="footer-links">
-                <a href="#support">Suporte</a>
-                <a href="#faq">FAQ</a>
-                <a href="#rules">Regras</a>
-                <a href="#responsible">Jogo Responsável</a>
-                <a href="#terms">Termos</a>
-                <a href="#privacy">Privacidade</a>
+                <a href="suporte.html">Suporte</a>
+                <a href="faq.html">FAQ</a>
+                <a href="regras.html">Regras</a>
+                <a href="responsavel.html">Jogo Responsável</a>
+                <a href="termos.html">Termos</a>
+                <a href="privacidade.html">Privacidade</a>
             </div>
             
             <p class="copyright">
-                &copy; 2023 KeepPoker. Todos os direitos reservados. Jogue com responsabilidade.
+                &copy; 2024 KeepPoker. Todos os direitos reservados. Jogue com responsabilidade.
             </p>
         </div>
     </footer>
     
     <script>
-        // Dados do usuário do localStorage
+        // Dados do usuário
         let userData = null;
         
         // Inicialização
         document.addEventListener('DOMContentLoaded', function() {
-            // Carregar logo
-            const logoPlaceholder = document.querySelector('.logo-placeholder');
-            logoPlaceholder.style.backgroundImage = 'url("logokeeppoker.png")';
-            
             // Carregar dados do usuário
             loadUserData();
             
             // Inicializar relógio
             updateClock();
             setInterval(updateClock, 1000);
-            
-            // Carregar mesas
-            loadTables();
             
             // Menu mobile
             const mobileMenuBtn = document.getElementById('mobileMenuBtn');
@@ -1056,53 +916,77 @@
             
             // Logout
             document.getElementById('logoutBtn').addEventListener('click', function() {
-                localStorage.removeItem('keepPokerUser');
-                window.location.href = 'index.html';
-            });
-            
-            // Navegação ativa
-            const navLinks = document.querySelectorAll('.nav-link');
-            navLinks.forEach(link => {
-                link.addEventListener('click', function(e) {
-                    // Se não for um link âncora, prevenir comportamento padrão
-                    if (this.getAttribute('href').startsWith('#')) {
-                        e.preventDefault();
-                        
-                        // Ativar link clicado
-                        navLinks.forEach(l => l.classList.remove('active'));
-                        this.classList.add('active');
-                        
-                        // Fechar menu mobile se aberto
-                        if (window.innerWidth <= 992) {
-                            navMenu.classList.remove('nav-open');
-                            mobileMenuBtn.querySelector('i').classList.remove('fa-times');
-                            mobileMenuBtn.querySelector('i').classList.add('fa-bars');
-                        }
-                    }
+                auth.signOut().then(() => {
+                    localStorage.removeItem('keepPokerUser');
+                    window.location.href = 'index.html';
+                }).catch(error => {
+                    console.error('Erro ao fazer logout:', error);
+                    localStorage.removeItem('keepPokerUser');
+                    window.location.href = 'index.html';
                 });
             });
             
-            // Simular notificações
-            simulateNotifications();
+            // Depositar
+            document.getElementById('depositBtn').addEventListener('click', function() {
+                showNotification('Funcionalidade de depósito em desenvolvimento', 'info');
+            });
+            
+            // Fechar menu mobile ao clicar em link
+            const navLinks = document.querySelectorAll('.nav-link');
+            navLinks.forEach(link => {
+                link.addEventListener('click', () => {
+                    if (window.innerWidth <= 992) {
+                        navMenu.classList.remove('nav-open');
+                        mobileMenuBtn.querySelector('i').classList.remove('fa-times');
+                        mobileMenuBtn.querySelector('i').classList.add('fa-bars');
+                    }
+                });
+            });
         });
         
         // Carregar dados do usuário
-        function loadUserData() {
+        async function loadUserData() {
             const user = localStorage.getItem('keepPokerUser');
-            if (user) {
-                userData = JSON.parse(user);
-                
-                // Atualizar informações na página
-                document.getElementById('playerId').textContent = userData.userId || '0000000';
-                document.getElementById('playerName').textContent = userData.nome || 'Jogador';
-                document.getElementById('playerLevel').textContent = userData.nivel || 1;
-                document.getElementById('diamondCount').textContent = userData.diamonds || 50;
-                document.getElementById('goldCount').textContent = userData.saldo || 1000;
-                document.getElementById('playerWins').textContent = userData.vitorias || 0;
-                document.getElementById('playerTournaments').textContent = userData.torneios || 0;
-            } else {
+            
+            if (!user) {
                 // Redirecionar para login se não estiver logado
                 window.location.href = 'login.html';
+                return;
+            }
+            
+            userData = JSON.parse(user);
+            
+            // Atualizar informações básicas
+            document.getElementById('playerId').textContent = userData.playerId || '-';
+            document.getElementById('playerName').textContent = userData.nome || 'Jogador';
+            document.getElementById('diamondCount').textContent = userData.diamantes || '0';
+            document.getElementById('goldCount').textContent = userData.saldo || '0';
+            document.getElementById('playerLevel').textContent = userData.nivel || '1';
+            document.getElementById('playerWins').textContent = userData.vitorias || '0';
+            document.getElementById('playerTournaments').textContent = userData.torneios || '0';
+            
+            // Se não tiver playerId, buscar do Firestore
+            if (!userData.playerId && userData.uid) {
+                try {
+                    const userDoc = await db.collection('users').doc(userData.uid).get();
+                    if (userDoc.exists) {
+                        const firestoreData = userDoc.data();
+                        if (firestoreData.playerId) {
+                            userData.playerId = firestoreData.playerId;
+                            localStorage.setItem('keepPokerUser', JSON.stringify(userData));
+                            document.getElementById('playerId').textContent = firestoreData.playerId;
+                        }
+                        
+                        // Atualizar outros dados do Firestore
+                        document.getElementById('diamondCount').textContent = firestoreData.diamantes || '0';
+                        document.getElementById('goldCount').textContent = firestoreData.saldo || '0';
+                        document.getElementById('playerLevel').textContent = firestoreData.nivel || '1';
+                        document.getElementById('playerWins').textContent = firestoreData.vitorias || '0';
+                        document.getElementById('playerTournaments').textContent = firestoreData.torneios || '0';
+                    }
+                } catch (error) {
+                    console.error('Erro ao buscar dados do Firestore:', error);
+                }
             }
         }
         
@@ -1117,135 +1001,6 @@
             document.getElementById('currentTime').textContent = timeString;
         }
         
-        // Carregar mesas
-        function loadTables() {
-            const tables = [
-                {
-                    id: 1,
-                    name: 'Texas Hold\'em',
-                    type: 'NL Hold\'em',
-                    buyIn: '100 Gold',
-                    players: 6,
-                    maxPlayers: 9,
-                    speed: 'Rápida',
-                    badge: 'POPULAR'
-                },
-                {
-                    id: 2,
-                    name: 'Omaha Hi-Lo',
-                    type: 'PL Omaha',
-                    buyIn: '250 Gold',
-                    players: 4,
-                    maxPlayers: 6,
-                    speed: 'Média',
-                    badge: 'NOVO'
-                },
-                {
-                    id: 3,
-                    name: 'Seven Card Stud',
-                    type: 'Limit Stud',
-                    buyIn: '50 Gold',
-                    players: 8,
-                    maxPlayers: 8,
-                    speed: 'Lenta',
-                    badge: 'CLÁSSICO'
-                },
-                {
-                    id: 4,
-                    name: 'Torneio Relâmpago',
-                    type: 'Tournament',
-                    buyIn: '500 Gold',
-                    players: 32,
-                    maxPlayers: 100,
-                    speed: 'Turbo',
-                    badge: 'TORNEIO'
-                },
-                {
-                    id: 5,
-                    name: 'Mesa Privada',
-                    type: 'Private Table',
-                    buyIn: 'Varía',
-                    players: 2,
-                    maxPlayers: 10,
-                    speed: 'Personalizada',
-                    badge: 'PRIVADA'
-                },
-                {
-                    id: 6,
-                    name: 'Treinamento',
-                    type: 'Free Play',
-                    buyIn: 'GRÁTIS',
-                    players: 5,
-                    maxPlayers: 9,
-                    speed: 'Treino',
-                    badge: 'TREINO'
-                }
-            ];
-            
-            const tablesGrid = document.getElementById('tablesGrid');
-            tablesGrid.innerHTML = '';
-            
-            tables.forEach(table => {
-                const tableCard = document.createElement('div');
-                tableCard.className = 'table-card';
-                
-                // Criar visualização dos jogadores
-                let playersVisual = '';
-                for (let i = 0; i < table.maxPlayers; i++) {
-                    playersVisual += '<div class="player-dot ' + (i < table.players ? '' : 'empty') + '"></div>';
-                }
-                
-                tableCard.innerHTML = `
-                    <div class="table-header">
-                        <h3>${table.name}</h3>
-                        <div class="table-type">${table.type}</div>
-                        <div class="table-badge">${table.badge}</div>
-                    </div>
-                    <div class="table-content">
-                        <div class="table-info">
-                            <div class="info-item">
-                                <div class="info-label">Buy-in</div>
-                                <div class="info-value">${table.buyIn}</div>
-                            </div>
-                            <div class="info-item">
-                                <div class="info-label">Velocidade</div>
-                                <div class="info-value">${table.speed}</div>
-                            </div>
-                        </div>
-                        
-                        <div class="players-count">
-                            Jogadores: <span>${table.players}/${table.maxPlayers}</span>
-                            <div class="players-visual">
-                                ${playersVisual}
-                            </div>
-                        </div>
-                        
-                        <div class="table-actions">
-                            <button class="btn-table btn-join" onclick="joinTable(${table.id})">
-                                <i class="fas fa-play-circle"></i> Jogar
-                            </button>
-                            <button class="btn-table btn-spectate" onclick="spectateTable(${table.id})">
-                                <i class="fas fa-eye"></i> Assistir
-                            </button>
-                        </div>
-                    </div>
-                `;
-                
-                tablesGrid.appendChild(tableCard);
-            });
-        }
-        
-        // Funções para interação com mesas
-        function joinTable(tableId) {
-            showNotification('Entrando na mesa ' + tableId + '... Em desenvolvimento.', 'success');
-            // Aqui você implementaria a lógica para entrar em uma mesa real
-        }
-        
-        function spectateTable(tableId) {
-            showNotification('Assistindo mesa ' + tableId + '... Em desenvolvimento.', 'success');
-            // Aqui você implementaria a lógica para assistir uma mesa
-        }
-        
         // Mostrar notificação
         function showNotification(message, type) {
             const notification = document.getElementById('notification');
@@ -1258,42 +1013,13 @@
             }, 4000);
         }
         
-        // Simular notificações periódicas
-        function simulateNotifications() {
-            // Notificação de boas-vindas
-            setTimeout(function() {
-                if (userData) {
-                    showNotification('Bem-vindo de volta, ' + userData.nome + '! Temos novos torneios disponíveis.', 'success');
-                }
-            }, 2000);
-            
-            // Simular notificações periódicas (a cada 60 segundos)
-            setInterval(function() {
-                const messages = [
-                    'Novo torneio começando em 10 minutos!',
-                    'Seu clube tem uma nova mensagem.',
-                    'Bônus diário disponível para resgate!',
-                    'Jogador desafiou você para uma partida!'
-                ];
-                
-                const randomMessage = messages[Math.floor(Math.random() * messages.length)];
-                showNotification(randomMessage, 'success');
-            }, 60000);
-        }
-        
-        // Atualizar recursos periodicamente (simulação)
-        setInterval(function() {
-            if (userData) {
-                // Simular ganho de gold (apenas visual)
-                const goldElement = document.getElementById('goldCount');
-                let currentGold = parseInt(goldElement.textContent);
-                goldElement.textContent = currentGold + 1;
-                
-                // Atualizar no localStorage
-                userData.saldo = currentGold + 1;
-                localStorage.setItem('keepPokerUser', JSON.stringify(userData));
+        // Verificar autenticação em tempo real
+        auth.onAuthStateChanged(function(user) {
+            if (!user) {
+                localStorage.removeItem('keepPokerUser');
+                window.location.href = 'login.html';
             }
-        }, 30000);
+        });
     </script>
 </body>
 </html>
