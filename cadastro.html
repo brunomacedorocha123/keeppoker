@@ -30,7 +30,7 @@
         
         .container {
             width: 100%;
-            max-width: 500px;
+            max-width: 450px;
         }
         
         .form-box {
@@ -38,12 +38,14 @@
             padding: 30px;
             border-radius: 10px;
             border: 2px solid #d4af37;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
         }
         
         h1 {
             color: #d4af37;
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
+            font-size: 24px;
         }
         
         .input-group {
@@ -54,6 +56,7 @@
             display: block;
             margin-bottom: 5px;
             color: #e0e1dd;
+            font-weight: bold;
         }
         
         input {
@@ -63,11 +66,20 @@
             border: 1px solid #415a77;
             background: rgba(255, 255, 255, 0.1);
             color: white;
+            font-size: 16px;
         }
         
         input:focus {
             outline: none;
             border-color: #d4af37;
+            box-shadow: 0 0 5px rgba(212, 175, 55, 0.5);
+        }
+        
+        .error {
+            color: #ff6b6b;
+            font-size: 12px;
+            margin-top: 5px;
+            display: none;
         }
         
         button {
@@ -77,87 +89,87 @@
             color: #0d1b2a;
             border: none;
             border-radius: 5px;
+            font-size: 16px;
             font-weight: bold;
             cursor: pointer;
             margin-top: 10px;
+            transition: all 0.3s;
         }
         
         button:hover {
             background: #f7ef8a;
+            transform: translateY(-2px);
         }
         
         button:disabled {
             opacity: 0.5;
             cursor: not-allowed;
+            transform: none;
         }
         
         .login-link {
             text-align: center;
-            margin-top: 15px;
+            margin-top: 20px;
             color: #888;
+            font-size: 14px;
         }
         
         .login-link a {
             color: #d4af37;
             text-decoration: none;
+            font-weight: bold;
+        }
+        
+        .login-link a:hover {
+            text-decoration: underline;
         }
         
         .requirements {
-            background: rgba(0, 0, 0, 0.3);
+            background: rgba(0, 0, 0, 0.2);
             padding: 10px;
             border-radius: 5px;
             margin: 10px 0;
             font-size: 13px;
-        }
-        
-        .error {
-            color: #ff6b6b;
-            font-size: 12px;
-            margin-top: 5px;
-            display: none;
+            border-left: 3px solid #d4af37;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="form-box">
-            <h1>Cadastro KeepPoker</h1>
+            <h1>📝 Cadastro KeepPoker</h1>
             
             <form id="cadastroForm">
                 <div class="input-group">
-                    <label>Nome Completo</label>
-                    <input type="text" id="nome" placeholder="Seu nome" required>
+                    <label>Nome Completo *</label>
+                    <input type="text" id="nome" placeholder="Digite seu nome completo" required autofocus>
                 </div>
                 
                 <div class="input-group">
-                    <label>Nickname (para o jogo)</label>
-                    <input type="text" id="nickname" placeholder="Escolha um nickname" required>
-                    <div class="error" id="nicknameError"></div>
-                </div>
-                
-                <div class="input-group">
-                    <label>Email</label>
+                    <label>Email *</label>
                     <input type="email" id="email" placeholder="seu@email.com" required>
+                    <div class="error" id="emailError"></div>
                 </div>
                 
                 <div class="input-group">
-                    <label>Data de Nascimento</label>
+                    <label>Data de Nascimento *</label>
                     <input type="date" id="dataNascimento" required>
-                    <small style="color: #888;">Você deve ter 18+ anos</small>
+                    <div class="error" id="idadeError"></div>
                 </div>
                 
                 <div class="input-group">
-                    <label>Senha</label>
+                    <label>Senha *</label>
                     <input type="password" id="senha" placeholder="Mínimo 8 caracteres" required>
                 </div>
                 
                 <div class="input-group">
-                    <label>Confirmar Senha</label>
+                    <label>Confirmar Senha *</label>
                     <input type="password" id="confirmarSenha" placeholder="Repita a senha" required>
+                    <div class="error" id="senhaError"></div>
                 </div>
                 
                 <div class="requirements">
-                    <strong>A senha deve ter:</strong>
+                    <strong>⚠️ Requisitos da senha:</strong>
                     <ul style="margin-left: 20px; margin-top: 5px;">
                         <li>Mínimo 8 caracteres</li>
                         <li>Pelo menos 1 letra MAIÚSCULA</li>
@@ -166,17 +178,17 @@
                     </ul>
                 </div>
                 
-                <button type="submit" id="submitBtn">Criar Conta</button>
+                <button type="submit" id="submitBtn">🎯 Criar Minha Conta</button>
                 
                 <div class="login-link">
-                    Já tem conta? <a href="login.html">Faça login</a>
+                    Já tem uma conta? <a href="login.html">👉 Faça login aqui</a>
                 </div>
             </form>
         </div>
     </div>
 
     <script>
-        // Firebase Configuration - SUAS CREDENCIAIS
+        // CONFIGURAÇÃO FIREBASE - SUAS CREDENCIAIS
         const firebaseConfig = {
             apiKey: "AIzaSyBIBucZSzN671VgJQHGIiepHNUqxbqNKAQ",
             authDomain: "keeppoker-b4173.firebaseapp.com",
@@ -186,17 +198,17 @@
             appId: "1:436464592434:web:c5a1e0c10e10acbc14fe2b"
         };
         
-        // Initialize Firebase
+        // INICIALIZAR FIREBASE
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
         
-        // Gerar ID único de 7 dígitos
+        // GERAR ID ÚNICO DE 7 DÍGITOS
         function gerarPlayerId() {
-            return 'KP' + Math.floor(100000 + Math.random() * 900000);
+            return Math.floor(1000000 + Math.random() * 9000000).toString();
         }
         
-        // Validar senha
+        // VALIDAR SENHA
         function validarSenha(senha) {
             if (senha.length < 8) return false;
             if (!/[A-Z]/.test(senha)) return false;
@@ -205,12 +217,14 @@
             return true;
         }
         
-        // Validar idade (18+)
+        // VALIDAR IDADE (18+)
         function validarIdade(dataNascimento) {
             const hoje = new Date();
             const nascimento = new Date(dataNascimento);
+            
             let idade = hoje.getFullYear() - nascimento.getFullYear();
             
+            // Ajustar se ainda não fez aniversário este ano
             const mesAtual = hoje.getMonth();
             const mesNascimento = nascimento.getMonth();
             
@@ -222,89 +236,69 @@
             return idade >= 18;
         }
         
-        // Verificar se nickname já existe
-        async function verificarNickname(nickname) {
-            try {
-                const snapshot = await db.collection('users')
-                    .where('nickname', '==', nickname)
-                    .get();
-                
-                return !snapshot.empty;
-            } catch (error) {
-                console.error('Erro ao verificar nickname:', error);
-                return false;
-            }
-        }
-        
-        // Cadastrar usuário
+        // FUNÇÃO PRINCIPAL DE CADASTRO
         async function cadastrarUsuario(event) {
             event.preventDefault();
             
-            // Obter valores
+            // OBTER VALORES
             const nome = document.getElementById('nome').value.trim();
-            const nickname = document.getElementById('nickname').value.trim();
-            const email = document.getElementById('email').value.trim();
+            const email = document.getElementById('email').value.trim().toLowerCase();
             const dataNascimento = document.getElementById('dataNascimento').value;
             const senha = document.getElementById('senha').value;
             const confirmarSenha = document.getElementById('confirmarSenha').value;
             
-            // Validar campos obrigatórios
-            if (!nome || !nickname || !email || !dataNascimento || !senha || !confirmarSenha) {
-                alert('Preencha todos os campos!');
+            // LIMPAR ERROS
+            document.getElementById('emailError').style.display = 'none';
+            document.getElementById('idadeError').style.display = 'none';
+            document.getElementById('senhaError').style.display = 'none';
+            
+            // VALIDAÇÕES BÁSICAS
+            if (!nome || !email || !dataNascimento || !senha || !confirmarSenha) {
+                alert('❌ Preencha todos os campos obrigatórios!');
                 return;
             }
             
-            // Validar senhas
+            // VALIDAR SENHAS
             if (senha !== confirmarSenha) {
-                alert('As senhas não coincidem!');
+                document.getElementById('senhaError').textContent = 'As senhas não coincidem!';
+                document.getElementById('senhaError').style.display = 'block';
                 return;
             }
             
             if (!validarSenha(senha)) {
-                alert('Senha inválida! Deve ter: 8+ caracteres, 1 maiúscula, 1 minúscula e 1 número.');
+                document.getElementById('senhaError').textContent = 'Senha não atende aos requisitos!';
+                document.getElementById('senhaError').style.display = 'block';
                 return;
             }
             
-            // Validar idade
+            // VALIDAR IDADE
             if (!validarIdade(dataNascimento)) {
-                alert('Você deve ter 18 anos ou mais para se cadastrar!');
+                document.getElementById('idadeError').textContent = 'Você deve ter 18 anos ou mais!';
+                document.getElementById('idadeError').style.display = 'block';
                 return;
             }
             
-            // Verificar nickname
-            const nicknameError = document.getElementById('nicknameError');
-            nicknameError.style.display = 'none';
-            
+            // BOTÃO LOADING
             const btn = document.getElementById('submitBtn');
-            btn.innerHTML = 'Verificando...';
+            const textoOriginal = btn.innerHTML;
+            btn.innerHTML = '⏳ Criando conta...';
             btn.disabled = true;
             
             try {
-                // Verificar se nickname já existe
-                const nicknameExiste = await verificarNickname(nickname);
-                if (nicknameExiste) {
-                    nicknameError.textContent = 'Este nickname já está em uso!';
-                    nicknameError.style.display = 'block';
-                    btn.innerHTML = 'Criar Conta';
-                    btn.disabled = false;
-                    return;
-                }
+                console.log('🔄 Iniciando cadastro para:', email);
                 
-                btn.innerHTML = 'Criando conta...';
-                
-                // 1. Criar usuário no Firebase Authentication
+                // 1. CRIAR USUÁRIO NO FIREBASE AUTHENTICATION
                 const userCredential = await auth.createUserWithEmailAndPassword(email, senha);
                 const user = userCredential.user;
                 
-                // 2. Gerar IDs únicos
-                const playerId = gerarPlayerId();
-                const userId = user.uid;
+                console.log('✅ Usuário criado no Auth. UID:', user.uid);
                 
-                // 3. Dados para salvar no Firestore
+                // 2. GERAR IDS ÚNICOS
+                const playerId = gerarPlayerId();
+                
+                // 3. CRIAR DADOS PARA O FIRESTORE
                 const userData = {
-                    uid: userId,
                     nome: nome,
-                    nickname: nickname,
                     email: email,
                     playerId: playerId,
                     dataNascimento: dataNascimento,
@@ -313,64 +307,104 @@
                     diamantes: 50,
                     nivel: 1,
                     online: true,
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
                 };
                 
-                // 4. Salvar no Firestore
-                await db.collection('users').doc(userId).set(userData);
+                console.log('📦 Dados para salvar:', userData);
                 
-                // 5. Salvar no localStorage
-                localStorage.setItem('keepPokerUser', JSON.stringify({
-                    uid: userId,
+                // 4. SALVAR NO FIRESTORE
+                await db.collection('users').doc(user.uid).set(userData);
+                console.log('✅ Dados salvos no Firestore');
+                
+                // 5. SALVAR NO LOCALSTORAGE
+                const dadosParaLocalStorage = {
+                    uid: user.uid,
                     nome: nome,
-                    nickname: nickname,
                     email: email,
                     playerId: playerId,
                     saldo: 1000,
                     diamantes: 50,
                     nivel: 1
-                }));
+                };
                 
-                // 6. Sucesso
-                alert(`✅ Cadastro realizado com sucesso!\n\nSeu ID: ${playerId}\nNickname: ${nickname}\nSaldo inicial: 1000 fichas`);
+                localStorage.setItem('keepPokerUser', JSON.stringify(dadosParaLocalStorage));
+                console.log('💾 Dados salvos no localStorage');
                 
-                // 7. Redirecionar para home
-                window.location.href = 'home.html';
+                // 6. MENSAGEM DE SUCESSO
+                const mensagem = `🎉 CADASTRO REALIZADO COM SUCESSO!\n\n` +
+                                `👤 Nome: ${nome}\n` +
+                                `🆔 ID do Jogador: ${playerId}\n` +
+                                `💰 Saldo inicial: 1.000 fichas\n` +
+                                `💎 Diamantes: 50\n\n` +
+                                `✅ Você será redirecionado para a página inicial.`;
+                
+                alert(mensagem);
+                
+                // 7. REDIRECIONAR PARA HOME
+                setTimeout(() => {
+                    window.location.href = 'home.html';
+                }, 2000);
                 
             } catch (error) {
-                console.error('Erro no cadastro:', error);
+                console.error('❌ ERRO NO CADASTRO:', error);
                 
-                let mensagem = 'Erro ao criar conta!';
+                // TRATAMENTO DE ERROS ESPECÍFICOS
+                let mensagemErro = 'Erro ao criar conta!';
                 
                 if (error.code === 'auth/email-already-in-use') {
-                    mensagem = 'Este email já está cadastrado!';
-                } else if (error.code === 'auth/invalid-email') {
-                    mensagem = 'Email inválido!';
-                } else if (error.code === 'auth/weak-password') {
-                    mensagem = 'Senha muito fraca!';
-                } else {
-                    mensagem = error.message || 'Erro desconhecido';
+                    mensagemErro = 'Este email já está cadastrado!';
+                    document.getElementById('emailError').textContent = mensagemErro;
+                    document.getElementById('emailError').style.display = 'block';
+                } 
+                else if (error.code === 'auth/invalid-email') {
+                    mensagemErro = 'Email inválido!';
+                    document.getElementById('emailError').textContent = mensagemErro;
+                    document.getElementById('emailError').style.display = 'block';
+                } 
+                else if (error.code === 'auth/weak-password') {
+                    mensagemErro = 'Senha muito fraca!';
+                    document.getElementById('senhaError').textContent = mensagemErro;
+                    document.getElementById('senhaError').style.display = 'block';
+                } 
+                else if (error.code === 'auth/operation-not-allowed') {
+                    mensagemErro = 'Cadastro por email/senha está desativado no Firebase Console!';
+                }
+                else {
+                    mensagemErro = error.message || 'Erro desconhecido. Tente novamente.';
                 }
                 
-                alert('❌ ' + mensagem);
-                btn.innerHTML = 'Criar Conta';
+                alert('❌ ' + mensagemErro);
+                
+                // RESTAURAR BOTÃO
+                btn.innerHTML = textoOriginal;
                 btn.disabled = false;
             }
         }
         
-        // Configurar data máxima (18 anos atrás)
+        // CONFIGURAÇÃO INICIAL
         document.addEventListener('DOMContentLoaded', function() {
+            // CONFIGURAR DATA MÁXIMA (18 ANOS ATRÁS)
             const hoje = new Date();
             const dataMinima = new Date(hoje.getFullYear() - 18, hoje.getMonth(), hoje.getDate());
             document.getElementById('dataNascimento').max = dataMinima.toISOString().split('T')[0];
             
-            // Se já estiver logado, redirecionar
+            // SE JÁ ESTIVER LOGADO, REDIRECIONAR
             if (localStorage.getItem('keepPokerUser')) {
                 window.location.href = 'home.html';
             }
             
-            // Form submit
+            // CONFIGURAR SUBMIT DO FORMULÁRIO
             document.getElementById('cadastroForm').addEventListener('submit', cadastrarUsuario);
+            
+            // ENTER PARA ENVIAR
+            document.getElementById('confirmarSenha').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    document.getElementById('cadastroForm').dispatchEvent(new Event('submit'));
+                }
+            });
+            
+            console.log('✅ Cadastro.html carregado e pronto!');
         });
     </script>
 </body>
