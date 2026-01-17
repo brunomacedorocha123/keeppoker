@@ -1162,25 +1162,41 @@
     
     // Carregar dados do usuário
     async function loadUserData() {
-        const user = localStorage.getItem('keepPokerUser');
-        if (user) {
-            userData = JSON.parse(user);
-            // Atualizar header
-            if (document.getElementById('playerId')) {
-                document.getElementById('playerId').textContent = userData.playerId || '-';
-                document.getElementById('diamondCount').textContent = userData.diamantes || '0';
-                document.getElementById('goldCount').textContent = userData.saldo || '0';
+        try {
+            if (!currentUser) return;
+            
+            const userDoc = await db.collection('users').doc(currentUser.uid).get();
+            if (userDoc.exists) {
+                userData = userDoc.data();
+                userData.id = userDoc.id;
+                
+                // Salvar no localStorage
+                localStorage.setItem('keepPokerUser', JSON.stringify(userData));
+                
+                // Atualizar header
+                if (document.getElementById('playerId')) {
+                    document.getElementById('playerId').textContent = userData.playerId || '-';
+                    document.getElementById('diamondCount').textContent = userData.diamantes || '0';
+                    document.getElementById('goldCount').textContent = userData.saldo || '0';
+                }
             }
+        } catch (error) {
+            console.error('Erro ao carregar dados do usuário:', error);
         }
     }
     
     // Inicializar página de mesas
     function initTablesPage() {
         // Filtros
-        document.getElementById('filterGameType').addEventListener('change', loadTables);
-        document.getElementById('filterBuyIn').addEventListener('change', loadTables);
-        document.getElementById('filterPlayers').addEventListener('change', loadTables);
-        document.getElementById('filterStatus').addEventListener('change', loadTables);
+        const filterGameType = document.getElementById('filterGameType');
+        const filterBuyIn = document.getElementById('filterBuyIn');
+        const filterPlayers = document.getElementById('filterPlayers');
+        const filterStatus = document.getElementById('filterStatus');
+        
+        if (filterGameType) filterGameType.addEventListener('change', loadTables);
+        if (filterBuyIn) filterBuyIn.addEventListener('change', loadTables);
+        if (filterPlayers) filterPlayers.addEventListener('change', loadTables);
+        if (filterStatus) filterStatus.addEventListener('change', loadTables);
         
         // Carregar mesas
         loadTables();
@@ -1200,45 +1216,41 @@
         tablesContainer.innerHTML = '<div class="loading-container"><div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i></div><p class="loading-text">Carregando mesas disponíveis...</p></div>';
         emptyMessage.style.display = 'none';
         
-        // Obter filtros
-        const gameType = document.getElementById('filterGameType').value;
-        const buyIn = document.getElementById('filterBuyIn').value;
-        const players = document.getElementById('filterPlayers').value;
-        const status = document.getElementById('filterStatus').value;
-        
-        // Construir query BASE - MUDANÇA IMPORTANTE AQUI!
-        let query = db.collection('tables')
-            .where('isPlatformTable', '==', true)
-            .where('status', '!=', 'finished')
-            .orderBy('buyIn', 'asc');
-        
-        // Aplicar filtros
-        if (status !== 'all') {
-            query = query.where('status', '==', status);
-        }
-        
-        if (gameType !== 'all') {
-            query = query.where('gameType', '==', gameType);
-        }
-        
-        // Escutar mudanças em tempo real
-        tablesUnsubscribe = query.onSnapshot(async (snapshot) => {
-            const tables = [];
-            let totalPlayers = 0;
+        try {
+            // Primeiro, verificar se existem mesas da plataforma
+            const snapshot = await db.collection('tables')
+                .where('isPlatformTable', '==', true)
+                .where('status', '!=', 'finished')
+                .get();
             
-            // Se não houver documentos, criar mesas automaticamente
+            // Se não houver mesas, criar as padrão
             if (snapshot.empty) {
                 await createDefaultTables();
-                // Recarregar após criar
-                setTimeout(loadTables, 1000);
                 return;
             }
             
+            // Obter filtros
+            const gameType = document.getElementById('filterGameType').value;
+            const buyIn = document.getElementById('filterBuyIn').value;
+            const players = document.getElementById('filterPlayers').value;
+            const status = document.getElementById('filterStatus').value;
+            
+            // Processar e filtrar mesas
+            const tables = [];
+            
             for (const doc of snapshot.docs) {
-                const table = doc.data();
+                let table = doc.data();
                 table.id = doc.id;
                 
-                // Aplicar filtros adicionais
+                // Aplicar filtros
+                if (status !== 'all' && table.status !== status) {
+                    continue;
+                }
+                
+                if (gameType !== 'all' && table.gameType !== gameType) {
+                    continue;
+                }
+                
                 if (buyIn !== 'all' && table.buyIn > parseInt(buyIn)) {
                     continue;
                 }
@@ -1249,31 +1261,49 @@
                 
                 // Buscar nomes reais dos jogadores
                 if (table.players && table.players.length > 0) {
+                    const updatedPlayers = [];
+                    
                     for (let i = 0; i < table.players.length; i++) {
-                        if (table.players[i].userId) {
+                        const player = table.players[i];
+                        const updatedPlayer = { ...player };
+                        
+                        if (player.userId) {
                             try {
-                                const userDoc = await db.collection('users').doc(table.players[i].userId).get();
+                                const userDoc = await db.collection('users').doc(player.userId).get();
                                 if (userDoc.exists) {
                                     const userData = userDoc.data();
-                                    table.players[i].playerName = userData.nome || 'Jogador';
-                                    table.players[i].playerId = userData.playerId || '-';
+                                    updatedPlayer.playerName = userData.nome || `Jogador ${i+1}`;
+                                    updatedPlayer.playerId = userData.playerId || `ID${i+1}`;
                                 }
                             } catch (error) {
                                 console.error('Erro ao buscar dados do jogador:', error);
+                                updatedPlayer.playerName = `Jogador ${i+1}`;
+                                updatedPlayer.playerId = `ID${i+1}`;
                             }
+                        } else {
+                            updatedPlayer.playerName = `Jogador ${i+1}`;
+                            updatedPlayer.playerId = `ID${i+1}`;
                         }
+                        
+                        updatedPlayers.push(updatedPlayer);
                     }
+                    
+                    table.players = updatedPlayers;
                 }
                 
                 tables.push(table);
-                totalPlayers += table.currentPlayers || 0;
             }
             
             // Atualizar estatísticas
-            updateStats(tables.length, totalPlayers);
+            updateStats(tables.length, tables.reduce((sum, table) => sum + (table.currentPlayers || 0), 0));
+            
+            // Renderizar mesas
             renderTables(tables);
             
-        }, (error) => {
+            // Configurar listener em tempo real
+            setupTablesListener();
+            
+        } catch (error) {
             console.error('Erro ao carregar mesas:', error);
             showNotification('Erro ao carregar mesas', 'error');
             
@@ -1289,7 +1319,88 @@
                     </button>
                 </div>
             `;
-        });
+        }
+    }
+    
+    // Configurar listener em tempo real
+    function setupTablesListener() {
+        try {
+            const gameType = document.getElementById('filterGameType').value;
+            const buyIn = document.getElementById('filterBuyIn').value;
+            const players = document.getElementById('filterPlayers').value;
+            const status = document.getElementById('filterStatus').value;
+            
+            // Construir query base para listener
+            let query = db.collection('tables')
+                .where('isPlatformTable', '==', true)
+                .where('status', '!=', 'finished');
+            
+            tablesUnsubscribe = query.onSnapshot(async (snapshot) => {
+                const tables = [];
+                
+                // Processar cada documento
+                const processPromises = snapshot.docs.map(async (doc) => {
+                    let table = doc.data();
+                    table.id = doc.id;
+                    
+                    // Aplicar filtros
+                    if (status !== 'all' && table.status !== status) return null;
+                    if (gameType !== 'all' && table.gameType !== gameType) return null;
+                    if (buyIn !== 'all' && table.buyIn > parseInt(buyIn)) return null;
+                    if (players !== 'all' && table.maxPlayers !== parseInt(players)) return null;
+                    
+                    // Buscar nomes dos jogadores
+                    if (table.players && table.players.length > 0) {
+                        const updatedPlayers = [];
+                        
+                        for (let i = 0; i < table.players.length; i++) {
+                            const player = table.players[i];
+                            const updatedPlayer = { ...player };
+                            
+                            if (player.userId) {
+                                try {
+                                    const userDoc = await db.collection('users').doc(player.userId).get();
+                                    if (userDoc.exists) {
+                                        const userData = userDoc.data();
+                                        updatedPlayer.playerName = userData.nome || `Jogador ${i+1}`;
+                                        updatedPlayer.playerId = userData.playerId || `ID${i+1}`;
+                                    }
+                                } catch (error) {
+                                    console.error('Erro ao buscar dados do jogador:', error);
+                                    updatedPlayer.playerName = `Jogador ${i+1}`;
+                                    updatedPlayer.playerId = `ID${i+1}`;
+                                }
+                            } else {
+                                updatedPlayer.playerName = `Jogador ${i+1}`;
+                                updatedPlayer.playerId = `ID${i+1}`;
+                            }
+                            
+                            updatedPlayers.push(updatedPlayer);
+                        }
+                        
+                        table.players = updatedPlayers;
+                    }
+                    
+                    return table;
+                });
+                
+                // Aguardar todas as promises
+                const results = await Promise.all(processPromises);
+                const filteredTables = results.filter(table => table !== null);
+                
+                // Atualizar estatísticas
+                updateStats(filteredTables.length, filteredTables.reduce((sum, table) => sum + (table.currentPlayers || 0), 0));
+                
+                // Renderizar mesas
+                renderTables(filteredTables);
+                
+            }, (error) => {
+                console.error('Erro no listener de mesas:', error);
+            });
+            
+        } catch (error) {
+            console.error('Erro ao configurar listener:', error);
+        }
     }
     
     // Criar mesas padrão se não existirem
@@ -1378,15 +1489,28 @@
                 }
             ];
             
-            const batch = db.batch();
-            
+            // Verificar quais mesas já existem
+            const existingTables = [];
             for (const tableData of defaultTables) {
                 const docRef = db.collection('tables').doc(tableData.tableId);
-                batch.set(docRef, tableData);
+                const doc = await docRef.get();
+                if (!doc.exists) {
+                    existingTables.push(tableData);
+                }
             }
             
-            await batch.commit();
-            showNotification('✅ 4 mesas da plataforma criadas com sucesso!', 'success');
+            // Criar apenas as mesas que não existem
+            if (existingTables.length > 0) {
+                const batch = db.batch();
+                
+                for (const tableData of existingTables) {
+                    const docRef = db.collection('tables').doc(tableData.tableId);
+                    batch.set(docRef, tableData);
+                }
+                
+                await batch.commit();
+                showNotification(`✅ ${existingTables.length} mesa(s) criada(s) com sucesso!`, 'success');
+            }
             
             // Recarregar as mesas
             setTimeout(() => {
@@ -1668,7 +1792,9 @@
             // Atualizar localmente
             userData.saldo -= table.buyIn;
             localStorage.setItem('keepPokerUser', JSON.stringify(userData));
-            document.getElementById('goldCount').textContent = userData.saldo;
+            if (document.getElementById('goldCount')) {
+                document.getElementById('goldCount').textContent = userData.saldo;
+            }
             
             showNotification(`🎉 Entrou na mesa "${table.name}"!`, 'success');
             
@@ -1816,12 +1942,18 @@
             minute: '2-digit',
             second: '2-digit'
         });
-        document.getElementById('currentTime').textContent = timeString;
+        
+        const currentTimeEl = document.getElementById('currentTime');
+        if (currentTimeEl) {
+            currentTimeEl.textContent = timeString;
+        }
     }
     
     // Mostrar notificação
     function showNotification(message, type) {
         const notification = document.getElementById('notification');
+        if (!notification) return;
+        
         notification.textContent = message;
         notification.className = 'notification ' + type;
         notification.style.display = 'block';
