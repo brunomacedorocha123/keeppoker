@@ -1220,885 +1220,886 @@
             </p>
         </div>
     </footer>
-
-    <script>
+<script>
     // Variáveis globais
-    let currentUser = null;
-    let userData = null;
-    let currentTournament = null;
-    let tournamentUnsubscribe = null;
-    let isUserRegistered = false;
-    let currentTournamentToRegister = null;
+let currentUser = null;
+let userData = null;
+let currentTournament = null;
+let tournamentUnsubscribe = null;
+let isUserRegistered = false;
+let currentTournamentToRegister = null;
+
+// Inicialização
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM carregado - Iniciando Torneio Info');
     
-    // Inicialização
-    document.addEventListener('DOMContentLoaded', function() {
-        console.log('DOM carregado - Iniciando Torneio Info');
+    // Obter ID do torneio da URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const tournamentId = urlParams.get('tournamentId');
+    
+    if (!tournamentId) {
+        showNotification('❌ ID do torneio não especificado', 'error');
+        setTimeout(() => {
+            window.location.href = 'torneios.html';
+        }, 2000);
+        return;
+    }
+    
+    console.log('Carregando torneio ID:', tournamentId);
+    
+    // Verificar autenticação
+    auth.onAuthStateChanged(async function(user) {
+        console.log('Estado de autenticação:', user ? 'Usuário logado' : 'Não logado');
+        if (user) {
+            currentUser = user;
+            console.log('UID do usuário:', user.uid);
+            await loadUserData();
+            loadTournamentData(tournamentId);
+            setupTournamentListener(tournamentId);
+        } else {
+            console.log('Redirecionando para login...');
+            window.location.href = 'login.html';
+        }
+    });
+    
+    // Inicializar relógio
+    updateClock();
+    setInterval(updateClock, 1000);
+    
+    // Menu mobile
+    const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+    const navMenu = document.getElementById('navMenu');
+    if (mobileMenuBtn) {
+        mobileMenuBtn.addEventListener('click', function() {
+            navMenu.classList.toggle('nav-open');
+            const icon = this.querySelector('i');
+            if (navMenu.classList.contains('nav-open')) {
+                icon.classList.remove('fa-bars');
+                icon.classList.add('fa-times');
+            } else {
+                icon.classList.remove('fa-times');
+                icon.classList.add('fa-bars');
+            }
+        });
+    }
+    
+    // Logout
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', function() {
+            auth.signOut().then(() => {
+                localStorage.removeItem('keepPokerUser');
+                window.location.href = 'index.html';
+            }).catch(error => {
+                console.error('Erro ao fazer logout:', error);
+                localStorage.removeItem('keepPokerUser');
+                window.location.href = 'index.html';
+            });
+        });
+    }
+    
+    // Depositar
+    const depositBtn = document.getElementById('depositBtn');
+    if (depositBtn) {
+        depositBtn.addEventListener('click', function() {
+            showNotification('Funcionalidade de depósito em desenvolvimento', 'info');
+        });
+    }
+});
+
+// Carregar dados do usuário
+async function loadUserData() {
+    try {
+        console.log('Carregando dados do usuário...');
+        if (!currentUser) {
+            console.error('Usuário não autenticado');
+            return;
+        }
         
-        // Obter ID do torneio da URL
-        const urlParams = new URLSearchParams(window.location.search);
-        const tournamentId = urlParams.get('tournamentId');
+        const userDoc = await db.collection('users').doc(currentUser.uid).get();
+        if (userDoc.exists) {
+            userData = userDoc.data();
+            userData.id = userDoc.id;
+            
+            console.log('Dados do usuário carregados:', userData);
+            
+            // Atualizar header
+            if (document.getElementById('playerId')) {
+                document.getElementById('playerId').textContent = userData.playerId || '-';
+                document.getElementById('diamondCount').textContent = userData.diamantes || '0';
+                document.getElementById('goldCount').textContent = userData.saldo || '0';
+            }
+        } else {
+            console.error('Documento do usuário não encontrado no Firestore');
+        }
+    } catch (error) {
+        console.error('Erro ao carregar dados do usuário:', error);
+    }
+}
+
+// Carregar dados do torneio
+async function loadTournamentData(tournamentId) {
+    console.log('Carregando dados do torneio:', tournamentId);
+    
+    try {
+        const tournamentDoc = await db.collection('tournaments').doc(tournamentId).get();
         
-        if (!tournamentId) {
-            showNotification('❌ ID do torneio não especificado', 'error');
+        if (!tournamentDoc.exists) {
+            showNotification('❌ Torneio não encontrado', 'error');
             setTimeout(() => {
                 window.location.href = 'torneios.html';
             }, 2000);
             return;
         }
         
-        console.log('Carregando torneio ID:', tournamentId);
+        currentTournament = tournamentDoc.data();
+        currentTournament.id = tournamentId;
         
-        // Verificar autenticação
-        auth.onAuthStateChanged(async function(user) {
-            console.log('Estado de autenticação:', user ? 'Usuário logado' : 'Não logado');
-            if (user) {
-                currentUser = user;
-                console.log('UID do usuário:', user.uid);
-                await loadUserData();
-                loadTournamentData(tournamentId);
-                setupTournamentListener(tournamentId);
-            } else {
-                console.log('Redirecionando para login...');
-                window.location.href = 'login.html';
-            }
-        });
-        
-        // Inicializar relógio
-        updateClock();
-        setInterval(updateClock, 1000);
-        
-        // Menu mobile
-        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
-        const navMenu = document.getElementById('navMenu');
-        if (mobileMenuBtn) {
-            mobileMenuBtn.addEventListener('click', function() {
-                navMenu.classList.toggle('nav-open');
-                const icon = this.querySelector('i');
-                if (navMenu.classList.contains('nav-open')) {
-                    icon.classList.remove('fa-bars');
-                    icon.classList.add('fa-times');
-                } else {
-                    icon.classList.remove('fa-times');
-                    icon.classList.add('fa-bars');
-                }
-            });
-        }
-        
-        // Logout
-        const logoutBtn = document.getElementById('logoutBtn');
-        if (logoutBtn) {
-            logoutBtn.addEventListener('click', function() {
-                auth.signOut().then(() => {
-                    localStorage.removeItem('keepPokerUser');
-                    window.location.href = 'index.html';
-                }).catch(error => {
-                    console.error('Erro ao fazer logout:', error);
-                    localStorage.removeItem('keepPokerUser');
-                    window.location.href = 'index.html';
-                });
-            });
-        }
-        
-        // Depositar
-        const depositBtn = document.getElementById('depositBtn');
-        if (depositBtn) {
-            depositBtn.addEventListener('click', function() {
-                showNotification('Funcionalidade de depósito em desenvolvimento', 'info');
-            });
-        }
-    });
-    
-    // Carregar dados do usuário
-    async function loadUserData() {
-        try {
-            console.log('Carregando dados do usuário...');
-            if (!currentUser) {
-                console.error('Usuário não autenticado');
-                return;
-            }
-            
-            const userDoc = await db.collection('users').doc(currentUser.uid).get();
-            if (userDoc.exists) {
-                userData = userDoc.data();
-                userData.id = userDoc.id;
-                
-                console.log('Dados do usuário carregados:', userData);
-                
-                // Atualizar header
-                if (document.getElementById('playerId')) {
-                    document.getElementById('playerId').textContent = userData.playerId || '-';
-                    document.getElementById('diamondCount').textContent = userData.diamantes || '0';
-                    document.getElementById('goldCount').textContent = userData.saldo || '0';
-                }
-            } else {
-                console.error('Documento do usuário não encontrado no Firestore');
-            }
-        } catch (error) {
-            console.error('Erro ao carregar dados do usuário:', error);
-        }
-    }
-    
-    // Carregar dados do torneio
-    async function loadTournamentData(tournamentId) {
-        console.log('Carregando dados do torneio:', tournamentId);
-        
-        try {
-            const tournamentDoc = await db.collection('tournaments').doc(tournamentId).get();
-            
-            if (!tournamentDoc.exists) {
-                showNotification('❌ Torneio não encontrado', 'error');
-                setTimeout(() => {
-                    window.location.href = 'torneios.html';
-                }, 2000);
-                return;
-            }
-            
-            currentTournament = tournamentDoc.data();
-            currentTournament.id = tournamentId;
-            
-            console.log('Dados do torneio carregados:', currentTournament);
-            
-            // Verificar se usuário está inscrito
-            isUserRegistered = currentTournament.players?.some(p => p.userId === currentUser?.uid) || false;
-            
-            // Atualizar interface
-            updateTournamentUI();
-            
-        } catch (error) {
-            console.error('Erro ao carregar dados do torneio:', error);
-            showNotification('❌ Erro ao carregar torneio: ' + error.message, 'error');
-        }
-    }
-    
-    // Configurar listener em tempo real para o torneio
-    function setupTournamentListener(tournamentId) {
-        console.log('Configurando listener para torneio:', tournamentId);
-        
-        try {
-            tournamentUnsubscribe = db.collection('tournaments').doc(tournamentId)
-                .onSnapshot((doc) => {
-                    console.log('Listener: Torneio atualizado no Firestore');
-                    
-                    if (doc.exists) {
-                        currentTournament = doc.data();
-                        currentTournament.id = tournamentId;
-                        
-                        // Verificar se usuário está inscrito
-                        isUserRegistered = currentTournament.players?.some(p => p.userId === currentUser?.uid) || false;
-                        
-                        // Atualizar interface
-                        updateTournamentUI();
-                        
-                        // Verificar se torneio começou (tem 6 jogadores)
-                        checkIfTournamentStarted();
-                    }
-                }, (error) => {
-                    console.error('Erro no listener do torneio:', error);
-                });
-            
-        } catch (error) {
-            console.error('Erro ao configurar listener:', error);
-        }
-    }
-    
-    // Verificar se torneio começou (quando tiver 6 jogadores)
-    function checkIfTournamentStarted() {
-        if (!currentTournament || currentTournament.status !== 'registering') {
-            return;
-        }
-        
-        const playersCount = currentTournament.registeredPlayers || 0;
-        const maxPlayers = currentTournament.maxPlayers || 6;
-        
-        // Se torneio lotou, mudar status para 'starting' (iniciando)
-        if (playersCount >= maxPlayers && currentTournament.status === 'registering') {
-            console.log('Torneio lotado! Mudando status para starting...');
-            
-            // Aqui você pode adicionar lógica para mudar status no Firestore
-            // Por enquanto apenas atualizamos a UI
-            document.getElementById('tournamentBadge').className = 'tournament-badge badge-running';
-            document.getElementById('tournamentBadge').textContent = 'Iniciando...';
-            
-            showNotification('🎉 Torneio lotado! Preparando para iniciar...', 'success');
-        }
-    }
-    
-    // Atualizar interface do torneio
-    function updateTournamentUI() {
-        console.log('Atualizando UI do torneio:', currentTournament.name);
-        
-        // Esconder loading e mostrar conteúdo
-        document.getElementById('mainLoading').style.display = 'none';
-        document.getElementById('mainContent').style.display = 'block';
-        
-        // Atualizar cabeçalho
-        document.getElementById('tournamentTitle').textContent = currentTournament.name;
-        document.getElementById('tournamentSubtitle').textContent = `Texas Hold'em - Torneio ${currentTournament.maxPlayers || 6} jogadores`;
-        
-        // Atualizar badge de status
-        const badge = document.getElementById('tournamentBadge');
-        let badgeClass = 'badge-registering';
-        let badgeText = 'Inscrições Abertas';
-        
-        if (currentTournament.status === 'running') {
-            badgeClass = 'badge-running';
-            badgeText = 'Em Andamento';
-        } else if (currentTournament.status === 'starting') {
-            badgeClass = 'badge-running';
-            badgeText = 'Iniciando...';
-        } else if (currentTournament.status === 'finished') {
-            badgeClass = 'badge-finished';
-            badgeText = 'Finalizado';
-        }
-        
-        badge.className = `tournament-badge ${badgeClass}`;
-        badge.textContent = badgeText;
-        
-        // Atualizar info de aguardo
-        const playersCount = currentTournament.registeredPlayers || 0;
-        const maxPlayers = currentTournament.maxPlayers || 6;
-        document.getElementById('waitingValue').textContent = `${playersCount}/${maxPlayers}`;
-        
-        // Atualizar estatísticas
-        updateTournamentStats();
-        
-        // Atualizar estrutura de blinds
-        updateBlindsTable();
-        
-        // Atualizar prêmios
-        updatePrizesTable();
-        
-        // Atualizar regras
-        updateRulesList();
-        
-        // Atualizar ação principal
-        updateMainAction();
-        
-        // Atualizar lista de jogadores
-        updatePlayersList();
-        
-        // Mostrar/ocultar botão de cancelamento
-        updateCancelButton();
-    }
-    
-    // Atualizar estatísticas do torneio
-    function updateTournamentStats() {
-        const statsContainer = document.getElementById('tournamentStats');
-        
-        const prizePool = currentTournament.prizePool || (currentTournament.registeredPlayers || 0) * currentTournament.buyIn;
-        
-        const stats = [
-            {
-                icon: 'fas fa-users',
-                value: `${currentTournament.registeredPlayers || 0}/${currentTournament.maxPlayers || 6}`,
-                label: 'Jogadores'
-            },
-            {
-                icon: 'fas fa-coins',
-                value: currentTournament.buyIn || 100,
-                label: 'Buy-in (Fichas)'
-            },
-            {
-                icon: 'fas fa-layer-group',
-                value: currentTournament.startingStack || 1500,
-                label: 'Stack Inicial'
-            },
-            {
-                icon: 'fas fa-trophy',
-                value: prizePool,
-                label: 'Prêmio Total'
-            },
-            {
-                icon: 'fas fa-redo',
-                value: currentTournament.rebuyAllowed ? 'Sim' : 'Não',
-                label: 'Rebuy'
-            },
-            {
-                icon: 'fas fa-plus-circle',
-                value: currentTournament.addonAllowed ? 'Sim' : 'Não',
-                label: 'Add-on'
-            }
-        ];
-        
-        statsContainer.innerHTML = stats.map(stat => `
-            <div class="stat-card">
-                <div class="stat-icon"><i class="${stat.icon}"></i></div>
-                <div class="stat-value">${stat.value}</div>
-                <div class="stat-label">${stat.label}</div>
-            </div>
-        `).join('');
-    }
-    
-    // Atualizar tabela de blinds
-    function updateBlindsTable() {
-        const tableBody = document.querySelector('#blindsTable tbody');
-        
-        if (!currentTournament.blindStructure || currentTournament.blindStructure.length === 0) {
-            tableBody.innerHTML = `<tr><td colspan="5" style="text-align: center;">Estrutura não definida</td></tr>`;
-            return;
-        }
-        
-        let html = '';
-        currentTournament.blindStructure.forEach((level, index) => {
-            const isCurrent = currentTournament.currentLevel === level.level;
-            const rowClass = isCurrent ? 'current-level' : '';
-            
-            html += `
-                <tr class="${rowClass}">
-                    <td>${level.level}</td>
-                    <td>${level.smallBlind}</td>
-                    <td>${level.bigBlind}</td>
-                    <td>${level.ante || 0}</td>
-                    <td>${level.duration || 10} min</td>
-                </tr>
-            `;
-        });
-        
-        tableBody.innerHTML = html;
-    }
-    
-    // Atualizar tabela de prêmios
-    function updatePrizesTable() {
-        const tableBody = document.querySelector('#prizesTable tbody');
-        
-        const prizePool = currentTournament.prizePool || (currentTournament.registeredPlayers || 0) * currentTournament.buyIn;
-        const prizes = currentTournament.prizes || [
-            { position: 1, percentage: 50 },
-            { position: 2, percentage: 30 },
-            { position: 3, percentage: 20 }
-        ];
-        
-        let html = '';
-        prizes.forEach(prize => {
-            const amount = Math.round(prizePool * (prize.percentage / 100));
-            html += `
-                <tr>
-                    <td>${prize.position}º Lugar</td>
-                    <td>${prize.percentage}%</td>
-                    <td class="prize-amount">${amount}</td>
-                </tr>
-            `;
-        });
-        
-        tableBody.innerHTML = html;
-    }
-    
-    // Atualizar lista de regras
-    function updateRulesList() {
-        const rulesList = document.getElementById('rulesList');
-        
-        const rules = [
-            'Torneio de Texas Hold\'em',
-            `Stack inicial: ${currentTournament.startingStack || 1500} fichas`,
-            `Máximo: ${currentTournament.maxPlayers || 6} jogadores`,
-            `Inicia quando atingir ${currentTournament.maxPlayers || 6} jogadores`,
-            `Blinds aumentam a cada ${currentTournament.blindStructure?.[0]?.duration || 10} minutos`,
-            currentTournament.rebuyAllowed ? `Rebuy permitido até ${currentTournament.addonTime || 30} minutos` : 'Rebuy não permitido',
-            currentTournament.addonAllowed ? `Add-on disponível após ${currentTournament.addonTime || 30} minutos` : 'Add-on não disponível',
-            'Tempo por ação: 30 segundos',
-            'Time bank: 60 segundos acumulativos'
-        ];
-        
-        rulesList.innerHTML = rules.map(rule => `<li>${rule}</li>`).join('');
-    }
-    
-    // Atualizar ação principal - COMPLETAMENTE CORRIGIDA E FUNCIONAL
-    function updateMainAction() {
-        const actionButton = document.getElementById('mainActionButton');
-        const actionInfo = document.getElementById('actionInfo');
-        
-        if (!userData) {
-            actionButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Carregando...';
-            actionButton.className = 'btn-tournament btn-disabled';
-            actionButton.disabled = true;
-            actionInfo.textContent = 'Carregando informações do usuário...';
-            return;
-        }
-        
-        // Verificar status do torneio
-        if (currentTournament.status === 'finished') {
-            actionButton.innerHTML = '<i class="fas fa-flag-checkered"></i> Torneio Finalizado';
-            actionButton.className = 'btn-tournament btn-disabled';
-            actionButton.disabled = true;
-            actionInfo.textContent = 'Este torneio já foi finalizado.';
-            return;
-        }
+        console.log('Dados do torneio carregados:', currentTournament);
         
         // Verificar se usuário está inscrito
-        if (isUserRegistered) {
-            // VERIFICAÇÃO IMPORTANTE: Se torneio lotou (6 jogadores), pode entrar mesmo status sendo 'registering'
-            const isTournamentFull = (currentTournament.registeredPlayers || 0) >= (currentTournament.maxPlayers || 6);
-            
-            if (currentTournament.status === 'running' || currentTournament.status === 'starting' || isTournamentFull) {
-                // Torneio em andamento, iniciando ou LOTADO - entrar na mesa
-                actionButton.innerHTML = '<i class="fas fa-play-circle"></i> Entrar na Mesa';
-                actionButton.className = 'btn-tournament btn-enter';
-                actionButton.onclick = () => enterTournament();
+        isUserRegistered = currentTournament.players?.some(p => p.userId === currentUser?.uid) || false;
+        
+        // Atualizar interface
+        updateTournamentUI();
+        
+    } catch (error) {
+        console.error('Erro ao carregar dados do torneio:', error);
+        showNotification('❌ Erro ao carregar torneio: ' + error.message, 'error');
+    }
+}
+
+// Configurar listener em tempo real para o torneio
+function setupTournamentListener(tournamentId) {
+    console.log('Configurando listener para torneio:', tournamentId);
+    
+    try {
+        tournamentUnsubscribe = db.collection('tournaments').doc(tournamentId)
+            .onSnapshot((doc) => {
+                console.log('Listener: Torneio atualizado no Firestore');
                 
-                if (isTournamentFull && currentTournament.status === 'registering') {
-                    actionInfo.textContent = 'Torneio lotado! Clique para entrar e aguardar início';
-                } else {
-                    actionInfo.textContent = 'Clique para entrar no torneio';
+                if (doc.exists) {
+                    currentTournament = doc.data();
+                    currentTournament.id = tournamentId;
+                    
+                    // Verificar se usuário está inscrito
+                    isUserRegistered = currentTournament.players?.some(p => p.userId === currentUser?.uid) || false;
+                    
+                    // Atualizar interface
+                    updateTournamentUI();
+                    
+                    // Verificar se torneio começou (tem 6 jogadores)
+                    checkIfTournamentStarted();
                 }
-            } else {
-                // Torneio ainda registrando - aguardar início
-                actionButton.innerHTML = '<i class="fas fa-clock"></i> Aguardando Jogadores';
-                actionButton.className = 'btn-tournament btn-registered';
-                actionButton.disabled = true;
-                const needed = (currentTournament.maxPlayers || 6) - (currentTournament.registeredPlayers || 0);
-                actionInfo.textContent = `Faltam ${needed} jogadores para iniciar`;
-            }
-        } else {
-            // Usuário não inscrito
-            if (currentTournament.status === 'registering') {
-                // Inscrições abertas
-                if (currentTournament.registeredPlayers >= currentTournament.maxPlayers) {
-                    // Torneio lotado
-                    actionButton.innerHTML = '<i class="fas fa-times-circle"></i> Torneio Lotado';
-                    actionButton.className = 'btn-tournament btn-disabled';
-                    actionButton.disabled = true;
-                    actionInfo.textContent = 'Todas as vagas foram preenchidas.';
-                } else if (userData.saldo < currentTournament.buyIn) {
-                    // Saldo insuficiente
-                    actionButton.innerHTML = '<i class="fas fa-wallet"></i> Saldo Insuficiente';
-                    actionButton.className = 'btn-tournament btn-disabled';
-                    actionButton.disabled = true;
-                    actionInfo.textContent = `Você precisa de ${currentTournament.buyIn} fichas. Saldo atual: ${userData.saldo}`;
-                } else {
-                    // Pode se inscrever
-                    actionButton.innerHTML = '<i class="fas fa-user-plus"></i> Inscrever-se';
-                    actionButton.className = 'btn-tournament btn-register';
-                    actionButton.onclick = () => registerForTournament();
-                    actionInfo.textContent = `Clique para se inscrever (${currentTournament.buyIn} fichas)`;
-                }
-            } else if (currentTournament.status === 'running' || currentTournament.status === 'starting') {
-                // Torneio em andamento - assistir
-                actionButton.innerHTML = '<i class="fas fa-eye"></i> Assistir Torneio';
-                actionButton.className = 'btn-tournament btn-watch';
-                actionButton.onclick = () => watchTournament();
-                actionInfo.textContent = 'Clique para assistir o torneio em andamento';
-            } else {
-                // Inscrições encerradas
-                actionButton.innerHTML = '<i class="fas fa-lock"></i> Inscrições Encerradas';
-                actionButton.className = 'btn-tournament btn-disabled';
-                actionButton.disabled = true;
-                actionInfo.textContent = 'As inscrições para este torneio estão encerradas.';
-            }
-        }
+            }, (error) => {
+                console.error('Erro no listener do torneio:', error);
+            });
+        
+    } catch (error) {
+        console.error('Erro ao configurar listener:', error);
+    }
+}
+
+// Verificar se torneio começou (quando tiver 6 jogadores)
+function checkIfTournamentStarted() {
+    if (!currentTournament || currentTournament.status !== 'registering') {
+        return;
     }
     
-    // Atualizar botão de cancelamento
-    function updateCancelButton() {
-        const cancelButton = document.getElementById('cancelButton');
+    const playersCount = currentTournament.registeredPlayers || 0;
+    const maxPlayers = currentTournament.maxPlayers || 6;
+    
+    // Se torneio lotou, mudar status para 'starting' (iniciando)
+    if (playersCount >= maxPlayers && currentTournament.status === 'registering') {
+        console.log('Torneio lotado! Mudando status para starting...');
         
-        // Mostrar botão de cancelamento apenas se:
-        // 1. Usuário está inscrito
-        // 2. Torneio ainda não começou (status: 'registering' ou 'starting')
-        // 3. Não está com status 'running' ou 'finished'
+        // Aqui você pode adicionar lógica para mudar status no Firestore
+        // Por enquanto apenas atualizamos a UI
+        document.getElementById('tournamentBadge').className = 'tournament-badge badge-running';
+        document.getElementById('tournamentBadge').textContent = 'Iniciando...';
         
-        if (isUserRegistered && 
-            (currentTournament.status === 'registering' || currentTournament.status === 'starting') &&
-            currentTournament.status !== 'running' && 
-            currentTournament.status !== 'finished') {
-            
-            cancelButton.style.display = 'flex';
-        } else {
-            cancelButton.style.display = 'none';
-        }
+        showNotification('🎉 Torneio lotado! Preparando para iniciar...', 'success');
     }
+}
+
+// Atualizar interface do torneio
+function updateTournamentUI() {
+    console.log('Atualizando UI do torneio:', currentTournament.name);
+    
+    // Esconder loading e mostrar conteúdo
+    document.getElementById('mainLoading').style.display = 'none';
+    document.getElementById('mainContent').style.display = 'block';
+    
+    // Atualizar cabeçalho
+    document.getElementById('tournamentTitle').textContent = currentTournament.name;
+    document.getElementById('tournamentSubtitle').textContent = `Texas Hold'em - Torneio ${currentTournament.maxPlayers || 6} jogadores`;
+    
+    // Atualizar badge de status
+    const badge = document.getElementById('tournamentBadge');
+    let badgeClass = 'badge-registering';
+    let badgeText = 'Inscrições Abertas';
+    
+    if (currentTournament.status === 'running') {
+        badgeClass = 'badge-running';
+        badgeText = 'Em Andamento';
+    } else if (currentTournament.status === 'starting') {
+        badgeClass = 'badge-running';
+        badgeText = 'Iniciando...';
+    } else if (currentTournament.status === 'finished') {
+        badgeClass = 'badge-finished';
+        badgeText = 'Finalizado';
+    }
+    
+    badge.className = `tournament-badge ${badgeClass}`;
+    badge.textContent = badgeText;
+    
+    // Atualizar info de aguardo
+    const playersCount = currentTournament.registeredPlayers || 0;
+    const maxPlayers = currentTournament.maxPlayers || 6;
+    document.getElementById('waitingValue').textContent = `${playersCount}/${maxPlayers}`;
+    
+    // Atualizar estatísticas
+    updateTournamentStats();
+    
+    // Atualizar estrutura de blinds
+    updateBlindsTable();
+    
+    // Atualizar prêmios
+    updatePrizesTable();
+    
+    // Atualizar regras
+    updateRulesList();
+    
+    // Atualizar ação principal
+    updateMainAction();
     
     // Atualizar lista de jogadores
-    function updatePlayersList() {
-        const playersList = document.getElementById('playersList');
-        const playersCount = document.getElementById('playersCount');
-        
-        const players = currentTournament.players || [];
-        const maxPlayers = currentTournament.maxPlayers || 6;
-        playersCount.textContent = `${players.length}/${maxPlayers}`;
-        
-        if (players.length === 0) {
-            playersList.innerHTML = '<div style="text-align: center; padding: 20px; color: var(--azul-claro);">Nenhum jogador inscrito ainda</div>';
-            return;
+    updatePlayersList();
+    
+    // Mostrar/ocultar botão de cancelamento
+    updateCancelButton();
+}
+
+// Atualizar estatísticas do torneio
+function updateTournamentStats() {
+    const statsContainer = document.getElementById('tournamentStats');
+    
+    const prizePool = currentTournament.prizePool || (currentTournament.registeredPlayers || 0) * currentTournament.buyIn;
+    
+    const stats = [
+        {
+            icon: 'fas fa-users',
+            value: `${currentTournament.registeredPlayers || 0}/${currentTournament.maxPlayers || 6}`,
+            label: 'Jogadores'
+        },
+        {
+            icon: 'fas fa-coins',
+            value: currentTournament.buyIn || 100,
+            label: 'Buy-in (Fichas)'
+        },
+        {
+            icon: 'fas fa-layer-group',
+            value: currentTournament.startingStack || 1500,
+            label: 'Stack Inicial'
+        },
+        {
+            icon: 'fas fa-trophy',
+            value: prizePool,
+            label: 'Prêmio Total'
+        },
+        {
+            icon: 'fas fa-redo',
+            value: currentTournament.rebuyAllowed ? 'Sim' : 'Não',
+            label: 'Rebuy'
+        },
+        {
+            icon: 'fas fa-plus-circle',
+            value: currentTournament.addonAllowed ? 'Sim' : 'Não',
+            label: 'Add-on'
         }
-        
-        let html = '';
-        players.forEach(player => {
-            const isYou = player.userId === currentUser?.uid;
-            const playerClass = isYou ? 'player-item you' : 'player-item';
-            
-            html += `
-                <div class="${playerClass}">
-                    <div class="player-avatar">
-                        <i class="fas fa-user"></i>
-                    </div>
-                    <div class="player-info-small">
-                        <div class="player-name">${player.playerName || 'Jogador'}</div>
-                        <div class="player-chips">${player.chips || currentTournament.startingStack} fichas</div>
-                    </div>
-                    ${isYou ? '<div class="player-position">VOCÊ</div>' : ''}
-                </div>
-            `;
-        });
-        
-        // Adicionar slots vazios
-        const emptySlots = maxPlayers - players.length;
-        for (let i = 0; i < emptySlots; i++) {
-            html += `
-                <div class="player-item">
-                    <div class="player-avatar" style="opacity: 0.5;">
-                        <i class="fas fa-user-plus"></i>
-                    </div>
-                    <div class="player-info-small">
-                        <div class="player-name" style="color: var(--azul-claro);">Vaga Disponível</div>
-                        <div class="player-chips" style="color: var(--azul-claro);">Aguardando...</div>
-                    </div>
-                </div>
-            `;
-        }
-        
-        playersList.innerHTML = html;
+    ];
+    
+    statsContainer.innerHTML = stats.map(stat => `
+        <div class="stat-card">
+            <div class="stat-icon"><i class="${stat.icon}"></i></div>
+            <div class="stat-value">${stat.value}</div>
+            <div class="stat-label">${stat.label}</div>
+        </div>
+    `).join('');
+}
+
+// Atualizar tabela de blinds
+function updateBlindsTable() {
+    const tableBody = document.querySelector('#blindsTable tbody');
+    
+    if (!currentTournament.blindStructure || currentTournament.blindStructure.length === 0) {
+        tableBody.innerHTML = `<tr><td colspan="5" style="text-align: center;">Estrutura não definida</td></tr>`;
+        return;
     }
     
-    // Inscrever-se no torneio - CORRIGIDA
-    async function registerForTournament() {
-        console.log('Tentando inscrever-se no torneio:', currentTournament.id);
+    let html = '';
+    currentTournament.blindStructure.forEach((level, index) => {
+        const isCurrent = currentTournament.currentLevel === level.level;
+        const rowClass = isCurrent ? 'current-level' : '';
         
-        if (!currentUser || !userData) {
-            showNotification('❌ Você precisa estar logado para se inscrever', 'error');
-            return;
-        }
-        
-        try {
-            // Buscar torneio novamente para garantir dados atualizados
-            const tournamentDoc = await db.collection('tournaments').doc(currentTournament.id).get();
-            if (!tournamentDoc.exists) {
-                showNotification('❌ Torneio não encontrado', 'error');
-                return;
-            }
-            
-            const tournament = tournamentDoc.data();
-            
-            // Verificações
-            if (tournament.status !== 'registering') {
-                showNotification('❌ Inscrições encerradas para este torneio', 'error');
-                return;
-            }
-            
-            if (tournament.registeredPlayers >= tournament.maxPlayers) {
-                showNotification('❌ Torneio lotado', 'error');
-                return;
-            }
-            
-            if (userData.saldo < tournament.buyIn) {
-                showNotification(`❌ Saldo insuficiente. Necessário: ${tournament.buyIn} fichas`, 'error');
-                return;
-            }
-            
-            // Verificar se já está inscrito (verificação local)
-            if (isUserRegistered) {
-                showNotification('⚠️ Você já está inscrito neste torneio', 'info');
-                return;
-            }
-            
-            // Armazenar torneio para confirmação
-            currentTournamentToRegister = tournament;
-            currentTournamentToRegister.id = currentTournament.id;
-            
-            // Mostrar modal de confirmação
-            showRegistrationModal();
-            
-        } catch (error) {
-            console.error('Erro ao verificar torneio:', error);
-            showNotification('❌ Erro ao processar inscrição: ' + error.message, 'error');
-        }
-    }
-    
-    // Mostrar modal de inscrição
-    function showRegistrationModal() {
-        const modal = document.getElementById('confirmationModal');
-        const modalTitle = document.getElementById('modalTitle');
-        const modalBody = document.getElementById('modalBody');
-        
-        modalTitle.textContent = `Confirmar Inscrição`;
-        modalBody.innerHTML = `
-            <p><strong>${currentTournamentToRegister.name}</strong></p>
-            <br>
-            <p>📝 <strong>Buy-in:</strong> ${currentTournamentToRegister.buyIn} fichas</p>
-            <p>💰 <strong>Stack Inicial:</strong> ${currentTournamentToRegister.startingStack} fichas</p>
-            <p>👥 <strong>Vagas:</strong> ${currentTournamentToRegister.registeredPlayers || 0}/${currentTournamentToRegister.maxPlayers}</p>
-            <p>🏆 <strong>Prêmio Total Estimado:</strong> ${((currentTournamentToRegister.registeredPlayers || 0) + 1) * currentTournamentToRegister.buyIn} fichas</p>
-            <br>
-            <p>Seu saldo atual: <strong>${userData.saldo} fichas</strong></p>
-            <p>Saldo após inscrição: <strong>${userData.saldo - currentTournamentToRegister.buyIn} fichas</strong></p>
-            <br>
-            <p><strong>⚠️ IMPORTANTE:</strong> O torneio iniciará quando atingir ${currentTournamentToRegister.maxPlayers} jogadores.</p>
+        html += `
+            <tr class="${rowClass}">
+                <td>${level.level}</td>
+                <td>${level.smallBlind}</td>
+                <td>${level.bigBlind}</td>
+                <td>${level.ante || 0}</td>
+                <td>${level.duration || 10} min</td>
+            </tr>
         `;
-        
-        modal.style.display = 'flex';
-    }
+    });
     
-    // Fechar modal de inscrição
-    function closeModal() {
-        const modal = document.getElementById('confirmationModal');
-        modal.style.display = 'none';
-        currentTournamentToRegister = null;
-    }
+    tableBody.innerHTML = html;
+}
+
+// Atualizar tabela de prêmios
+function updatePrizesTable() {
+    const tableBody = document.querySelector('#prizesTable tbody');
     
-    // Mostrar modal de cancelamento
-    function showCancelModal() {
-        const modal = document.getElementById('cancelModal');
-        const buyInElement = document.getElementById('cancelBuyIn');
-        
-        // Preencher valor do buy-in
-        buyInElement.textContent = currentTournament.buyIn || 100;
-        
-        modal.style.display = 'flex';
-    }
+    const prizePool = currentTournament.prizePool || (currentTournament.registeredPlayers || 0) * currentTournament.buyIn;
+    const prizes = currentTournament.prizes || [
+        { position: 1, percentage: 50 },
+        { position: 2, percentage: 30 },
+        { position: 3, percentage: 20 }
+    ];
     
-    // Fechar modal de cancelamento
-    function closeCancelModal() {
-        const modal = document.getElementById('cancelModal');
-        modal.style.display = 'none';
-    }
+    let html = '';
+    prizes.forEach(prize => {
+        const amount = Math.round(prizePool * (prize.percentage / 100));
+        html += `
+            <tr>
+                <td>${prize.position}º Lugar</td>
+                <td>${prize.percentage}%</td>
+                <td class="prize-amount">${amount}</td>
+            </tr>
+        `;
+    });
     
-    // Confirmar cancelamento de inscrição
-    async function confirmCancelRegistration() {
-        console.log('Cancelando inscrição no torneio:', currentTournament.id);
-        
-        const modal = document.getElementById('cancelModal');
-        modal.style.display = 'none';
-        
-        const cancelButton = document.getElementById('cancelButton');
-        const originalHTML = cancelButton.innerHTML;
-        cancelButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processando...';
-        cancelButton.disabled = true;
-        
-        try {
-            // 1. Buscar dados atualizados do torneio
-            const tournamentDoc = await db.collection('tournaments').doc(currentTournament.id).get();
-            if (!tournamentDoc.exists) {
-                showNotification('❌ Torneio não encontrado', 'error');
-                return;
-            }
-            
-            const tournament = tournamentDoc.data();
-            
-            // 2. Encontrar o jogador na lista de players
-            const playerIndex = tournament.players?.findIndex(p => p.userId === currentUser?.uid);
-            
-            if (playerIndex === -1 || playerIndex === undefined) {
-                showNotification('❌ Você não está inscrito neste torneio', 'error');
-                return;
-            }
-            
-            // 3. Remover jogador da lista de players
-            const updatedPlayers = [...tournament.players];
-            updatedPlayers.splice(playerIndex, 1);
-            
-            // 4. Calcular novo prize pool (subtrair buy-in do jogador)
-            const newPrizePool = Math.max(0, (tournament.prizePool || 0) - tournament.buyIn);
-            
-            // 5. Atualizar torneio no Firestore
-            await db.collection('tournaments').doc(currentTournament.id).update({
-                players: updatedPlayers,
-                registeredPlayers: firebase.firestore.FieldValue.increment(-1),
-                prizePool: newPrizePool,
-                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
-            
-            // 6. Devolver buy-in ao saldo do usuário
-            const newBalance = userData.saldo + tournament.buyIn;
-            await db.collection('users').doc(currentUser.uid).update({
-                saldo: newBalance,
-                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
-            
-            // 7. Atualizar dados locais do usuário
-            userData.saldo = newBalance;
-            localStorage.setItem('keepPokerUser', JSON.stringify(userData));
-            
-            // 8. Atualizar UI
-            document.getElementById('goldCount').textContent = newBalance;
-            isUserRegistered = false;
-            
-            // 9. Notificar sucesso
-            showNotification(`✅ Inscrição cancelada! ${tournament.buyIn} fichas devolvidas.`, 'success');
-            
-            // 10. Recarregar dados do torneio após 1.5 segundos
-            setTimeout(() => {
-                if (tournamentUnsubscribe) tournamentUnsubscribe();
-                loadTournamentData(currentTournament.id);
-                setupTournamentListener(currentTournament.id);
-            }, 1500);
-            
-        } catch (error) {
-            console.error('Erro ao cancelar inscrição:', error);
-            showNotification('❌ Erro ao cancelar inscrição: ' + error.message, 'error');
-            
-            // Restaurar botão
-            cancelButton.innerHTML = originalHTML;
-            cancelButton.disabled = false;
-        }
-    }
+    tableBody.innerHTML = html;
+}
+
+// Atualizar lista de regras
+function updateRulesList() {
+    const rulesList = document.getElementById('rulesList');
     
-    // Confirmar inscrição - CORRIGIDA
-    async function confirmRegistration() {
-        if (!currentTournamentToRegister) {
-            showNotification('❌ Nenhum torneio selecionado', 'error');
-            closeModal();
-            return;
-        }
-        
-        console.log('Confirmando inscrição no torneio:', currentTournamentToRegister.name);
-        
-        const modal = document.getElementById('confirmationModal');
-        modal.style.display = 'none';
-        
-        const actionButton = document.getElementById('mainActionButton');
-        const originalHTML = actionButton.innerHTML;
-        actionButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processando...';
+    const rules = [
+        'Torneio de Texas Hold\'em',
+        `Stack inicial: ${currentTournament.startingStack || 1500} fichas`,
+        `Máximo: ${currentTournament.maxPlayers || 6} jogadores`,
+        `Inicia quando atingir ${currentTournament.maxPlayers || 6} jogadores`,
+        `Blinds aumentam a cada ${currentTournament.blindStructure?.[0]?.duration || 10} minutos`,
+        currentTournament.rebuyAllowed ? `Rebuy permitido até ${currentTournament.addonTime || 30} minutos` : 'Rebuy não permitido',
+        currentTournament.addonAllowed ? `Add-on disponível após ${currentTournament.addonTime || 30} minutos` : 'Add-on não disponível',
+        'Tempo por ação: 30 segundos',
+        'Time bank: 60 segundos acumulativos'
+    ];
+    
+    rulesList.innerHTML = rules.map(rule => `<li>${rule}</li>`).join('');
+}
+
+// Atualizar ação principal - CORRIGIDA AGORA
+function updateMainAction() {
+    const actionButton = document.getElementById('mainActionButton');
+    const actionInfo = document.getElementById('actionInfo');
+    
+    if (!userData) {
+        actionButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Carregando...';
         actionButton.className = 'btn-tournament btn-disabled';
         actionButton.disabled = true;
+        actionInfo.textContent = 'Carregando informações do usuário...';
+        return;
+    }
+    
+    // Verificar status do torneio
+    if (currentTournament.status === 'finished') {
+        actionButton.innerHTML = '<i class="fas fa-flag-checkered"></i> Torneio Finalizado';
+        actionButton.className = 'btn-tournament btn-disabled';
+        actionButton.disabled = true;
+        actionInfo.textContent = 'Este torneio já foi finalizado.';
+        return;
+    }
+    
+    // Verificar se usuário está inscrito
+    if (isUserRegistered) {
+        // VERIFICAÇÃO IMPORTANTE: Se torneio lotou (6 jogadores), pode entrar mesmo status sendo 'registering'
+        const isTournamentFull = (currentTournament.registeredPlayers || 0) >= (currentTournament.maxPlayers || 6);
         
-        try {
-            // 1. Deduzir buy-in do saldo do usuário
-            const newBalance = userData.saldo - currentTournamentToRegister.buyIn;
+        if (currentTournament.status === 'running' || currentTournament.status === 'starting' || isTournamentFull) {
+            // Torneio em andamento, iniciando ou LOTADO - entrar na mesa
+            actionButton.innerHTML = '<i class="fas fa-play-circle"></i> Entrar na Mesa';
+            actionButton.className = 'btn-tournament btn-enter';
+            actionButton.onclick = () => enterTournament();
             
-            // Atualizar saldo do usuário no Firestore
-            await db.collection('users').doc(currentUser.uid).update({
-                saldo: newBalance,
-                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
-            
-            // 2. Preparar dados do jogador (CORRIGIDO: usar timestamp manual)
-            const playerData = {
-                userId: currentUser.uid,
-                playerName: userData.nickname || userData.nome || 'Jogador',
-                playerId: userData.playerId,
-                chips: currentTournamentToRegister.startingStack,
-                position: 0,
-                rebuyCount: 0,
-                addonUsed: false,
-                isActive: true,
-                registeredAt: new Date().toISOString() // TIMESTAMP MANUAL - NÃO usar FieldValue aqui
-            };
-            
-            // 3. Atualizar torneio no Firestore
-            await db.collection('tournaments').doc(currentTournamentToRegister.id).update({
-                registeredPlayers: firebase.firestore.FieldValue.increment(1),
-                prizePool: firebase.firestore.FieldValue.increment(currentTournamentToRegister.buyIn),
-                players: firebase.firestore.FieldValue.arrayUnion(playerData),
-                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
-            
-            // 4. Atualizar dados locais do usuário
-            userData.saldo = newBalance;
-            localStorage.setItem('keepPokerUser', JSON.stringify(userData));
-            
-            // 5. Atualizar UI
-            document.getElementById('goldCount').textContent = newBalance;
-            
-            // 6. Marcar usuário como inscrito localmente
-            isUserRegistered = true;
-            
-            // 7. Notificar sucesso
-            showNotification(`✅ Inscrição realizada com sucesso!`, 'success');
-            
-            // 8. Verificar se torneio lotou
-            const newPlayersCount = (currentTournamentToRegister.registeredPlayers || 0) + 1;
-            if (newPlayersCount >= currentTournamentToRegister.maxPlayers) {
-                showNotification('🎉 Torneio lotado! Iniciando em breve...', 'success');
-                
-                // Atualizar status do torneio para "starting" (iniciando)
-                await db.collection('tournaments').doc(currentTournamentToRegister.id).update({
-                    status: 'starting',
-                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
-                
-                // Mostrar contador de início
-                setTimeout(() => {
-                    showNotification('⏳ Torneio iniciando em 30 segundos...', 'info');
-                }, 1000);
-            }
-            
-            // 9. Recarregar dados do torneio após 1.5 segundos
-            setTimeout(() => {
-                if (tournamentUnsubscribe) tournamentUnsubscribe();
-                loadTournamentData(currentTournamentToRegister.id);
-                setupTournamentListener(currentTournamentToRegister.id);
-            }, 1500);
-            
-        } catch (error) {
-            console.error('Erro ao realizar inscrição:', error);
-            
-            // Verificar tipo de erro
-            if (error.code === 'failed-precondition') {
-                showNotification('❌ Erro: campo "players" não é um array no Firestore', 'error');
-                console.log('Solução: Verifique se o campo "players" no Firestore é um array vazio []');
-            } else if (error.message.includes('arrayUnion')) {
-                showNotification('❌ Erro na estrutura do torneio. O campo "players" pode não ser um array.', 'error');
-            } else if (error.code === 'permission-denied') {
-                showNotification('❌ Permissão negada. Verifique as regras do Firestore.', 'error');
+            if (isTournamentFull && currentTournament.status === 'registering') {
+                actionInfo.textContent = 'Torneio lotado! Clique para entrar e aguardar início';
             } else {
-                showNotification('❌ Erro ao realizar inscrição: ' + error.message, 'error');
+                actionInfo.textContent = 'Clique para entrar no torneio';
             }
-            
-            // Restaurar botão
-            actionButton.innerHTML = originalHTML;
+        } else {
+            // Torneio ainda registrando - PODE VER A MESA AGORA!
+            actionButton.innerHTML = '<i class="fas fa-eye"></i> Ver Mesa';
+            actionButton.className = 'btn-tournament btn-registered';
             actionButton.disabled = false;
-            updateMainAction();
-        } finally {
-            currentTournamentToRegister = null;
+            actionButton.onclick = () => enterTournament();
+            
+            const needed = (currentTournament.maxPlayers || 6) - (currentTournament.registeredPlayers || 0);
+            actionInfo.textContent = `Faltam ${needed} jogadores para iniciar (clique para ver a mesa)`;
+        }
+    } else {
+        // Usuário não inscrito
+        if (currentTournament.status === 'registering') {
+            // Inscrições abertas
+            if (currentTournament.registeredPlayers >= currentTournament.maxPlayers) {
+                // Torneio lotado
+                actionButton.innerHTML = '<i class="fas fa-times-circle"></i> Torneio Lotado';
+                actionButton.className = 'btn-tournament btn-disabled';
+                actionButton.disabled = true;
+                actionInfo.textContent = 'Todas as vagas foram preenchidas.';
+            } else if (userData.saldo < currentTournament.buyIn) {
+                // Saldo insuficiente
+                actionButton.innerHTML = '<i class="fas fa-wallet"></i> Saldo Insuficiente';
+                actionButton.className = 'btn-tournament btn-disabled';
+                actionButton.disabled = true;
+                actionInfo.textContent = `Você precisa de ${currentTournament.buyIn} fichas. Saldo atual: ${userData.saldo}`;
+            } else {
+                // Pode se inscrever
+                actionButton.innerHTML = '<i class="fas fa-user-plus"></i> Inscrever-se';
+                actionButton.className = 'btn-tournament btn-register';
+                actionButton.onclick = () => registerForTournament();
+                actionInfo.textContent = `Clique para se inscrever (${currentTournament.buyIn} fichas)`;
+            }
+        } else if (currentTournament.status === 'running' || currentTournament.status === 'starting') {
+            // Torneio em andamento - assistir
+            actionButton.innerHTML = '<i class="fas fa-eye"></i> Assistir Torneio';
+            actionButton.className = 'btn-tournament btn-watch';
+            actionButton.onclick = () => watchTournament();
+            actionInfo.textContent = 'Clique para assistir o torneio em andamento';
+        } else {
+            // Inscrições encerradas
+            actionButton.innerHTML = '<i class="fas fa-lock"></i> Inscrições Encerradas';
+            actionButton.className = 'btn-tournament btn-disabled';
+            actionButton.disabled = true;
+            actionInfo.textContent = 'As inscrições para este torneio estão encerradas.';
         }
     }
+}
+
+// Atualizar botão de cancelamento
+function updateCancelButton() {
+    const cancelButton = document.getElementById('cancelButton');
     
-    // Entrar no torneio (quando em andamento)
-    function enterTournament() {
-        console.log('Entrando no torneio:', currentTournament.id);
-        window.location.href = `mesa-torneio.html?tournamentId=${currentTournament.id}`;
+    // Mostrar botão de cancelamento apenas se:
+    // 1. Usuário está inscrito
+    // 2. Torneio ainda não começou (status: 'registering' ou 'starting')
+    // 3. Não está com status 'running' ou 'finished'
+    
+    if (isUserRegistered && 
+        (currentTournament.status === 'registering' || currentTournament.status === 'starting') &&
+        currentTournament.status !== 'running' && 
+        currentTournament.status !== 'finished') {
+        
+        cancelButton.style.display = 'flex';
+    } else {
+        cancelButton.style.display = 'none';
+    }
+}
+
+// Atualizar lista de jogadores
+function updatePlayersList() {
+    const playersList = document.getElementById('playersList');
+    const playersCount = document.getElementById('playersCount');
+    
+    const players = currentTournament.players || [];
+    const maxPlayers = currentTournament.maxPlayers || 6;
+    playersCount.textContent = `${players.length}/${maxPlayers}`;
+    
+    if (players.length === 0) {
+        playersList.innerHTML = '<div style="text-align: center; padding: 20px; color: var(--azul-claro);">Nenhum jogador inscrito ainda</div>';
+        return;
     }
     
-    // Assistir torneio (como espectador)
-    function watchTournament() {
-        console.log('Assistindo torneio:', currentTournament.id);
-        window.location.href = `mesa-torneio.html?tournamentId=${currentTournament.id}&spectator=true`;
+    let html = '';
+    players.forEach(player => {
+        const isYou = player.userId === currentUser?.uid;
+        const playerClass = isYou ? 'player-item you' : 'player-item';
+        
+        html += `
+            <div class="${playerClass}">
+                <div class="player-avatar">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div class="player-info-small">
+                    <div class="player-name">${player.playerName || 'Jogador'}</div>
+                    <div class="player-chips">${player.chips || currentTournament.startingStack} fichas</div>
+                </div>
+                ${isYou ? '<div class="player-position">VOCÊ</div>' : ''}
+            </div>
+        `;
+    });
+    
+    // Adicionar slots vazios
+    const emptySlots = maxPlayers - players.length;
+    for (let i = 0; i < emptySlots; i++) {
+        html += `
+            <div class="player-item">
+                <div class="player-avatar" style="opacity: 0.5;">
+                    <i class="fas fa-user-plus"></i>
+                </div>
+                <div class="player-info-small">
+                    <div class="player-name" style="color: var(--azul-claro);">Vaga Disponível</div>
+                    <div class="player-chips" style="color: var(--azul-claro);">Aguardando...</div>
+                </div>
+            </div>
+        `;
     }
     
-    // Atualizar relógio
-    function updateClock() {
-        const now = new Date();
-        const timeString = now.toLocaleTimeString('pt-BR', {
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit'
+    playersList.innerHTML = html;
+}
+
+// Inscrever-se no torneio - CORRIGIDA
+async function registerForTournament() {
+    console.log('Tentando inscrever-se no torneio:', currentTournament.id);
+    
+    if (!currentUser || !userData) {
+        showNotification('❌ Você precisa estar logado para se inscrever', 'error');
+        return;
+    }
+    
+    try {
+        // Buscar torneio novamente para garantir dados atualizados
+        const tournamentDoc = await db.collection('tournaments').doc(currentTournament.id).get();
+        if (!tournamentDoc.exists) {
+            showNotification('❌ Torneio não encontrado', 'error');
+            return;
+        }
+        
+        const tournament = tournamentDoc.data();
+        
+        // Verificações
+        if (tournament.status !== 'registering') {
+            showNotification('❌ Inscrições encerradas para este torneio', 'error');
+            return;
+        }
+        
+        if (tournament.registeredPlayers >= tournament.maxPlayers) {
+            showNotification('❌ Torneio lotado', 'error');
+            return;
+        }
+        
+        if (userData.saldo < tournament.buyIn) {
+            showNotification(`❌ Saldo insuficiente. Necessário: ${tournament.buyIn} fichas`, 'error');
+            return;
+        }
+        
+        // Verificar se já está inscrito (verificação local)
+        if (isUserRegistered) {
+            showNotification('⚠️ Você já está inscrito neste torneio', 'info');
+            return;
+        }
+        
+        // Armazenar torneio para confirmação
+        currentTournamentToRegister = tournament;
+        currentTournamentToRegister.id = currentTournament.id;
+        
+        // Mostrar modal de confirmação
+        showRegistrationModal();
+        
+    } catch (error) {
+        console.error('Erro ao verificar torneio:', error);
+        showNotification('❌ Erro ao processar inscrição: ' + error.message, 'error');
+    }
+}
+
+// Mostrar modal de inscrição
+function showRegistrationModal() {
+    const modal = document.getElementById('confirmationModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalBody = document.getElementById('modalBody');
+    
+    modalTitle.textContent = `Confirmar Inscrição`;
+    modalBody.innerHTML = `
+        <p><strong>${currentTournamentToRegister.name}</strong></p>
+        <br>
+        <p>📝 <strong>Buy-in:</strong> ${currentTournamentToRegister.buyIn} fichas</p>
+        <p>💰 <strong>Stack Inicial:</strong> ${currentTournamentToRegister.startingStack} fichas</p>
+        <p>👥 <strong>Vagas:</strong> ${currentTournamentToRegister.registeredPlayers || 0}/${currentTournamentToRegister.maxPlayers}</p>
+        <p>🏆 <strong>Prêmio Total Estimado:</strong> ${((currentTournamentToRegister.registeredPlayers || 0) + 1) * currentTournamentToRegister.buyIn} fichas</p>
+        <br>
+        <p>Seu saldo atual: <strong>${userData.saldo} fichas</strong></p>
+        <p>Saldo após inscrição: <strong>${userData.saldo - currentTournamentToRegister.buyIn} fichas</strong></p>
+        <br>
+        <p><strong>⚠️ IMPORTANTE:</strong> O torneio iniciará quando atingir ${currentTournamentToRegister.maxPlayers} jogadores.</p>
+    `;
+    
+    modal.style.display = 'flex';
+}
+
+// Fechar modal de inscrição
+function closeModal() {
+    const modal = document.getElementById('confirmationModal');
+    modal.style.display = 'none';
+    currentTournamentToRegister = null;
+}
+
+// Mostrar modal de cancelamento
+function showCancelModal() {
+    const modal = document.getElementById('cancelModal');
+    const buyInElement = document.getElementById('cancelBuyIn');
+    
+    // Preencher valor do buy-in
+    buyInElement.textContent = currentTournament.buyIn || 100;
+    
+    modal.style.display = 'flex';
+}
+
+// Fechar modal de cancelamento
+function closeCancelModal() {
+    const modal = document.getElementById('cancelModal');
+    modal.style.display = 'none';
+}
+
+// Confirmar cancelamento de inscrição
+async function confirmCancelRegistration() {
+    console.log('Cancelando inscrição no torneio:', currentTournament.id);
+    
+    const modal = document.getElementById('cancelModal');
+    modal.style.display = 'none';
+    
+    const cancelButton = document.getElementById('cancelButton');
+    const originalHTML = cancelButton.innerHTML;
+    cancelButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processando...';
+    cancelButton.disabled = true;
+    
+    try {
+        // 1. Buscar dados atualizados do torneio
+        const tournamentDoc = await db.collection('tournaments').doc(currentTournament.id).get();
+        if (!tournamentDoc.exists) {
+            showNotification('❌ Torneio não encontrado', 'error');
+            return;
+        }
+        
+        const tournament = tournamentDoc.data();
+        
+        // 2. Encontrar o jogador na lista de players
+        const playerIndex = tournament.players?.findIndex(p => p.userId === currentUser?.uid);
+        
+        if (playerIndex === -1 || playerIndex === undefined) {
+            showNotification('❌ Você não está inscrito neste torneio', 'error');
+            return;
+        }
+        
+        // 3. Remover jogador da lista de players
+        const updatedPlayers = [...tournament.players];
+        updatedPlayers.splice(playerIndex, 1);
+        
+        // 4. Calcular novo prize pool (subtrair buy-in do jogador)
+        const newPrizePool = Math.max(0, (tournament.prizePool || 0) - tournament.buyIn);
+        
+        // 5. Atualizar torneio no Firestore
+        await db.collection('tournaments').doc(currentTournament.id).update({
+            players: updatedPlayers,
+            registeredPlayers: firebase.firestore.FieldValue.increment(-1),
+            prizePool: newPrizePool,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
         });
         
-        const currentTimeEl = document.getElementById('currentTime');
-        if (currentTimeEl) {
-            currentTimeEl.textContent = timeString;
-        }
-    }
-    
-    // Mostrar notificação
-    function showNotification(message, type) {
-        const notification = document.getElementById('notification');
-        if (!notification) return;
+        // 6. Devolver buy-in ao saldo do usuário
+        const newBalance = userData.saldo + tournament.buyIn;
+        await db.collection('users').doc(currentUser.uid).update({
+            saldo: newBalance,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
         
-        notification.textContent = message;
-        notification.className = 'notification ' + type;
-        notification.style.display = 'block';
+        // 7. Atualizar dados locais do usuário
+        userData.saldo = newBalance;
+        localStorage.setItem('keepPokerUser', JSON.stringify(userData));
         
+        // 8. Atualizar UI
+        document.getElementById('goldCount').textContent = newBalance;
+        isUserRegistered = false;
+        
+        // 9. Notificar sucesso
+        showNotification(`✅ Inscrição cancelada! ${tournament.buyIn} fichas devolvidas.`, 'success');
+        
+        // 10. Recarregar dados do torneio após 1.5 segundos
         setTimeout(() => {
-            notification.style.display = 'none';
-        }, 4000);
+            if (tournamentUnsubscribe) tournamentUnsubscribe();
+            loadTournamentData(currentTournament.id);
+            setupTournamentListener(currentTournament.id);
+        }, 1500);
+        
+    } catch (error) {
+        console.error('Erro ao cancelar inscrição:', error);
+        showNotification('❌ Erro ao cancelar inscrição: ' + error.message, 'error');
+        
+        // Restaurar botão
+        cancelButton.innerHTML = originalHTML;
+        cancelButton.disabled = false;
+    }
+}
+
+// Confirmar inscrição - CORRIGIDA
+async function confirmRegistration() {
+    if (!currentTournamentToRegister) {
+        showNotification('❌ Nenhum torneio selecionado', 'error');
+        closeModal();
+        return;
     }
     
-    // Limpar intervalo ao sair da página
-    window.addEventListener('beforeunload', function() {
-        if (tournamentUnsubscribe) {
-            tournamentUnsubscribe();
+    console.log('Confirmando inscrição no torneio:', currentTournamentToRegister.name);
+    
+    const modal = document.getElementById('confirmationModal');
+    modal.style.display = 'none';
+    
+    const actionButton = document.getElementById('mainActionButton');
+    const originalHTML = actionButton.innerHTML;
+    actionButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processando...';
+    actionButton.className = 'btn-tournament btn-disabled';
+    actionButton.disabled = true;
+    
+    try {
+        // 1. Deduzir buy-in do saldo do usuário
+        const newBalance = userData.saldo - currentTournamentToRegister.buyIn;
+        
+        // Atualizar saldo do usuário no Firestore
+        await db.collection('users').doc(currentUser.uid).update({
+            saldo: newBalance,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        
+        // 2. Preparar dados do jogador (CORRIGIDO: usar timestamp manual)
+        const playerData = {
+            userId: currentUser.uid,
+            playerName: userData.nickname || userData.nome || 'Jogador',
+            playerId: userData.playerId,
+            chips: currentTournamentToRegister.startingStack,
+            position: 0,
+            rebuyCount: 0,
+            addonUsed: false,
+            isActive: true,
+            registeredAt: new Date().toISOString() // TIMESTAMP MANUAL - NÃO usar FieldValue aqui
+        };
+        
+        // 3. Atualizar torneio no Firestore
+        await db.collection('tournaments').doc(currentTournamentToRegister.id).update({
+            registeredPlayers: firebase.firestore.FieldValue.increment(1),
+            prizePool: firebase.firestore.FieldValue.increment(currentTournamentToRegister.buyIn),
+            players: firebase.firestore.FieldValue.arrayUnion(playerData),
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        
+        // 4. Atualizar dados locais do usuário
+        userData.saldo = newBalance;
+        localStorage.setItem('keepPokerUser', JSON.stringify(userData));
+        
+        // 5. Atualizar UI
+        document.getElementById('goldCount').textContent = newBalance;
+        
+        // 6. Marcar usuário como inscrito localmente
+        isUserRegistered = true;
+        
+        // 7. Notificar sucesso
+        showNotification(`✅ Inscrição realizada com sucesso!`, 'success');
+        
+        // 8. Verificar se torneio lotou
+        const newPlayersCount = (currentTournamentToRegister.registeredPlayers || 0) + 1;
+        if (newPlayersCount >= currentTournamentToRegister.maxPlayers) {
+            showNotification('🎉 Torneio lotado! Iniciando em breve...', 'success');
+            
+            // Atualizar status do torneio para "starting" (iniciando)
+            await db.collection('tournaments').doc(currentTournamentToRegister.id).update({
+                status: 'starting',
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            
+            // Mostrar contador de início
+            setTimeout(() => {
+                showNotification('⏳ Torneio iniciando em 30 segundos...', 'info');
+            }, 1000);
         }
+        
+        // 9. Recarregar dados do torneio após 1.5 segundos
+        setTimeout(() => {
+            if (tournamentUnsubscribe) tournamentUnsubscribe();
+            loadTournamentData(currentTournamentToRegister.id);
+            setupTournamentListener(currentTournamentToRegister.id);
+        }, 1500);
+        
+    } catch (error) {
+        console.error('Erro ao realizar inscrição:', error);
+        
+        // Verificar tipo de erro
+        if (error.code === 'failed-precondition') {
+            showNotification('❌ Erro: campo "players" não é um array no Firestore', 'error');
+            console.log('Solução: Verifique se o campo "players" no Firestore é um array vazio []');
+        } else if (error.message.includes('arrayUnion')) {
+            showNotification('❌ Erro na estrutura do torneio. O campo "players" pode não ser um array.', 'error');
+        } else if (error.code === 'permission-denied') {
+            showNotification('❌ Permissão negada. Verifique as regras do Firestore.', 'error');
+        } else {
+            showNotification('❌ Erro ao realizar inscrição: ' + error.message, 'error');
+        }
+        
+        // Restaurar botão
+        actionButton.innerHTML = originalHTML;
+        actionButton.disabled = false;
+        updateMainAction();
+    } finally {
+        currentTournamentToRegister = null;
+    }
+}
+
+// Entrar no torneio (quando em andamento)
+function enterTournament() {
+    console.log('Entrando no torneio:', currentTournament.id);
+    window.location.href = `mesa-torneio.html?tournamentId=${currentTournament.id}`;
+}
+
+// Assistir torneio (como espectador)
+function watchTournament() {
+    console.log('Assistindo torneio:', currentTournament.id);
+    window.location.href = `mesa-torneio.html?tournamentId=${currentTournament.id}&spectator=true`;
+}
+
+// Atualizar relógio
+function updateClock() {
+    const now = new Date();
+    const timeString = now.toLocaleTimeString('pt-BR', {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
     });
+    
+    const currentTimeEl = document.getElementById('currentTime');
+    if (currentTimeEl) {
+        currentTimeEl.textContent = timeString;
+    }
+}
+
+// Mostrar notificação
+function showNotification(message, type) {
+    const notification = document.getElementById('notification');
+    if (!notification) return;
+    
+    notification.textContent = message;
+    notification.className = 'notification ' + type;
+    notification.style.display = 'block';
+    
+    setTimeout(() => {
+        notification.style.display = 'none';
+    }, 4000);
+}
+
+// Limpar intervalo ao sair da página
+window.addEventListener('beforeunload', function() {
+    if (tournamentUnsubscribe) {
+        tournamentUnsubscribe();
+    }
+});
 </script>
 </body>
 </html>
