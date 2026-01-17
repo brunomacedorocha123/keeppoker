@@ -662,6 +662,11 @@
             background-color: #dc3545;
             border-left: 5px solid #bd2130;
         }
+        
+        .notification.info {
+            background-color: #17a2b8;
+            border-left: 5px solid #117a8b;
+        }
     </style>
 </head>
 <body>
@@ -859,7 +864,7 @@
                         <i class="fas fa-handshake"></i>
                     </div>
                     <h3>Clubes Privados</h3>
-                    <p>Crie seu próprio clube, convide amigos e organize campeonatos exclusivos.</p>
+                    <p>Crie seu próprio clube, convite amigos e organize campeonatos exclusivos.</p>
                 </div>
             </div>
         </div>
@@ -902,17 +907,19 @@
             const mobileMenuBtn = document.getElementById('mobileMenuBtn');
             const navMenu = document.getElementById('navMenu');
             
-            mobileMenuBtn.addEventListener('click', function() {
-                navMenu.classList.toggle('nav-open');
-                const icon = this.querySelector('i');
-                if (navMenu.classList.contains('nav-open')) {
-                    icon.classList.remove('fa-bars');
-                    icon.classList.add('fa-times');
-                } else {
-                    icon.classList.remove('fa-times');
-                    icon.classList.add('fa-bars');
-                }
-            });
+            if (mobileMenuBtn) {
+                mobileMenuBtn.addEventListener('click', function() {
+                    navMenu.classList.toggle('nav-open');
+                    const icon = this.querySelector('i');
+                    if (navMenu.classList.contains('nav-open')) {
+                        icon.classList.remove('fa-bars');
+                        icon.classList.add('fa-times');
+                    } else {
+                        icon.classList.remove('fa-times');
+                        icon.classList.add('fa-bars');
+                    }
+                });
+            }
             
             // Logout
             document.getElementById('logoutBtn').addEventListener('click', function() {
@@ -937,8 +944,10 @@
                 link.addEventListener('click', () => {
                     if (window.innerWidth <= 992) {
                         navMenu.classList.remove('nav-open');
-                        mobileMenuBtn.querySelector('i').classList.remove('fa-times');
-                        mobileMenuBtn.querySelector('i').classList.add('fa-bars');
+                        if (mobileMenuBtn) {
+                            mobileMenuBtn.querySelector('i').classList.remove('fa-times');
+                            mobileMenuBtn.querySelector('i').classList.add('fa-bars');
+                        }
                     }
                 });
             });
@@ -978,11 +987,29 @@
                         }
                         
                         // Atualizar outros dados do Firestore
-                        document.getElementById('diamondCount').textContent = firestoreData.diamantes || '0';
-                        document.getElementById('goldCount').textContent = firestoreData.saldo || '0';
-                        document.getElementById('playerLevel').textContent = firestoreData.nivel || '1';
-                        document.getElementById('playerWins').textContent = firestoreData.vitorias || '0';
-                        document.getElementById('playerTournaments').textContent = firestoreData.torneios || '0';
+                        if (firestoreData.diamantes) {
+                            document.getElementById('diamondCount').textContent = firestoreData.diamantes;
+                            userData.diamantes = firestoreData.diamantes;
+                        }
+                        if (firestoreData.saldo) {
+                            document.getElementById('goldCount').textContent = firestoreData.saldo;
+                            userData.saldo = firestoreData.saldo;
+                        }
+                        if (firestoreData.nivel) {
+                            document.getElementById('playerLevel').textContent = firestoreData.nivel;
+                            userData.nivel = firestoreData.nivel;
+                        }
+                        if (firestoreData.vitorias) {
+                            document.getElementById('playerWins').textContent = firestoreData.vitorias;
+                            userData.vitorias = firestoreData.vitorias;
+                        }
+                        if (firestoreData.torneios) {
+                            document.getElementById('playerTournaments').textContent = firestoreData.torneios;
+                            userData.torneios = firestoreData.torneios;
+                        }
+                        
+                        // Salvar dados atualizados no localStorage
+                        localStorage.setItem('keepPokerUser', JSON.stringify(userData));
                     }
                 } catch (error) {
                     console.error('Erro ao buscar dados do Firestore:', error);
