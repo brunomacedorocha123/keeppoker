@@ -1097,600 +1097,739 @@
     </footer>
 
     <script>
-        // Variáveis globais
-        let currentUser = null;
-        let userData = null;
-        let tablesUnsubscribe = null;
-        
-        // Inicialização
-        document.addEventListener('DOMContentLoaded', function() {
-            // Verificar autenticação
-            auth.onAuthStateChanged(async function(user) {
-                if (user) {
-                    currentUser = user;
-                    await loadUserData();
-                    initTablesPage();
-                } else {
-                    window.location.href = 'login.html';
-                }
-            });
-            
-            // Inicializar relógio
-            updateClock();
-            setInterval(updateClock, 1000);
-            
-            // Menu mobile
-            const mobileMenuBtn = document.getElementById('mobileMenuBtn');
-            const navMenu = document.getElementById('navMenu');
-            if (mobileMenuBtn) {
-                mobileMenuBtn.addEventListener('click', function() {
-                    navMenu.classList.toggle('nav-open');
-                    const icon = this.querySelector('i');
-                    if (navMenu.classList.contains('nav-open')) {
-                        icon.classList.remove('fa-bars');
-                        icon.classList.add('fa-times');
-                    } else {
-                        icon.classList.remove('fa-times');
-                        icon.classList.add('fa-bars');
-                    }
-                });
-            }
-            
-            // Logout
-            const logoutBtn = document.getElementById('logoutBtn');
-            if (logoutBtn) {
-                logoutBtn.addEventListener('click', function() {
-                    auth.signOut().then(() => {
-                        localStorage.removeItem('keepPokerUser');
-                        window.location.href = 'index.html';
-                    }).catch(error => {
-                        console.error('Erro ao fazer logout:', error);
-                        localStorage.removeItem('keepPokerUser');
-                        window.location.href = 'index.html';
-                    });
-                });
-            }
-            
-            // Depositar
-            const depositBtn = document.getElementById('depositBtn');
-            if (depositBtn) {
-                depositBtn.addEventListener('click', function() {
-                    showNotification('Funcionalidade de depósito em desenvolvimento', 'info');
-                });
+    // Variáveis globais
+    let currentUser = null;
+    let userData = null;
+    let tablesUnsubscribe = null;
+    
+    // Inicialização
+    document.addEventListener('DOMContentLoaded', function() {
+        // Verificar autenticação
+        auth.onAuthStateChanged(async function(user) {
+            if (user) {
+                currentUser = user;
+                await loadUserData();
+                initTablesPage();
+            } else {
+                window.location.href = 'login.html';
             }
         });
         
-        // Carregar dados do usuário
-        async function loadUserData() {
-            const user = localStorage.getItem('keepPokerUser');
-            if (user) {
-                userData = JSON.parse(user);
-                // Atualizar header
-                if (document.getElementById('playerId')) {
-                    document.getElementById('playerId').textContent = userData.playerId || '-';
-                    document.getElementById('diamondCount').textContent = userData.diamantes || '0';
-                    document.getElementById('goldCount').textContent = userData.saldo || '0';
-                }
-            }
-        }
+        // Inicializar relógio
+        updateClock();
+        setInterval(updateClock, 1000);
         
-        // Inicializar página de mesas
-        function initTablesPage() {
-            // Filtros
-            document.getElementById('filterGameType').addEventListener('change', loadTables);
-            document.getElementById('filterBuyIn').addEventListener('change', loadTables);
-            document.getElementById('filterPlayers').addEventListener('change', loadTables);
-            document.getElementById('filterStatus').addEventListener('change', loadTables);
-            
-            // Carregar mesas
-            loadTables();
-        }
-        
-        // Carregar mesas do Firestore
-        async function loadTables() {
-            // Remover listener anterior se existir
-            if (tablesUnsubscribe) {
-                tablesUnsubscribe();
-            }
-            
-            const tablesContainer = document.getElementById('tablesContainer');
-            const emptyMessage = document.getElementById('emptyTables');
-            
-            // Mostrar loading
-            tablesContainer.innerHTML = '<div class="loading-container"><div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i></div><p class="loading-text">Carregando mesas disponíveis...</p></div>';
-            emptyMessage.style.display = 'none';
-            
-            // Obter filtros
-            const gameType = document.getElementById('filterGameType').value;
-            const buyIn = document.getElementById('filterBuyIn').value;
-            const players = document.getElementById('filterPlayers').value;
-            const status = document.getElementById('filterStatus').value;
-            
-            // Construir query
-            let query = db.collection('tables')
-                .where('status', '!=', 'finished');
-            
-            // Aplicar filtros
-            if (status !== 'all') {
-                query = query.where('status', '==', status);
-            }
-            
-            if (gameType !== 'all') {
-                query = query.where('gameType', '==', gameType);
-            }
-            
-            // Escutar mudanças em tempo real
-            tablesUnsubscribe = query.onSnapshot(async (snapshot) => {
-                const tables = [];
-                
-                for (const doc of snapshot.docs) {
-                    const table = doc.data();
-                    table.id = doc.id;
-                    
-                    // Aplicar filtros adicionais
-                    if (buyIn !== 'all' && table.buyIn > parseInt(buyIn)) {
-                        continue;
-                    }
-                    
-                    if (players !== 'all' && table.maxPlayers !== parseInt(players)) {
-                        continue;
-                    }
-                    
-                    // Buscar nomes reais dos jogadores
-                    if (table.players && table.players.length > 0) {
-                        for (let i = 0; i < table.players.length; i++) {
-                            if (table.players[i].userId) {
-                                try {
-                                    const userDoc = await db.collection('users').doc(table.players[i].userId).get();
-                                    if (userDoc.exists) {
-                                        const userData = userDoc.data();
-                                        table.players[i].playerName = userData.nome || 'Jogador';
-                                        table.players[i].playerId = userData.playerId || '-';
-                                    }
-                                } catch (error) {
-                                    console.error('Erro ao buscar dados do jogador:', error);
-                                }
-                            }
-                        }
-                    }
-                    
-                    tables.push(table);
+        // Menu mobile
+        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        const navMenu = document.getElementById('navMenu');
+        if (mobileMenuBtn) {
+            mobileMenuBtn.addEventListener('click', function() {
+                navMenu.classList.toggle('nav-open');
+                const icon = this.querySelector('i');
+                if (navMenu.classList.contains('nav-open')) {
+                    icon.classList.remove('fa-bars');
+                    icon.classList.add('fa-times');
+                } else {
+                    icon.classList.remove('fa-times');
+                    icon.classList.add('fa-bars');
                 }
-                
-                renderTables(tables);
-                
-            }, (error) => {
-                console.error('Erro ao carregar mesas:', error);
-                showNotification('Erro ao carregar mesas', 'error');
-                
-                // Mostrar mensagem de erro
-                const tablesContainer = document.getElementById('tablesContainer');
-                tablesContainer.innerHTML = `
-                    <div style="grid-column: 1 / -1; text-align: center; padding: 40px;">
-                        <i class="fas fa-exclamation-triangle" style="font-size: 48px; color: var(--laranja); margin-bottom: 20px;"></i>
-                        <h3 style="color: var(--cinza-claro); margin-bottom: 10px;">Erro ao carregar mesas</h3>
-                        <p style="color: var(--azul-claro);">Verifique sua conexão e tente novamente.</p>
-                    </div>
-                `;
             });
         }
         
-        // Renderizar mesas na tela
-        function renderTables(tables) {
-            const tablesContainer = document.getElementById('tablesContainer');
-            const emptyMessage = document.getElementById('emptyTables');
+        // Logout
+        const logoutBtn = document.getElementById('logoutBtn');
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', function() {
+                auth.signOut().then(() => {
+                    localStorage.removeItem('keepPokerUser');
+                    window.location.href = 'index.html';
+                }).catch(error => {
+                    console.error('Erro ao fazer logout:', error);
+                    localStorage.removeItem('keepPokerUser');
+                    window.location.href = 'index.html';
+                });
+            });
+        }
+        
+        // Depositar
+        const depositBtn = document.getElementById('depositBtn');
+        if (depositBtn) {
+            depositBtn.addEventListener('click', function() {
+                showNotification('Funcionalidade de depósito em desenvolvimento', 'info');
+            });
+        }
+    });
+    
+    // Carregar dados do usuário
+    async function loadUserData() {
+        const user = localStorage.getItem('keepPokerUser');
+        if (user) {
+            userData = JSON.parse(user);
+            // Atualizar header
+            if (document.getElementById('playerId')) {
+                document.getElementById('playerId').textContent = userData.playerId || '-';
+                document.getElementById('diamondCount').textContent = userData.diamantes || '0';
+                document.getElementById('goldCount').textContent = userData.saldo || '0';
+            }
+        }
+    }
+    
+    // Inicializar página de mesas
+    function initTablesPage() {
+        // Filtros
+        document.getElementById('filterGameType').addEventListener('change', loadTables);
+        document.getElementById('filterBuyIn').addEventListener('change', loadTables);
+        document.getElementById('filterPlayers').addEventListener('change', loadTables);
+        document.getElementById('filterStatus').addEventListener('change', loadTables);
+        
+        // Carregar mesas
+        loadTables();
+    }
+    
+    // Carregar mesas do Firestore
+    async function loadTables() {
+        // Remover listener anterior se existir
+        if (tablesUnsubscribe) {
+            tablesUnsubscribe();
+        }
+        
+        const tablesContainer = document.getElementById('tablesContainer');
+        const emptyMessage = document.getElementById('emptyTables');
+        
+        // Mostrar loading
+        tablesContainer.innerHTML = '<div class="loading-container"><div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i></div><p class="loading-text">Carregando mesas disponíveis...</p></div>';
+        emptyMessage.style.display = 'none';
+        
+        // Obter filtros
+        const gameType = document.getElementById('filterGameType').value;
+        const buyIn = document.getElementById('filterBuyIn').value;
+        const players = document.getElementById('filterPlayers').value;
+        const status = document.getElementById('filterStatus').value;
+        
+        // Construir query BASE - MUDANÇA IMPORTANTE AQUI!
+        let query = db.collection('tables')
+            .where('isPlatformTable', '==', true)
+            .where('status', '!=', 'finished')
+            .orderBy('buyIn', 'asc');
+        
+        // Aplicar filtros
+        if (status !== 'all') {
+            query = query.where('status', '==', status);
+        }
+        
+        if (gameType !== 'all') {
+            query = query.where('gameType', '==', gameType);
+        }
+        
+        // Escutar mudanças em tempo real
+        tablesUnsubscribe = query.onSnapshot(async (snapshot) => {
+            const tables = [];
+            let totalPlayers = 0;
             
-            if (tables.length === 0) {
-                tablesContainer.innerHTML = '';
-                emptyMessage.style.display = 'block';
+            // Se não houver documentos, criar mesas automaticamente
+            if (snapshot.empty) {
+                await createDefaultTables();
+                // Recarregar após criar
+                setTimeout(loadTables, 1000);
                 return;
             }
             
-            emptyMessage.style.display = 'none';
-            let tablesHTML = '';
-            
-            tables.forEach((table) => {
-                // Verificar se usuário pode entrar
-                const playerLevel = userData ? (userData.nivel || 1) : 1;
-                const minLevel = table.minLevel || 1;
-                const canEnter = table.status === 'waiting' && 
-                                 table.currentPlayers < table.maxPlayers &&
-                                 playerLevel >= minLevel &&
-                                 (!userData || userData.saldo >= table.buyIn);
+            for (const doc of snapshot.docs) {
+                const table = doc.data();
+                table.id = doc.id;
                 
-                // Verificar se usuário já está na mesa
-                const isPlayerInTable = table.players?.some(p => p.userId === currentUser?.uid);
-                const isPlaying = table.status === 'playing';
+                // Aplicar filtros adicionais
+                if (buyIn !== 'all' && table.buyIn > parseInt(buyIn)) {
+                    continue;
+                }
                 
-                // Gerar slots de jogadores
-                let playersHTML = '';
-                const totalSlots = table.maxPlayers || 6;
-                const occupiedSlots = table.players ? table.players.length : 0;
+                if (players !== 'all' && table.maxPlayers !== parseInt(players)) {
+                    continue;
+                }
                 
-                for (let i = 0; i < totalSlots; i++) {
-                    if (i < occupiedSlots) {
-                        const player = table.players[i];
-                        const isYou = player.userId === currentUser?.uid;
-                        const chipCount = player.chips || table.buyIn;
-                        const playerName = player.playerName ? player.playerName.substring(0, 6) : 'J' + (i + 1);
-                        
-                        playersHTML += `
-                            <div class="player-slot ${isYou ? 'you' : 'occupied'}">
-                                ${isYou ? 'Você' : playerName}
-                                <div class="player-chips">${chipCount}</div>
-                            </div>`;
-                    } else {
-                        playersHTML += `<div class="player-slot empty">Vazio</div>`;
+                // Buscar nomes reais dos jogadores
+                if (table.players && table.players.length > 0) {
+                    for (let i = 0; i < table.players.length; i++) {
+                        if (table.players[i].userId) {
+                            try {
+                                const userDoc = await db.collection('users').doc(table.players[i].userId).get();
+                                if (userDoc.exists) {
+                                    const userData = userDoc.data();
+                                    table.players[i].playerName = userData.nome || 'Jogador';
+                                    table.players[i].playerId = userData.playerId || '-';
+                                }
+                            } catch (error) {
+                                console.error('Erro ao buscar dados do jogador:', error);
+                            }
+                        }
                     }
                 }
                 
-                // Botão de ação
-                let actionButton;
-                if (isPlayerInTable && isPlaying) {
-                    actionButton = `<button class="btn-table btn-watch" onclick="rejoinTable('${table.id}')">Retornar</button>`;
-                } else if (isPlayerInTable) {
-                    actionButton = `<button class="btn-table btn-enter" onclick="rejoinTable('${table.id}')">Retornar</button>`;
-                } else if (canEnter) {
-                    actionButton = `<button class="btn-table btn-enter" onclick="enterTable('${table.id}')">Entrar</button>`;
-                } else if (isPlaying) {
-                    actionButton = `<button class="btn-table btn-watch" onclick="viewTable('${table.id}')">Assistir</button>`;
+                tables.push(table);
+                totalPlayers += table.currentPlayers || 0;
+            }
+            
+            // Atualizar estatísticas
+            updateStats(tables.length, totalPlayers);
+            renderTables(tables);
+            
+        }, (error) => {
+            console.error('Erro ao carregar mesas:', error);
+            showNotification('Erro ao carregar mesas', 'error');
+            
+            // Mostrar mensagem de erro
+            const tablesContainer = document.getElementById('tablesContainer');
+            tablesContainer.innerHTML = `
+                <div style="grid-column: 1 / -1; text-align: center; padding: 40px;">
+                    <i class="fas fa-exclamation-triangle" style="font-size: 48px; color: var(--laranja); margin-bottom: 20px;"></i>
+                    <h3 style="color: var(--cinza-claro); margin-bottom: 10px;">Erro ao carregar mesas</h3>
+                    <p style="color: var(--azul-claro);">${error.message}</p>
+                    <button onclick="createDefaultTables()" style="background: var(--verde); color: white; border: none; padding: 10px 20px; border-radius: 8px; margin-top: 20px; cursor: pointer;">
+                        Criar Mesas de Teste
+                    </button>
+                </div>
+            `;
+        });
+    }
+    
+    // Criar mesas padrão se não existirem
+    async function createDefaultTables() {
+        try {
+            const defaultTables = [
+                {
+                    tableId: "TEXAS_100",
+                    name: "Texas Hold'em - Iniciante",
+                    gameType: "texas-holdem",
+                    maxPlayers: 6,
+                    currentPlayers: 0,
+                    buyIn: 100,
+                    smallBlind: 1,
+                    bigBlind: 2,
+                    status: "waiting",
+                    createdBy: "PLATAFORMA",
+                    createdByName: "Sistema KeepPoker",
+                    isPrivate: false,
+                    clubId: null,
+                    players: [],
+                    isPlatformTable: true,
+                    minLevel: 1,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                },
+                {
+                    tableId: "TEXAS_1000",
+                    name: "Texas Hold'em - High Stakes",
+                    gameType: "texas-holdem",
+                    maxPlayers: 9,
+                    currentPlayers: 0,
+                    buyIn: 1000,
+                    smallBlind: 10,
+                    bigBlind: 20,
+                    status: "waiting",
+                    createdBy: "PLATAFORMA",
+                    createdByName: "Sistema KeepPoker",
+                    isPrivate: false,
+                    clubId: null,
+                    players: [],
+                    isPlatformTable: true,
+                    minLevel: 10,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                },
+                {
+                    tableId: "OMAHA_4_200",
+                    name: "Omaha 4 Cartas",
+                    gameType: "omaha-4",
+                    maxPlayers: 6,
+                    currentPlayers: 0,
+                    buyIn: 200,
+                    smallBlind: 2,
+                    bigBlind: 4,
+                    status: "waiting",
+                    createdBy: "PLATAFORMA",
+                    createdByName: "Sistema KeepPoker",
+                    isPrivate: false,
+                    clubId: null,
+                    players: [],
+                    isPlatformTable: true,
+                    minLevel: 3,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                },
+                {
+                    tableId: "OMAHA_5_300",
+                    name: "Omaha 5 Cartas - Hi-Lo",
+                    gameType: "omaha-5",
+                    maxPlayers: 8,
+                    currentPlayers: 0,
+                    buyIn: 300,
+                    smallBlind: 3,
+                    bigBlind: 6,
+                    status: "waiting",
+                    createdBy: "PLATAFORMA",
+                    createdByName: "Sistema KeepPoker",
+                    isPrivate: false,
+                    clubId: null,
+                    players: [],
+                    isPlatformTable: true,
+                    minLevel: 7,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                }
+            ];
+            
+            const batch = db.batch();
+            
+            for (const tableData of defaultTables) {
+                const docRef = db.collection('tables').doc(tableData.tableId);
+                batch.set(docRef, tableData);
+            }
+            
+            await batch.commit();
+            showNotification('✅ 4 mesas da plataforma criadas com sucesso!', 'success');
+            
+            // Recarregar as mesas
+            setTimeout(() => {
+                loadTables();
+            }, 1000);
+            
+        } catch (error) {
+            console.error('Erro ao criar mesas padrão:', error);
+            showNotification('❌ Erro ao criar mesas: ' + error.message, 'error');
+        }
+    }
+    
+    // Atualizar estatísticas
+    function updateStats(activeTables, onlinePlayers) {
+        // Atualizar elementos se existirem
+        const activeTablesEl = document.getElementById('activeTables');
+        const onlinePlayersEl = document.getElementById('onlinePlayers');
+        const avgPotEl = document.getElementById('avgPot');
+        
+        if (activeTablesEl) activeTablesEl.textContent = activeTables;
+        if (onlinePlayersEl) onlinePlayersEl.textContent = onlinePlayers;
+        if (avgPotEl) avgPotEl.textContent = Math.round(onlinePlayers * 50); // Simulação
+    }
+    
+    // Renderizar mesas na tela
+    function renderTables(tables) {
+        const tablesContainer = document.getElementById('tablesContainer');
+        const emptyMessage = document.getElementById('emptyTables');
+        
+        if (tables.length === 0) {
+            tablesContainer.innerHTML = '';
+            emptyMessage.style.display = 'block';
+            return;
+        }
+        
+        emptyMessage.style.display = 'none';
+        let tablesHTML = '';
+        
+        tables.forEach((table) => {
+            // Verificar se usuário pode entrar
+            const playerLevel = userData ? (userData.nivel || 1) : 1;
+            const minLevel = table.minLevel || 1;
+            const canEnter = table.status === 'waiting' && 
+                             table.currentPlayers < table.maxPlayers &&
+                             playerLevel >= minLevel &&
+                             (!userData || userData.saldo >= table.buyIn);
+            
+            // Verificar se usuário já está na mesa
+            const isPlayerInTable = table.players?.some(p => p.userId === currentUser?.uid);
+            const isPlaying = table.status === 'playing';
+            
+            // Gerar slots de jogadores
+            let playersHTML = '';
+            const totalSlots = table.maxPlayers || 6;
+            const occupiedSlots = table.players ? table.players.length : 0;
+            
+            for (let i = 0; i < totalSlots; i++) {
+                if (i < occupiedSlots) {
+                    const player = table.players[i];
+                    const isYou = player.userId === currentUser?.uid;
+                    const chipCount = player.chips || table.buyIn;
+                    const playerName = player.playerName ? player.playerName.substring(0, 6) : 'J' + (i + 1);
+                    
+                    playersHTML += `
+                        <div class="player-slot ${isYou ? 'you' : 'occupied'}">
+                            ${isYou ? 'Você' : playerName}
+                            <div class="player-chips">${chipCount}</div>
+                        </div>`;
                 } else {
-                    actionButton = `<button class="btn-table btn-full" disabled>${playerLevel < minLevel ? 'Nível Insuficiente' : 'Lotada'}</button>`;
+                    playersHTML += `<div class="player-slot empty">Vazio</div>`;
                 }
-                
-                // Determinar status e ícone
-                let statusClass = 'badge-waiting';
-                let statusText = 'Aguardando';
-                let tableIcon = '♠️';
-                
-                if (table.status === 'playing') {
-                    statusClass = 'badge-playing';
-                    statusText = 'Em Andamento';
-                    tableIcon = '♥️';
-                } else if (table.currentPlayers >= table.maxPlayers) {
-                    statusClass = 'badge-full';
-                    statusText = 'Lotada';
-                    tableIcon = '♦️';
-                }
-                
-                // Definir ícone por tipo de jogo
-                if (table.gameType === 'omaha-4' || table.gameType === 'omaha-5') {
-                    tableIcon = '♣️';
-                }
-                
-                tablesHTML += `
-                    <div class="table-card">
-                        <div class="table-card-header">
-                            <div class="table-title">
-                                <div class="table-icon">${tableIcon}</div>
-                                <div>
-                                    <div class="table-name">${table.name || 'Mesa de Poker'}</div>
-                                    <div style="font-size: 12px; color: var(--cinza-claro); margin-top: 5px;">
-                                        Criada por: ${table.createdBy === 'PLATAFORMA' ? 'Plataforma' : (table.createdByName || 'Usuário')}
-                                    </div>
+            }
+            
+            // Botão de ação
+            let actionButton;
+            if (isPlayerInTable && isPlaying) {
+                actionButton = `<button class="btn-table btn-watch" onclick="rejoinTable('${table.id}')">Retornar</button>`;
+            } else if (isPlayerInTable) {
+                actionButton = `<button class="btn-table btn-enter" onclick="rejoinTable('${table.id}')">Retornar</button>`;
+            } else if (canEnter) {
+                actionButton = `<button class="btn-table btn-enter" onclick="enterTable('${table.id}')">Entrar</button>`;
+            } else if (isPlaying) {
+                actionButton = `<button class="btn-table btn-watch" onclick="viewTable('${table.id}')">Assistir</button>`;
+            } else {
+                actionButton = `<button class="btn-table btn-full" disabled>${playerLevel < minLevel ? 'Nível Insuficiente' : 'Lotada'}</button>`;
+            }
+            
+            // Determinar status e ícone
+            let statusClass = 'badge-waiting';
+            let statusText = 'Aguardando';
+            let tableIcon = '♠️';
+            
+            if (table.status === 'playing') {
+                statusClass = 'badge-playing';
+                statusText = 'Em Andamento';
+                tableIcon = '♥️';
+            } else if (table.currentPlayers >= table.maxPlayers) {
+                statusClass = 'badge-full';
+                statusText = 'Lotada';
+                tableIcon = '♦️';
+            }
+            
+            // Definir ícone por tipo de jogo
+            if (table.gameType === 'omaha-4' || table.gameType === 'omaha-5') {
+                tableIcon = '♣️';
+            }
+            
+            tablesHTML += `
+                <div class="table-card">
+                    <div class="table-card-header">
+                        <div class="table-title">
+                            <div class="table-icon">${tableIcon}</div>
+                            <div>
+                                <div class="table-name">${table.name || 'Mesa de Poker'}</div>
+                                <div style="font-size: 12px; color: var(--cinza-claro); margin-top: 5px;">
+                                    ${table.createdBy === 'PLATAFORMA' ? 'Mesa da Plataforma' : 'Mesa Privada'}
                                 </div>
-                            </div>
-                            <div class="table-badge ${statusClass}">${statusText}</div>
-                        </div>
-                        
-                        <div class="table-details">
-                            <div class="detail-item">
-                                <span class="detail-label">
-                                    <i class="fas fa-gamepad"></i> Tipo de Jogo
-                                </span>
-                                <span class="detail-value">${getGameTypeName(table.gameType)}</span>
-                            </div>
-                            
-                            <div class="detail-item">
-                                <span class="detail-label">
-                                    <i class="fas fa-coins"></i> Buy-in
-                                </span>
-                                <span class="detail-value">${table.buyIn || 100} fichas</span>
-                            </div>
-                            
-                            ${table.gameType === '7-card-stud' ? `
-                                <div class="detail-item">
-                                    <span class="detail-label">
-                                        <i class="fas fa-poker-chips"></i> Ante
-                                    </span>
-                                    <span class="detail-value">${table.ante || 5}</span>
-                                </div>
-                            ` : `
-                                <div class="detail-item">
-                                    <span class="detail-label">
-                                        <i class="fas fa-chart-line"></i> Blinds
-                                    </span>
-                                    <span class="detail-value">${table.smallBlind || 1}/${table.bigBlind || 2}</span>
-                                </div>
-                            `}
-                            
-                            <div class="detail-item">
-                                <span class="detail-label">
-                                    <i class="fas fa-level-up-alt"></i> Nível Mín.
-                                </span>
-                                <span class="detail-value">${table.minLevel || 1}</span>
                             </div>
                         </div>
-                        
-                        <div class="players-section">
-                            <div class="players-header">
-                                <div class="players-title">
-                                    <i class="fas fa-users"></i> Jogadores
-                                </div>
-                                <div class="players-count">
-                                    ${table.currentPlayers || 0}/${table.maxPlayers || 6}
-                                </div>
-                            </div>
-                            <div class="players-grid">
-                                ${playersHTML}
-                            </div>
+                        <div class="table-badge ${statusClass}">${statusText}</div>
+                    </div>
+                    
+                    <div class="table-details">
+                        <div class="detail-item">
+                            <span class="detail-label">
+                                <i class="fas fa-gamepad"></i> Tipo de Jogo
+                            </span>
+                            <span class="detail-value">${getGameTypeName(table.gameType)}</span>
                         </div>
                         
-                        <div class="table-actions">
-                            ${actionButton}
-                            <button class="btn-table btn-info" onclick="showTableInfo('${table.id}')">
-                                <i class="fas fa-info-circle"></i> Info
-                            </button>
+                        <div class="detail-item">
+                            <span class="detail-label">
+                                <i class="fas fa-coins"></i> Buy-in
+                            </span>
+                            <span class="detail-value">${table.buyIn || 100} fichas</span>
+                        </div>
+                        
+                        ${table.gameType === '7-card-stud' ? `
+                            <div class="detail-item">
+                                <span class="detail-label">
+                                    <i class="fas fa-poker-chips"></i> Ante
+                                </span>
+                                <span class="detail-value">${table.ante || 5}</span>
+                            </div>
+                        ` : `
+                            <div class="detail-item">
+                                <span class="detail-label">
+                                    <i class="fas fa-chart-line"></i> Blinds
+                                </span>
+                                <span class="detail-value">${table.smallBlind || 1}/${table.bigBlind || 2}</span>
+                            </div>
+                        `}
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">
+                                <i class="fas fa-level-up-alt"></i> Nível Mín.
+                            </span>
+                            <span class="detail-value">${table.minLevel || 1}</span>
                         </div>
                     </div>
-                `;
-            });
-            
-            tablesContainer.innerHTML = tablesHTML;
-        }
+                    
+                    <div class="players-section">
+                        <div class="players-header">
+                            <div class="players-title">
+                                <i class="fas fa-users"></i> Jogadores
+                            </div>
+                            <div class="players-count">
+                                ${table.currentPlayers || 0}/${table.maxPlayers || 6}
+                            </div>
+                        </div>
+                        <div class="players-grid">
+                            ${playersHTML}
+                        </div>
+                    </div>
+                    
+                    <div class="table-actions">
+                        ${actionButton}
+                        <button class="btn-table btn-info" onclick="showTableInfo('${table.id}')">
+                            <i class="fas fa-info-circle"></i> Info
+                        </button>
+                    </div>
+                </div>
+            `;
+        });
         
-        // Obter nome do tipo de jogo
-        function getGameTypeName(gameType) {
-            const names = {
-                'texas-holdem': 'Texas Hold\'em',
-                'omaha-4': 'Omaha 4 Cartas',
-                'omaha-5': 'Omaha 5 Cartas',
-                '7-card-stud': '7 Card Stud',
-                'omaha': 'Omaha Hi-Lo'
-            };
-            return names[gameType] || gameType;
-        }
-        
-        // Entrar em uma mesa
-        async function enterTable(tableId) {
-            try {
-                if (!currentUser || !userData) {
-                    showNotification('Faça login para entrar em uma mesa', 'error');
-                    return;
-                }
-                
-                const tableDoc = await db.collection('tables').doc(tableId).get();
-                if (!tableDoc.exists) {
-                    showNotification('Mesa não encontrada', 'error');
-                    return;
-                }
-                
-                const table = tableDoc.data();
-                const playerLevel = userData.nivel || 1;
-                const minLevel = table.minLevel || 1;
-                
-                if (playerLevel < minLevel) {
-                    showNotification(`Nível insuficiente! Requer nível ${minLevel}`, 'error');
-                    return;
-                }
-                
-                if (table.currentPlayers >= table.maxPlayers) {
-                    showNotification('Mesa está lotada', 'error');
-                    return;
-                }
-                
-                if (table.status === 'playing') {
-                    showNotification('Mesa já está em andamento', 'error');
-                    return;
-                }
-                
-                const isAlreadyInTable = table.players?.some(p => p.userId === currentUser.uid);
-                if (isAlreadyInTable) {
-                    showNotification('Você já está nesta mesa', 'info');
-                    window.location.href = `mesa.html?tableId=${tableId}`;
-                    return;
-                }
-                
-                if (userData.saldo < table.buyIn) {
-                    showNotification(`Saldo insuficiente. Você precisa de ${table.buyIn} fichas`, 'error');
-                    return;
-                }
-                
-                // Encontrar posição disponível
-                let position = 1;
-                const occupiedPositions = table.players?.map(p => p.position) || [];
-                while (occupiedPositions.includes(position)) {
-                    position++;
-                }
-                
-                // Adicionar jogador
-                const newPlayer = {
-                    userId: currentUser.uid,
-                    playerId: userData.playerId,
-                    playerName: userData.nome || 'Jogador',
-                    position: position,
-                    chips: table.buyIn,
-                    status: 'waiting',
-                    isOwner: false,
-                    level: playerLevel
-                };
-                
-                // Atualizar no Firestore
-                await db.collection('tables').doc(tableId).update({
-                    currentPlayers: firebase.firestore.FieldValue.increment(1),
-                    players: firebase.firestore.FieldValue.arrayUnion(newPlayer)
-                });
-                
-                // Atualizar saldo
-                await db.collection('users').doc(currentUser.uid).update({
-                    saldo: firebase.firestore.FieldValue.increment(-table.buyIn)
-                });
-                
-                // Atualizar localmente
-                userData.saldo -= table.buyIn;
-                localStorage.setItem('keepPokerUser', JSON.stringify(userData));
-                document.getElementById('goldCount').textContent = userData.saldo;
-                
-                showNotification(`Entrou na mesa "${table.name}"!`, 'success');
-                
-                // Redirecionar após 1 segundo
-                setTimeout(() => {
-                    window.location.href = `mesa.html?tableId=${tableId}`;
-                }, 1000);
-                
-            } catch (error) {
-                console.error('Erro ao entrar na mesa:', error);
-                showNotification('Erro ao entrar na mesa', 'error');
+        tablesContainer.innerHTML = tablesHTML;
+    }
+    
+    // Obter nome do tipo de jogo
+    function getGameTypeName(gameType) {
+        const names = {
+            'texas-holdem': 'Texas Hold\'em',
+            'omaha-4': 'Omaha 4 Cartas',
+            'omaha-5': 'Omaha 5 Cartas',
+            '7-card-stud': '7 Card Stud',
+            'omaha': 'Omaha Hi-Lo'
+        };
+        return names[gameType] || gameType;
+    }
+    
+    // Entrar em uma mesa
+    async function enterTable(tableId) {
+        try {
+            if (!currentUser || !userData) {
+                showNotification('Faça login para entrar em uma mesa', 'error');
+                return;
             }
-        }
-        
-        // Retornar à mesa
-        async function rejoinTable(tableId) {
-            try {
-                const tableDoc = await db.collection('tables').doc(tableId).get();
-                if (!tableDoc.exists) {
-                    showNotification('Mesa não encontrada', 'error');
-                    return;
-                }
-                
-                const table = tableDoc.data();
-                const isInTable = table.players?.some(p => p.userId === currentUser?.uid);
-                
-                if (!isInTable) {
-                    showNotification('Você não está nesta mesa', 'error');
-                    return;
-                }
-                
+            
+            const tableDoc = await db.collection('tables').doc(tableId).get();
+            if (!tableDoc.exists) {
+                showNotification('Mesa não encontrada', 'error');
+                return;
+            }
+            
+            const table = tableDoc.data();
+            const playerLevel = userData.nivel || 1;
+            const minLevel = table.minLevel || 1;
+            
+            if (playerLevel < minLevel) {
+                showNotification(`Nível insuficiente! Requer nível ${minLevel}`, 'error');
+                return;
+            }
+            
+            if (table.currentPlayers >= table.maxPlayers) {
+                showNotification('Mesa está lotada', 'error');
+                return;
+            }
+            
+            if (table.status === 'playing') {
+                showNotification('Mesa já está em andamento', 'error');
+                return;
+            }
+            
+            const isAlreadyInTable = table.players?.some(p => p.userId === currentUser.uid);
+            if (isAlreadyInTable) {
+                showNotification('Você já está nesta mesa', 'info');
                 window.location.href = `mesa.html?tableId=${tableId}`;
-                
-            } catch (error) {
-                console.error('Erro ao retornar à mesa:', error);
-                showNotification('Erro ao retornar à mesa', 'error');
+                return;
             }
-        }
-        
-        // Assistir mesa
-        async function viewTable(tableId) {
-            try {
-                const tableDoc = await db.collection('tables').doc(tableId).get();
-                if (!tableDoc.exists) {
-                    showNotification('Mesa não encontrada', 'error');
-                    return;
-                }
-                
-                const table = tableDoc.data();
-                
-                if (table.status !== 'playing') {
-                    showNotification('Esta mesa não está em andamento', 'info');
-                    return;
-                }
-                
-                window.location.href = `mesa.html?tableId=${tableId}&spectator=true`;
-                
-            } catch (error) {
-                console.error('Erro ao assistir mesa:', error);
-                showNotification('Erro ao assistir mesa', 'error');
-            }
-        }
-        
-        // Mostrar informações da mesa
-        async function showTableInfo(tableId) {
-            try {
-                const tableDoc = await db.collection('tables').doc(tableId).get();
-                if (!tableDoc.exists) {
-                    showNotification('Mesa não encontrada', 'error');
-                    return;
-                }
-                
-                const table = tableDoc.data();
-                
-                let infoMessage = `
-                    <strong>${table.name || 'Mesa de Poker'}</strong><br>
-                    Tipo: ${getGameTypeName(table.gameType)}<br>
-                    Buy-in: ${table.buyIn || 100} fichas<br>
-                    Jogadores: ${table.currentPlayers || 0}/${table.maxPlayers || 6}<br>
-                    Nível mínimo: ${table.minLevel || 1}<br>
-                    <br>
-                    <strong>Regras:</strong><br>`;
-                
-                if (table.gameType === 'texas-holdem' || table.gameType === 'omaha-4' || table.gameType === 'omaha-5') {
-                    infoMessage += `- Blinds: ${table.smallBlind || 1}/${table.bigBlind || 2}<br>`;
-                    infoMessage += `- Tempo por ação: 30 segundos<br>`;
-                } else if (table.gameType === '7-card-stud') {
-                    infoMessage += `- Ante: ${table.ante || 5}<br>`;
-                }
-                
-                infoMessage += `- Time bank: 60 segundos<br>`;
-                
-                // Criar modal
-                const modal = document.createElement('div');
-                modal.style.cssText = `
-                    position: fixed;
-                    top: 0;
-                    left: 0;
-                    right: 0;
-                    bottom: 0;
-                    background: rgba(0,0,0,0.8);
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    z-index: 10001;
-                    padding: 20px;
-                `;
-                
-                const modalContent = document.createElement('div');
-                modalContent.style.cssText = `
-                    background: var(--azul-medio);
-                    color: var(--cinza-claro);
-                    padding: 30px;
-                    border-radius: 15px;
-                    border: 3px solid var(--dourado);
-                    max-width: 400px;
-                    width: 100%;
-                `;
-                
-                modalContent.innerHTML = `
-                    <h3 style="color: var(--dourado); margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
-                        <i class="fas fa-info-circle"></i> Informações da Mesa
-                    </h3>
-                    <div style="margin-bottom: 25px;">${infoMessage}</div>
-                    <button onclick="this.closest('div[style*=\"position: fixed\"]').remove()" 
-                            style="background: var(--verde); color: white; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; cursor: pointer; width: 100%;">
-                        Fechar
-                    </button>
-                `;
-                
-                modal.appendChild(modalContent);
-                document.body.appendChild(modal);
-                
-            } catch (error) {
-                console.error('Erro ao buscar informações:', error);
-                showNotification('Erro ao carregar informações', 'error');
-            }
-        }
-        
-        // Atualizar relógio
-        function updateClock() {
-            const now = new Date();
-            const timeString = now.toLocaleTimeString('pt-BR', {
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit'
-            });
-            document.getElementById('currentTime').textContent = timeString;
-        }
-        
-        // Mostrar notificação
-        function showNotification(message, type) {
-            const notification = document.getElementById('notification');
-            notification.textContent = message;
-            notification.className = 'notification ' + type;
-            notification.style.display = 'block';
             
+            if (userData.saldo < table.buyIn) {
+                showNotification(`Saldo insuficiente. Você precisa de ${table.buyIn} fichas`, 'error');
+                return;
+            }
+            
+            // Encontrar posição disponível
+            let position = 1;
+            const occupiedPositions = table.players?.map(p => p.position) || [];
+            while (occupiedPositions.includes(position)) {
+                position++;
+            }
+            
+            // Adicionar jogador
+            const newPlayer = {
+                userId: currentUser.uid,
+                playerId: userData.playerId,
+                playerName: userData.nome || 'Jogador',
+                position: position,
+                chips: table.buyIn,
+                status: 'waiting',
+                isOwner: false,
+                level: playerLevel,
+                joinedAt: firebase.firestore.FieldValue.serverTimestamp()
+            };
+            
+            // Atualizar no Firestore
+            await db.collection('tables').doc(tableId).update({
+                currentPlayers: firebase.firestore.FieldValue.increment(1),
+                players: firebase.firestore.FieldValue.arrayUnion(newPlayer),
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            
+            // Atualizar saldo do usuário
+            await db.collection('users').doc(currentUser.uid).update({
+                saldo: firebase.firestore.FieldValue.increment(-table.buyIn),
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            
+            // Atualizar localmente
+            userData.saldo -= table.buyIn;
+            localStorage.setItem('keepPokerUser', JSON.stringify(userData));
+            document.getElementById('goldCount').textContent = userData.saldo;
+            
+            showNotification(`🎉 Entrou na mesa "${table.name}"!`, 'success');
+            
+            // Redirecionar após 1 segundo
             setTimeout(() => {
-                notification.style.display = 'none';
-            }, 4000);
+                window.location.href = `mesa.html?tableId=${tableId}`;
+            }, 1000);
+            
+        } catch (error) {
+            console.error('Erro ao entrar na mesa:', error);
+            showNotification('❌ Erro ao entrar na mesa: ' + error.message, 'error');
         }
-    </script>
+    }
+    
+    // Retornar à mesa
+    async function rejoinTable(tableId) {
+        try {
+            const tableDoc = await db.collection('tables').doc(tableId).get();
+            if (!tableDoc.exists) {
+                showNotification('Mesa não encontrada', 'error');
+                return;
+            }
+            
+            const table = tableDoc.data();
+            const isInTable = table.players?.some(p => p.userId === currentUser?.uid);
+            
+            if (!isInTable) {
+                showNotification('Você não está nesta mesa', 'error');
+                return;
+            }
+            
+            window.location.href = `mesa.html?tableId=${tableId}`;
+            
+        } catch (error) {
+            console.error('Erro ao retornar à mesa:', error);
+            showNotification('Erro ao retornar à mesa', 'error');
+        }
+    }
+    
+    // Assistir mesa
+    async function viewTable(tableId) {
+        try {
+            const tableDoc = await db.collection('tables').doc(tableId).get();
+            if (!tableDoc.exists) {
+                showNotification('Mesa não encontrada', 'error');
+                return;
+            }
+            
+            const table = tableDoc.data();
+            
+            if (table.status !== 'playing') {
+                showNotification('Esta mesa não está em andamento', 'info');
+                return;
+            }
+            
+            window.location.href = `mesa.html?tableId=${tableId}&spectator=true`;
+            
+        } catch (error) {
+            console.error('Erro ao assistir mesa:', error);
+            showNotification('Erro ao assistir mesa', 'error');
+        }
+    }
+    
+    // Mostrar informações da mesa
+    async function showTableInfo(tableId) {
+        try {
+            const tableDoc = await db.collection('tables').doc(tableId).get();
+            if (!tableDoc.exists) {
+                showNotification('Mesa não encontrada', 'error');
+                return;
+            }
+            
+            const table = tableDoc.data();
+            
+            let infoMessage = `
+                <strong>${table.name || 'Mesa de Poker'}</strong><br>
+                Tipo: ${getGameTypeName(table.gameType)}<br>
+                Buy-in: ${table.buyIn || 100} fichas<br>
+                Jogadores: ${table.currentPlayers || 0}/${table.maxPlayers || 6}<br>
+                Nível mínimo: ${table.minLevel || 1}<br>
+                <br>
+                <strong>Regras:</strong><br>`;
+            
+            if (table.gameType === 'texas-holdem' || table.gameType === 'omaha-4' || table.gameType === 'omaha-5') {
+                infoMessage += `- Blinds: ${table.smallBlind || 1}/${table.bigBlind || 2}<br>`;
+                infoMessage += `- Tempo por ação: 30 segundos<br>`;
+            } else if (table.gameType === '7-card-stud') {
+                infoMessage += `- Ante: ${table.ante || 5}<br>`;
+            }
+            
+            infoMessage += `- Time bank: 60 segundos<br>`;
+            
+            // Criar modal
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0,0,0,0.8);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 10001;
+                padding: 20px;
+            `;
+            
+            const modalContent = document.createElement('div');
+            modalContent.style.cssText = `
+                background: var(--azul-medio);
+                color: var(--cinza-claro);
+                padding: 30px;
+                border-radius: 15px;
+                border: 3px solid var(--dourado);
+                max-width: 400px;
+                width: 100%;
+            `;
+            
+            modalContent.innerHTML = `
+                <h3 style="color: var(--dourado); margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+                    <i class="fas fa-info-circle"></i> Informações da Mesa
+                </h3>
+                <div style="margin-bottom: 25px;">${infoMessage}</div>
+                <button onclick="this.closest('div[style*=\"position: fixed\"]').remove()" 
+                        style="background: var(--verde); color: white; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; cursor: pointer; width: 100%;">
+                    Fechar
+                </button>
+            `;
+            
+            modal.appendChild(modalContent);
+            document.body.appendChild(modal);
+            
+        } catch (error) {
+            console.error('Erro ao buscar informações:', error);
+            showNotification('Erro ao carregar informações', 'error');
+        }
+    }
+    
+    // Atualizar relógio
+    function updateClock() {
+        const now = new Date();
+        const timeString = now.toLocaleTimeString('pt-BR', {
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        });
+        document.getElementById('currentTime').textContent = timeString;
+    }
+    
+    // Mostrar notificação
+    function showNotification(message, type) {
+        const notification = document.getElementById('notification');
+        notification.textContent = message;
+        notification.className = 'notification ' + type;
+        notification.style.display = 'block';
+        
+        setTimeout(() => {
+            notification.style.display = 'none';
+        }, 4000);
+    }
+</script>
 </body>
 </html>
