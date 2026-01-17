@@ -1,96 +1,1071 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mesas - KeepPoker</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBIBucZSzN671VgJQHGIiepHNUqxbqNKAQ",
+            authDomain: "keeppoker-b4173.firebaseapp.com",
+            projectId: "keeppoker-b4173",
+            storageBucket: "keeppoker-b4173.firebasestorage.app",
+            messagingSenderId: "436464592434",
+            appId: "1:436464592434:web:c5a1e0c10e10acbc14fe2b"
+        };
+        
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+    </script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        :root {
+            --azul-profundo: #0d1b2a;
+            --azul-medio: #1b263b;
+            --azul-claro: #415a77;
+            --dourado: #d4af37;
+            --dourado-claro: #f7ef8a;
+            --branco: #ffffff;
+            --cinza-claro: #e0e1dd;
+            --verde: #2ecc71;
+            --vermelho: #e74c3c;
+            --roxo: #9b59b6;
+            --laranja: #e67e22;
+        }
+        
+        body {
+            background-color: var(--azul-profundo);
+            color: var(--cinza-claro);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        
+        .container {
+            width: 90%;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 15px;
+        }
+        
+        /* Header Superior */
+        .top-header {
+            background-color: var(--azul-medio);
+            padding: 12px 0;
+            border-bottom: 2px solid var(--dourado);
+        }
+        
+        .top-header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .player-info {
+            display: flex;
+            align-items: center;
+            gap: 25px;
+            flex-wrap: wrap;
+        }
+        
+        .player-id {
+            background-color: rgba(212, 175, 55, 0.15);
+            padding: 10px 18px;
+            border-radius: 25px;
+            border: 1.5px solid var(--dourado);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .player-id-label {
+            color: var(--cinza-claro);
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        .player-id-value {
+            color: var(--dourado-claro);
+            font-weight: bold;
+            font-size: 16px;
+        }
+        
+        .resources {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .resource-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.08);
+            padding: 10px 18px;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .resource-item:hover {
+            background: rgba(212, 175, 55, 0.2);
+            transform: translateY(-3px);
+        }
+        
+        .resource-icon {
+            font-size: 22px;
+        }
+        
+        .diamond {
+            color: #1abc9c;
+        }
+        
+        .gold {
+            color: var(--dourado);
+        }
+        
+        .resource-value {
+            font-weight: 700;
+            font-size: 18px;
+        }
+        
+        .diamond-value {
+            color: #1abc9c;
+        }
+        
+        .gold-value {
+            color: var(--dourado-claro);
+        }
+        
+        .time-section {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--cinza-claro);
+            background: rgba(255, 255, 255, 0.05);
+            padding: 8px 16px;
+            border-radius: 20px;
+        }
+        
+        .current-time {
+            font-weight: bold;
+            color: var(--dourado);
+            font-size: 16px;
+        }
+        
+        /* Header Principal */
+        .main-header {
+            background: rgba(13, 27, 42, 0.98);
+            padding: 18px 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            border-bottom: 1px solid rgba(212, 175, 55, 0.3);
+        }
+        
+        .main-header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo-container {
+            height: 65px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .logo-link {
+            display: block;
+            height: 100%;
+        }
+        
+        .logo {
+            height: 100%;
+            width: auto;
+            max-width: 220px;
+            object-fit: contain;
+        }
+        
+        /* Menu de Navegação */
+        .nav-menu {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .nav-item {
+            position: relative;
+        }
+        
+        .nav-link {
+            color: var(--cinza-claro);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 16px;
+            padding: 14px 20px;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            white-space: nowrap;
+        }
+        
+        .nav-link:hover {
+            color: var(--dourado-claro);
+            background: rgba(212, 175, 55, 0.15);
+        }
+        
+        .nav-link.active {
+            color: var(--dourado-claro);
+            background: rgba(212, 175, 55, 0.25);
+            border-bottom: 3px solid var(--dourado);
+        }
+        
+        .notification-badge {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: var(--vermelho);
+            color: white;
+            font-size: 11px;
+            padding: 3px 8px;
+            border-radius: 12px;
+            min-width: 20px;
+            text-align: center;
+            font-weight: 700;
+        }
+        
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-left: 20px;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border-radius: 30px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            font-size: 15px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            white-space: nowrap;
+        }
+        
+        .btn-deposit {
+            background: var(--verde);
+            color: white;
+            border: 2px solid var(--verde);
+        }
+        
+        .btn-deposit:hover {
+            background: transparent;
+            color: var(--verde);
+            transform: translateY(-2px);
+        }
+        
+        .btn-logout {
+            background: transparent;
+            color: var(--vermelho);
+            border: 2px solid var(--vermelho);
+        }
+        
+        .btn-logout:hover {
+            background: var(--vermelho);
+            color: white;
+            transform: translateY(-2px);
+        }
+        
+        /* Menu Mobile */
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--dourado);
+            font-size: 28px;
+            cursor: pointer;
+            padding: 8px;
+        }
+        
+        /* Hero das Mesas */
+        .tables-hero {
+            padding: 60px 0;
+            background: linear-gradient(135deg, var(--azul-medio) 0%, var(--azul-profundo) 100%);
+            border-bottom: 3px solid var(--dourado);
+        }
+        
+        .hero-content {
+            text-align: center;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .hero-title {
+            font-size: 48px;
+            margin-bottom: 20px;
+            color: var(--branco);
+        }
+        
+        .hero-subtitle {
+            font-size: 18px;
+            color: var(--cinza-claro);
+            margin-bottom: 30px;
+            line-height: 1.8;
+        }
+        
+        /* Seção de Mesas */
+        .tables-section {
+            padding: 60px 0;
+        }
+        
+        .section-header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+        
+        .section-title {
+            font-size: 36px;
+            color: var(--branco);
+            margin-bottom: 15px;
+        }
+        
+        .section-subtitle {
+            color: var(--cinza-claro);
+            font-size: 18px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        /* Filtros */
+        .filters-container {
+            background: rgba(27, 38, 59, 0.8);
+            padding: 25px;
+            border-radius: 20px;
+            border: 2px solid rgba(212, 175, 55, 0.3);
+            margin-bottom: 40px;
+        }
+        
+        .filters-title {
+            color: var(--dourado);
+            font-size: 20px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .filters-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+        }
+        
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .filter-label {
+            color: var(--cinza-claro);
+            font-weight: 600;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .filter-select {
+            padding: 14px 18px;
+            border-radius: 12px;
+            border: 2px solid var(--azul-claro);
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--cinza-claro);
+            font-size: 15px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .filter-select:focus {
+            outline: none;
+            border-color: var(--dourado);
+        }
+        
+        /* Grid de Mesas */
+        .tables-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+            gap: 30px;
+            margin-bottom: 50px;
+        }
+        
+        /* Card de Mesa */
+        .table-card {
+            background: linear-gradient(145deg, rgba(27, 38, 59, 0.9) 0%, rgba(13, 27, 42, 0.9) 100%);
+            border-radius: 20px;
+            padding: 30px;
+            border: 3px solid rgba(212, 175, 55, 0.3);
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .table-card:hover {
+            border-color: var(--dourado);
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        }
+        
+        .table-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid rgba(212, 175, 55, 0.2);
+        }
+        
+        .table-title {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .table-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--dourado) 0%, var(--laranja) 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+        }
+        
+        .table-name {
+            color: var(--branco);
+            font-size: 22px;
+            font-weight: 700;
+            line-height: 1.3;
+        }
+        
+        .table-badge {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .badge-waiting {
+            background: var(--verde);
+            color: white;
+        }
+        
+        .badge-playing {
+            background: var(--laranja);
+            color: white;
+        }
+        
+        .badge-full {
+            background: #95a5a6;
+            color: white;
+        }
+        
+        .table-details {
+            margin-bottom: 25px;
+            flex-grow: 1;
+        }
+        
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .detail-item:last-child {
+            border-bottom: none;
+        }
+        
+        .detail-label {
+            color: var(--cinza-claro);
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .detail-value {
+            color: var(--dourado);
+            font-weight: 700;
+            font-size: 16px;
+        }
+        
+        .players-section {
+            margin-bottom: 25px;
+        }
+        
+        .players-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .players-title {
+            color: var(--cinza-claro);
+            font-size: 14px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .players-count {
+            color: var(--dourado);
+            font-weight: 700;
+            font-size: 16px;
+        }
+        
+        .players-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+        
+        .player-slot {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 10px;
+            padding: 12px;
+            text-align: center;
+            min-height: 70px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            border: 2px solid transparent;
+        }
+        
+        .player-slot.empty {
+            border-color: var(--azul-claro);
+            border-style: dashed;
+            color: var(--azul-claro);
+        }
+        
+        .player-slot.occupied {
+            border-color: var(--verde);
+            color: var(--verde);
+            font-weight: 700;
+        }
+        
+        .player-slot.you {
+            border-color: var(--dourado);
+            color: var(--dourado);
+            background: rgba(212, 175, 55, 0.1);
+        }
+        
+        .player-chips {
+            position: absolute;
+            bottom: 5px;
+            right: 5px;
+            font-size: 10px;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 3px 6px;
+            border-radius: 10px;
+            color: var(--dourado);
+            font-weight: 700;
+        }
+        
+        .table-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: auto;
+        }
+        
+        .btn-table {
+            flex: 1;
+            padding: 14px;
+            border-radius: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            border: none;
+            transition: all 0.3s ease;
+            text-align: center;
+            text-decoration: none;
+            font-size: 15px;
+        }
+        
+        .btn-enter {
+            background: var(--verde);
+            color: white;
+        }
+        
+        .btn-enter:hover {
+            background: #25a25a;
+            transform: translateY(-3px);
+        }
+        
+        .btn-watch {
+            background: var(--roxo);
+            color: white;
+        }
+        
+        .btn-watch:hover {
+            background: #8e44ad;
+            transform: translateY(-3px);
+        }
+        
+        .btn-full {
+            background: #95a5a6;
+            color: white;
+            cursor: not-allowed;
+        }
+        
+        .btn-info {
+            background: var(--azul-claro);
+            color: white;
+        }
+        
+        .btn-info:hover {
+            background: #2c4877;
+            transform: translateY(-3px);
+        }
+        
+        /* Loading */
+        .loading-container {
+            text-align: center;
+            padding: 60px 0;
+        }
+        
+        .loading-spinner {
+            font-size: 40px;
+            color: var(--dourado);
+            margin-bottom: 20px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .loading-text {
+            color: var(--cinza-claro);
+            font-size: 18px;
+        }
+        
+        /* Notificações */
+        .notification-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10000;
+        }
+        
+        .notification {
+            padding: 18px 24px;
+            border-radius: 12px;
+            color: white;
+            font-weight: 600;
+            margin-bottom: 15px;
+            display: none;
+            animation: slideIn 0.4s ease;
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        .notification.success {
+            background: var(--verde);
+        }
+        
+        .notification.error {
+            background: var(--vermelho);
+        }
+        
+        .notification.info {
+            background: var(--azul-claro);
+        }
+        
+        /* Footer */
+        footer {
+            background: #0a1520;
+            padding: 60px 0 25px;
+            text-align: center;
+            border-top: 3px solid var(--dourado);
+        }
+        
+        .footer-logo {
+            color: var(--dourado);
+            font-size: 36px;
+            font-weight: bold;
+            margin-bottom: 25px;
+        }
+        
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 25px;
+            margin-bottom: 35px;
+        }
+        
+        .footer-links a {
+            color: var(--cinza-claro);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+        
+        .footer-links a:hover {
+            color: var(--dourado);
+        }
+        
+        .copyright {
+            padding-top: 25px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--azul-claro);
+            font-size: 14px;
+        }
+        
+        /* Responsividade */
+        @media (max-width: 1200px) {
+            .tables-grid {
+                grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            }
+        }
+        
+        @media (max-width: 992px) {
+            .nav-menu {
+                position: fixed;
+                top: 140px;
+                left: 0;
+                width: 100%;
+                background: var(--azul-medio);
+                flex-direction: column;
+                padding: 25px;
+                display: none;
+                z-index: 999;
+            }
+            
+            .nav-open {
+                display: flex;
+            }
+            
+            .nav-item {
+                width: 100%;
+            }
+            
+            .nav-link {
+                justify-content: center;
+                padding: 18px;
+            }
+            
+            .user-menu {
+                margin-left: 0;
+                width: 100%;
+                justify-content: center;
+                margin-top: 25px;
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .mobile-menu-btn {
+                display: block;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .tables-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .players-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .hero-title {
+                font-size: 28px;
+            }
+            
+            .section-title {
+                font-size: 28px;
+            }
+            
+            .table-card {
+                padding: 20px;
+            }
+            
+            .table-name {
+                font-size: 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Notificações -->
+    <div class="notification-container">
+        <div id="notification" class="notification"></div>
+    </div>
+    
+    <!-- Header Superior -->
+    <header class="top-header">
+        <div class="container top-header-container">
+            <div class="player-info">
+                <div class="player-id">
+                    <span class="player-id-label">ID do Jogador:</span>
+                    <span class="player-id-value" id="playerId">-</span>
+                </div>
+                
+                <div class="resources">
+                    <div class="resource-item">
+                        <i class="fas fa-gem diamond resource-icon"></i>
+                        <span class="diamond-value resource-value" id="diamondCount">0</span>
+                    </div>
+                    
+                    <div class="resource-item">
+                        <i class="fas fa-coins gold resource-icon"></i>
+                        <span class="gold-value resource-value" id="goldCount">0</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="time-section">
+                <i class="far fa-clock"></i>
+                <span id="currentTime" class="current-time">00:00:00</span>
+            </div>
+        </div>
+    </header>
+    
+    <!-- Header Principal -->
+    <header class="main-header">
+        <div class="container main-header-container">
+            <div class="logo-container">
+                <a href="home.html" class="logo-link">
+                    <img src="logokeeppoker.png" alt="KeepPoker" class="logo">
+                </a>
+            </div>
+            
+            <button class="mobile-menu-btn" id="mobileMenuBtn">
+                <i class="fas fa-bars"></i>
+            </button>
+            
+            <nav class="nav-menu" id="navMenu">
+                <div class="nav-item">
+                    <a href="mesas.html" class="nav-link active">
+                        <i class="fas fa-table"></i>
+                        <span>Mesas</span>
+                    </a>
+                </div>
+                
+                <div class="nav-item">
+                    <a href="ranking.html" class="nav-link">
+                        <i class="fas fa-trophy"></i>
+                        <span>Ranking</span>
+                    </a>
+                </div>
+                
+                <div class="nav-item">
+                    <a href="notificacoes.html" class="nav-link">
+                        <i class="fas fa-bell"></i>
+                        <span>Notificações</span>
+                    </a>
+                </div>
+                
+                <div class="nav-item">
+                    <a href="clube.html" class="nav-link">
+                        <i class="fas fa-users"></i>
+                        <span>Meu Clube</span>
+                    </a>
+                </div>
+                
+                <div class="nav-item">
+                    <a href="conta.html" class="nav-link">
+                        <i class="fas fa-user-circle"></i>
+                        <span>Minha Conta</span>
+                    </a>
+                </div>
+                
+                <div class="user-menu">
+                    <button id="depositBtn" class="btn btn-deposit">
+                        <i class="fas fa-plus-circle"></i> Depositar
+                    </button>
+                    <button id="logoutBtn" class="btn btn-logout">
+                        <i class="fas fa-sign-out-alt"></i> Sair
+                    </button>
+                </div>
+            </nav>
+        </div>
+    </header>
+    
+    <!-- Hero Section -->
+    <section class="tables-hero">
+        <div class="container">
+            <div class="hero-content">
+                <h1 class="hero-title">Mesas de Poker Premium</h1>
+                <p class="hero-subtitle">
+                    Escolha entre as melhores mesas da plataforma. Jogue Texas Hold'em, Omaha e muito mais 
+                    com jogadores reais em tempo real. Cada mesa oferece uma experiência única de poker.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Seção de Mesas -->
+    <section class="tables-section">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Mesas Disponíveis</h2>
+                <p class="section-subtitle">
+                    Encontre a mesa perfeita para seu estilo de jogo. Filtre por tipo, buy-in e muito mais.
+                </p>
+            </div>
+
+            <!-- Filtros -->
+            <div class="filters-container">
+                <h3 class="filters-title">
+                    <i class="fas fa-filter"></i> Filtrar Mesas
+                </h3>
+                <div class="filters-grid">
+                    <div class="filter-group">
+                        <label class="filter-label">
+                            <i class="fas fa-gamepad"></i> Tipo de Jogo
+                        </label>
+                        <select id="filterGameType" class="filter-select">
+                            <option value="all">Todos os Tipos</option>
+                            <option value="texas-holdem">Texas Hold'em</option>
+                            <option value="omaha-4">Omaha 4 Cartas</option>
+                            <option value="omaha-5">Omaha 5 Cartas</option>
+                            <option value="7-card-stud">7 Card Stud</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label class="filter-label">
+                            <i class="fas fa-chart-line"></i> Buy-in
+                        </label>
+                        <select id="filterBuyIn" class="filter-select">
+                            <option value="all">Qualquer Buy-in</option>
+                            <option value="100">Até 100 fichas</option>
+                            <option value="500">Até 500 fichas</option>
+                            <option value="1000">Até 1.000 fichas</option>
+                            <option value="5000">Até 5.000 fichas</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label class="filter-label">
+                            <i class="fas fa-users"></i> Jogadores
+                        </label>
+                        <select id="filterPlayers" class="filter-select">
+                            <option value="all">Qualquer número</option>
+                            <option value="2">2 jogadores</option>
+                            <option value="6">6 jogadores</option>
+                            <option value="9">9 jogadores</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label class="filter-label">
+                            <i class="fas fa-clock"></i> Status
+                        </label>
+                        <select id="filterStatus" class="filter-select">
+                            <option value="all">Todos os status</option>
+                            <option value="waiting">Aguardando</option>
+                            <option value="playing">Em andamento</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Grid de Mesas -->
+            <div id="tablesContainer" class="tables-grid">
+                <!-- Loading inicial -->
+                <div class="loading-container">
+                    <div class="loading-spinner">
+                        <i class="fas fa-spinner fa-spin"></i>
+                    </div>
+                    <p class="loading-text">Carregando mesas disponíveis...</p>
+                </div>
+            </div>
+
+            <!-- Mensagem quando não houver mesas -->
+            <div id="emptyTables" style="display: none; text-align: center; padding: 40px;">
+                <i class="fas fa-table fa-3x" style="color: var(--azul-claro); margin-bottom: 20px;"></i>
+                <h3 style="color: var(--cinza-claro); margin-bottom: 10px;">Nenhuma mesa encontrada</h3>
+                <p style="color: var(--azul-claro);">Tente ajustar os filtros ou volte mais tarde.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-logo">KeepPoker</div>
+            
+            <div class="footer-links">
+                <a href="suporte.html">Suporte</a>
+                <a href="faq.html">FAQ</a>
+                <a href="regras.html">Regras</a>
+                <a href="responsavel.html">Jogo Responsável</a>
+                <a href="termos.html">Termos</a>
+                <a href="privacidade.html">Privacidade</a>
+            </div>
+            
+            <p class="copyright">
+                &copy; 2024 KeepPoker. Todos os direitos reservados. Jogue com responsabilidade.
+            </p>
+        </div>
+    </footer>
+
     <script>
         // Variáveis globais
         let currentUser = null;
         let userData = null;
         let tablesUnsubscribe = null;
-        
-        // Dados das mesas fixas da plataforma
-        const PLATFORM_TABLES = [
-            {
-                id: "TEXAS_100",
-                name: "Texas Hold'em - Iniciante",
-                gameType: "texas-holdem",
-                maxPlayers: 6,
-                currentPlayers: 0,
-                buyIn: 100,
-                smallBlind: 1,
-                bigBlind: 2,
-                status: "waiting",
-                createdBy: "PLATAFORMA",
-                isPrivate: false,
-                clubId: null,
-                players: [],
-                isPlatformTable: true,
-                minLevel: 1
-            },
-            {
-                id: "TEXAS_500",
-                name: "Texas Hold'em - Intermediário",
-                gameType: "texas-holdem",
-                maxPlayers: 8,
-                currentPlayers: 0,
-                buyIn: 500,
-                smallBlind: 5,
-                bigBlind: 10,
-                status: "waiting",
-                createdBy: "PLATAFORMA",
-                isPrivate: false,
-                clubId: null,
-                players: [],
-                isPlatformTable: true,
-                minLevel: 5
-            },
-            {
-                id: "TEXAS_1000",
-                name: "Texas Hold'em - Avançado",
-                gameType: "texas-holdem",
-                maxPlayers: 9,
-                currentPlayers: 0,
-                buyIn: 1000,
-                smallBlind: 10,
-                bigBlind: 20,
-                status: "waiting",
-                createdBy: "PLATAFORMA",
-                isPrivate: false,
-                clubId: null,
-                players: [],
-                isPlatformTable: true,
-                minLevel: 10
-            },
-            {
-                id: "OMAHA_200",
-                name: "Omaha Hi-Lo",
-                gameType: "omaha",
-                maxPlayers: 6,
-                currentPlayers: 0,
-                buyIn: 200,
-                smallBlind: 2,
-                bigBlind: 4,
-                status: "waiting",
-                createdBy: "PLATAFORMA",
-                isPrivate: false,
-                clubId: null,
-                players: [],
-                isPlatformTable: true,
-                minLevel: 3
-            },
-            {
-                id: "STUD_300",
-                name: "7 Card Stud",
-                gameType: "7-card-stud",
-                maxPlayers: 7,
-                currentPlayers: 0,
-                buyIn: 300,
-                ante: 5,
-                status: "waiting",
-                createdBy: "PLATAFORMA",
-                isPrivate: false,
-                clubId: null,
-                players: [],
-                isPlatformTable: true,
-                minLevel: 7
-            }
-        ];
         
         // Inicialização
         document.addEventListener('DOMContentLoaded', function() {
@@ -148,20 +1123,6 @@
                     showNotification('Funcionalidade de depósito em desenvolvimento', 'info');
                 });
             }
-            
-            // Fechar menu mobile ao clicar em link
-            const navLinks = document.querySelectorAll('.nav-link');
-            navLinks.forEach(link => {
-                link.addEventListener('click', () => {
-                    if (window.innerWidth <= 992) {
-                        navMenu.classList.remove('nav-open');
-                        if (mobileMenuBtn) {
-                            mobileMenuBtn.querySelector('i').classList.remove('fa-times');
-                            mobileMenuBtn.querySelector('i').classList.add('fa-bars');
-                        }
-                    }
-                });
-            });
         });
         
         // Carregar dados do usuário
@@ -182,63 +1143,37 @@
         function initTablesPage() {
             // Filtros
             document.getElementById('filterGameType').addEventListener('change', loadTables);
-            document.getElementById('filterStatus').addEventListener('change', loadTables);
             document.getElementById('filterBuyIn').addEventListener('change', loadTables);
             document.getElementById('filterPlayers').addEventListener('change', loadTables);
+            document.getElementById('filterStatus').addEventListener('change', loadTables);
             
             // Carregar mesas
             loadTables();
         }
         
-        // Carregar mesas
-        async function loadTables() {
-            const tablesContainer = document.getElementById('tablesContainer');
-            const emptyMessage = document.getElementById('emptyTables');
-            
-            // Mostrar loading
-            tablesContainer.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i><p>Carregando mesas...</p></div>';
-            emptyMessage.style.display = 'none';
-            
-            try {
-                // Primeiro, tenta carregar do Firestore
-                await loadTablesFromFirestore();
-                
-                // Se não houver mesas no Firestore, cria as mesas da plataforma
-                const snapshot = await db.collection('tables')
-                    .where('isPlatformTable', '==', true)
-                    .limit(1)
-                    .get();
-                
-                if (snapshot.empty) {
-                    await createPlatformTables();
-                    // Recarrega as mesas
-                    await loadTablesFromFirestore();
-                }
-                
-            } catch (error) {
-                console.error('Erro ao carregar mesas:', error);
-                showNotification('Erro ao carregar mesas', 'error');
-            }
-        }
-        
         // Carregar mesas do Firestore
-        async function loadTablesFromFirestore() {
+        async function loadTables() {
             // Remover listener anterior se existir
             if (tablesUnsubscribe) {
                 tablesUnsubscribe();
             }
             
+            const tablesContainer = document.getElementById('tablesContainer');
+            const emptyMessage = document.getElementById('emptyTables');
+            
+            // Mostrar loading
+            tablesContainer.innerHTML = '<div class="loading-container"><div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i></div><p class="loading-text">Carregando mesas disponíveis...</p></div>';
+            emptyMessage.style.display = 'none';
+            
             // Obter filtros
             const gameType = document.getElementById('filterGameType').value;
-            const status = document.getElementById('filterStatus').value;
             const buyIn = document.getElementById('filterBuyIn').value;
             const players = document.getElementById('filterPlayers').value;
+            const status = document.getElementById('filterStatus').value;
             
             // Construir query
             let query = db.collection('tables')
-                .where('isPlatformTable', '==', true)
-                .where('status', '!=', 'finished')
-                .orderBy('buyIn', 'asc');
+                .where('status', '!=', 'finished');
             
             // Aplicar filtros
             if (status !== 'all') {
@@ -250,90 +1185,59 @@
             }
             
             // Escutar mudanças em tempo real
-            tablesUnsubscribe = query.onSnapshot((snapshot) => {
+            tablesUnsubscribe = query.onSnapshot(async (snapshot) => {
                 const tables = [];
-                snapshot.forEach((doc) => {
+                
+                for (const doc of snapshot.docs) {
                     const table = doc.data();
                     table.id = doc.id;
                     
                     // Aplicar filtros adicionais
                     if (buyIn !== 'all' && table.buyIn > parseInt(buyIn)) {
-                        return;
+                        continue;
                     }
                     
                     if (players !== 'all' && table.maxPlayers !== parseInt(players)) {
-                        return;
+                        continue;
+                    }
+                    
+                    // Buscar nomes reais dos jogadores
+                    if (table.players && table.players.length > 0) {
+                        for (let i = 0; i < table.players.length; i++) {
+                            if (table.players[i].userId) {
+                                try {
+                                    const userDoc = await db.collection('users').doc(table.players[i].userId).get();
+                                    if (userDoc.exists) {
+                                        const userData = userDoc.data();
+                                        table.players[i].playerName = userData.nome || 'Jogador';
+                                        table.players[i].playerId = userData.playerId || '-';
+                                    }
+                                } catch (error) {
+                                    console.error('Erro ao buscar dados do jogador:', error);
+                                }
+                            }
+                        }
                     }
                     
                     tables.push(table);
-                });
+                }
                 
                 renderTables(tables);
+                
             }, (error) => {
-                console.error('Erro ao escutar mesas:', error);
-                // Se der erro, mostra mesas locais
-                renderLocalTables();
+                console.error('Erro ao carregar mesas:', error);
+                showNotification('Erro ao carregar mesas', 'error');
+                
+                // Mostrar mensagem de erro
+                const tablesContainer = document.getElementById('tablesContainer');
+                tablesContainer.innerHTML = `
+                    <div style="grid-column: 1 / -1; text-align: center; padding: 40px;">
+                        <i class="fas fa-exclamation-triangle" style="font-size: 48px; color: var(--laranja); margin-bottom: 20px;"></i>
+                        <h3 style="color: var(--cinza-claro); margin-bottom: 10px;">Erro ao carregar mesas</h3>
+                        <p style="color: var(--azul-claro);">Verifique sua conexão e tente novamente.</p>
+                    </div>
+                `;
             });
-        }
-        
-        // Criar mesas da plataforma no Firestore
-        async function createPlatformTables() {
-            const batch = db.batch();
-            
-            for (const tableData of PLATFORM_TABLES) {
-                const docRef = db.collection('tables').doc(tableData.id);
-                const table = {
-                    ...tableData,
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-                };
-                batch.set(docRef, table);
-            }
-            
-            try {
-                await batch.commit();
-                showNotification('Mesas da plataforma criadas com sucesso!', 'success');
-            } catch (error) {
-                console.error('Erro ao criar mesas da plataforma:', error);
-            }
-        }
-        
-        // Renderizar mesas locais (fallback)
-        function renderLocalTables() {
-            const tablesContainer = document.getElementById('tablesContainer');
-            const emptyMessage = document.getElementById('emptyTables');
-            
-            // Filtrar mesas locais
-            const gameType = document.getElementById('filterGameType').value;
-            const status = document.getElementById('filterStatus').value;
-            const buyIn = document.getElementById('filterBuyIn').value;
-            const players = document.getElementById('filterPlayers').value;
-            
-            let tables = PLATFORM_TABLES;
-            
-            if (gameType !== 'all') {
-                tables = tables.filter(table => table.gameType === gameType);
-            }
-            
-            if (status !== 'all') {
-                tables = tables.filter(table => table.status === status);
-            }
-            
-            if (buyIn !== 'all') {
-                tables = tables.filter(table => table.buyIn <= parseInt(buyIn));
-            }
-            
-            if (players !== 'all') {
-                tables = tables.filter(table => table.maxPlayers === parseInt(players));
-            }
-            
-            if (tables.length === 0) {
-                tablesContainer.innerHTML = '';
-                emptyMessage.style.display = 'block';
-                return;
-            }
-            
-            renderTables(tables);
         }
         
         // Renderizar mesas na tela
@@ -365,7 +1269,7 @@
                 
                 // Gerar slots de jogadores
                 let playersHTML = '';
-                const totalSlots = table.maxPlayers;
+                const totalSlots = table.maxPlayers || 6;
                 const occupiedSlots = table.players ? table.players.length : 0;
                 
                 for (let i = 0; i < totalSlots; i++) {
@@ -373,11 +1277,12 @@
                         const player = table.players[i];
                         const isYou = player.userId === currentUser?.uid;
                         const chipCount = player.chips || table.buyIn;
+                        const playerName = player.playerName ? player.playerName.substring(0, 6) : 'J' + (i + 1);
                         
                         playersHTML += `
                             <div class="player-slot ${isYou ? 'you' : 'occupied'}">
-                                ${isYou ? 'Você' : `J${i + 1}`}
-                                <div class="player-chip">${chipCount}</div>
+                                ${isYou ? 'Você' : playerName}
+                                <div class="player-chips">${chipCount}</div>
                             </div>`;
                     } else {
                         playersHTML += `<div class="player-slot empty">Vazio</div>`;
@@ -398,61 +1303,88 @@
                     actionButton = `<button class="btn-table btn-full" disabled>${playerLevel < minLevel ? 'Nível Insuficiente' : 'Lotada'}</button>`;
                 }
                 
-                // Determinar status da mesa
-                let statusClass = 'status-waiting';
+                // Determinar status e ícone
+                let statusClass = 'badge-waiting';
                 let statusText = 'Aguardando';
+                let tableIcon = '♠️';
                 
                 if (table.status === 'playing') {
-                    statusClass = 'status-playing';
+                    statusClass = 'badge-playing';
                     statusText = 'Em Andamento';
+                    tableIcon = '♥️';
                 } else if (table.currentPlayers >= table.maxPlayers) {
-                    statusClass = 'status-full';
+                    statusClass = 'badge-full';
                     statusText = 'Lotada';
+                    tableIcon = '♦️';
                 }
                 
-                // Informações específicas por tipo de jogo
-                let gameSpecificInfo = '';
-                if (table.gameType === '7-card-stud') {
-                    gameSpecificInfo = `
-                        <div class="detail-row">
-                            <span class="detail-label">Ante</span>
-                            <span class="detail-value">${table.ante || 5}</span>
-                        </div>`;
-                } else {
-                    gameSpecificInfo = `
-                        <div class="detail-row">
-                            <span class="detail-label">Blinds</span>
-                            <span class="detail-value">${table.smallBlind}/${table.bigBlind}</span>
-                        </div>`;
+                // Definir ícone por tipo de jogo
+                if (table.gameType === 'omaha-4' || table.gameType === 'omaha-5') {
+                    tableIcon = '♣️';
                 }
                 
                 tablesHTML += `
-                    <div class="table-card platform-table">
+                    <div class="table-card">
                         <div class="table-card-header">
-                            <h3 class="table-name">${table.name}</h3>
-                            <span class="table-status ${statusClass}">${statusText}</span>
+                            <div class="table-title">
+                                <div class="table-icon">${tableIcon}</div>
+                                <div>
+                                    <div class="table-name">${table.name || 'Mesa de Poker'}</div>
+                                    <div style="font-size: 12px; color: var(--cinza-claro); margin-top: 5px;">
+                                        Criada por: ${table.createdBy === 'PLATAFORMA' ? 'Plataforma' : (table.createdByName || 'Usuário')}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="table-badge ${statusClass}">${statusText}</div>
                         </div>
                         
                         <div class="table-details">
-                            <div class="detail-row">
-                                <span class="detail-label">Tipo de Jogo</span>
+                            <div class="detail-item">
+                                <span class="detail-label">
+                                    <i class="fas fa-gamepad"></i> Tipo de Jogo
+                                </span>
                                 <span class="detail-value">${getGameTypeName(table.gameType)}</span>
                             </div>
-                            <div class="detail-row">
-                                <span class="detail-label">Buy-in</span>
-                                <span class="detail-value">${table.buyIn} fichas</span>
+                            
+                            <div class="detail-item">
+                                <span class="detail-label">
+                                    <i class="fas fa-coins"></i> Buy-in
+                                </span>
+                                <span class="detail-value">${table.buyIn || 100} fichas</span>
                             </div>
-                            ${gameSpecificInfo}
-                            <div class="detail-row">
-                                <span class="detail-label">Nível Mín.</span>
+                            
+                            ${table.gameType === '7-card-stud' ? `
+                                <div class="detail-item">
+                                    <span class="detail-label">
+                                        <i class="fas fa-poker-chips"></i> Ante
+                                    </span>
+                                    <span class="detail-value">${table.ante || 5}</span>
+                                </div>
+                            ` : `
+                                <div class="detail-item">
+                                    <span class="detail-label">
+                                        <i class="fas fa-chart-line"></i> Blinds
+                                    </span>
+                                    <span class="detail-value">${table.smallBlind || 1}/${table.bigBlind || 2}</span>
+                                </div>
+                            `}
+                            
+                            <div class="detail-item">
+                                <span class="detail-label">
+                                    <i class="fas fa-level-up-alt"></i> Nível Mín.
+                                </span>
                                 <span class="detail-value">${table.minLevel || 1}</span>
                             </div>
                         </div>
                         
                         <div class="players-section">
-                            <div class="players-title">
-                                <i class="fas fa-users"></i>
-                                <span>Jogadores (${table.currentPlayers || 0}/${table.maxPlayers})</span>
+                            <div class="players-header">
+                                <div class="players-title">
+                                    <i class="fas fa-users"></i> Jogadores
+                                </div>
+                                <div class="players-count">
+                                    ${table.currentPlayers || 0}/${table.maxPlayers || 6}
+                                </div>
                             </div>
                             <div class="players-grid">
                                 ${playersHTML}
@@ -461,7 +1393,9 @@
                         
                         <div class="table-actions">
                             ${actionButton}
-                            <button class="btn-table btn-view" onclick="showTableInfo('${table.id}')">Info</button>
+                            <button class="btn-table btn-info" onclick="showTableInfo('${table.id}')">
+                                <i class="fas fa-info-circle"></i> Info
+                            </button>
                         </div>
                     </div>
                 `;
@@ -474,8 +1408,10 @@
         function getGameTypeName(gameType) {
             const names = {
                 'texas-holdem': 'Texas Hold\'em',
-                'omaha': 'Omaha',
-                '7-card-stud': '7 Card Stud'
+                'omaha-4': 'Omaha 4 Cartas',
+                'omaha-5': 'Omaha 5 Cartas',
+                '7-card-stud': '7 Card Stud',
+                'omaha': 'Omaha Hi-Lo'
             };
             return names[gameType] || gameType;
         }
@@ -483,13 +1419,11 @@
         // Entrar em uma mesa
         async function enterTable(tableId) {
             try {
-                // Verificar se usuário está logado
                 if (!currentUser || !userData) {
                     showNotification('Faça login para entrar em uma mesa', 'error');
                     return;
                 }
                 
-                // Buscar dados da mesa
                 const tableDoc = await db.collection('tables').doc(tableId).get();
                 if (!tableDoc.exists) {
                     showNotification('Mesa não encontrada', 'error');
@@ -497,8 +1431,6 @@
                 }
                 
                 const table = tableDoc.data();
-                
-                // Verificar nível do jogador
                 const playerLevel = userData.nivel || 1;
                 const minLevel = table.minLevel || 1;
                 
@@ -507,19 +1439,16 @@
                     return;
                 }
                 
-                // Verificar se mesa está cheia
                 if (table.currentPlayers >= table.maxPlayers) {
                     showNotification('Mesa está lotada', 'error');
                     return;
                 }
                 
-                // Verificar se mesa está em andamento
                 if (table.status === 'playing') {
                     showNotification('Mesa já está em andamento', 'error');
                     return;
                 }
                 
-                // Verificar se usuário já está na mesa
                 const isAlreadyInTable = table.players?.some(p => p.userId === currentUser.uid);
                 if (isAlreadyInTable) {
                     showNotification('Você já está nesta mesa', 'info');
@@ -527,20 +1456,19 @@
                     return;
                 }
                 
-                // Verificar saldo
                 if (userData.saldo < table.buyIn) {
                     showNotification(`Saldo insuficiente. Você precisa de ${table.buyIn} fichas`, 'error');
                     return;
                 }
                 
-                // Encontrar próxima posição disponível
+                // Encontrar posição disponível
                 let position = 1;
                 const occupiedPositions = table.players?.map(p => p.position) || [];
                 while (occupiedPositions.includes(position)) {
                     position++;
                 }
                 
-                // Adicionar jogador à mesa
+                // Adicionar jogador
                 const newPlayer = {
                     userId: currentUser.uid,
                     playerId: userData.playerId,
@@ -552,13 +1480,13 @@
                     level: playerLevel
                 };
                 
-                // Atualizar mesa
+                // Atualizar no Firestore
                 await db.collection('tables').doc(tableId).update({
                     currentPlayers: firebase.firestore.FieldValue.increment(1),
                     players: firebase.firestore.FieldValue.arrayUnion(newPlayer)
                 });
                 
-                // Subtrair buy-in do saldo
+                // Atualizar saldo
                 await db.collection('users').doc(currentUser.uid).update({
                     saldo: firebase.firestore.FieldValue.increment(-table.buyIn)
                 });
@@ -570,7 +1498,7 @@
                 
                 showNotification(`Entrou na mesa "${table.name}"!`, 'success');
                 
-                // Redirecionar para a mesa
+                // Redirecionar após 1 segundo
                 setTimeout(() => {
                     window.location.href = `mesa.html?tableId=${tableId}`;
                 }, 1000);
@@ -584,7 +1512,6 @@
         // Retornar à mesa
         async function rejoinTable(tableId) {
             try {
-                // Buscar dados da mesa
                 const tableDoc = await db.collection('tables').doc(tableId).get();
                 if (!tableDoc.exists) {
                     showNotification('Mesa não encontrada', 'error');
@@ -592,15 +1519,13 @@
                 }
                 
                 const table = tableDoc.data();
-                
-                // Verificar se usuário está na mesa
                 const isInTable = table.players?.some(p => p.userId === currentUser?.uid);
+                
                 if (!isInTable) {
                     showNotification('Você não está nesta mesa', 'error');
                     return;
                 }
                 
-                // Redirecionar para a mesa
                 window.location.href = `mesa.html?tableId=${tableId}`;
                 
             } catch (error) {
@@ -609,10 +1534,9 @@
             }
         }
         
-        // Visualizar mesa (assistir)
+        // Assistir mesa
         async function viewTable(tableId) {
             try {
-                // Buscar dados da mesa
                 const tableDoc = await db.collection('tables').doc(tableId).get();
                 if (!tableDoc.exists) {
                     showNotification('Mesa não encontrada', 'error');
@@ -621,13 +1545,11 @@
                 
                 const table = tableDoc.data();
                 
-                // Verificar se mesa está em andamento
                 if (table.status !== 'playing') {
                     showNotification('Esta mesa não está em andamento', 'info');
                     return;
                 }
                 
-                // Redirecionar como espectador
                 window.location.href = `mesa.html?tableId=${tableId}&spectator=true`;
                 
             } catch (error) {
@@ -639,7 +1561,6 @@
         // Mostrar informações da mesa
         async function showTableInfo(tableId) {
             try {
-                // Buscar dados da mesa
                 const tableDoc = await db.collection('tables').doc(tableId).get();
                 if (!tableDoc.exists) {
                     showNotification('Mesa não encontrada', 'error');
@@ -648,43 +1569,27 @@
                 
                 const table = tableDoc.data();
                 
-                // Criar mensagem informativa
                 let infoMessage = `
-                    <strong>${table.name}</strong><br>
+                    <strong>${table.name || 'Mesa de Poker'}</strong><br>
                     Tipo: ${getGameTypeName(table.gameType)}<br>
-                    Buy-in: ${table.buyIn} fichas<br>
-                    Jogadores: ${table.currentPlayers}/${table.maxPlayers}<br>
+                    Buy-in: ${table.buyIn || 100} fichas<br>
+                    Jogadores: ${table.currentPlayers || 0}/${table.maxPlayers || 6}<br>
                     Nível mínimo: ${table.minLevel || 1}<br>
                     <br>
                     <strong>Regras:</strong><br>`;
                 
-                if (table.gameType === 'texas-holdem' || table.gameType === 'omaha') {
-                    infoMessage += `- Blinds: ${table.smallBlind}/${table.bigBlind}<br>`;
+                if (table.gameType === 'texas-holdem' || table.gameType === 'omaha-4' || table.gameType === 'omaha-5') {
+                    infoMessage += `- Blinds: ${table.smallBlind || 1}/${table.bigBlind || 2}<br>`;
                     infoMessage += `- Tempo por ação: 30 segundos<br>`;
                 } else if (table.gameType === '7-card-stud') {
                     infoMessage += `- Ante: ${table.ante || 5}<br>`;
-                    infoMessage += `- Bring-in: ${table.bringIn || table.ante * 2 || 10}<br>`;
                 }
                 
-                infoMessage += `- Rebuy: Permitido até o nível 3<br>`;
-                infoMessage += `- Time bank: 60 segundos total<br>`;
+                infoMessage += `- Time bank: 60 segundos<br>`;
                 
-                // Mostrar como alerta temporário
-                const tempDiv = document.createElement('div');
-                tempDiv.innerHTML = infoMessage;
-                tempDiv.style.cssText = `
-                    background: var(--azul-medio);
-                    color: var(--cinza-claro);
-                    padding: 20px;
-                    border-radius: 10px;
-                    border: 2px solid var(--dourado);
-                    max-width: 400px;
-                    font-size: 14px;
-                `;
-                
-                // Criar overlay
-                const overlay = document.createElement('div');
-                overlay.style.cssText = `
+                // Criar modal
+                const modal = document.createElement('div');
+                modal.style.cssText = `
                     position: fixed;
                     top: 0;
                     left: 0;
@@ -695,15 +1600,33 @@
                     justify-content: center;
                     align-items: center;
                     z-index: 10001;
+                    padding: 20px;
                 `;
                 
-                overlay.appendChild(tempDiv);
-                document.body.appendChild(overlay);
+                const modalContent = document.createElement('div');
+                modalContent.style.cssText = `
+                    background: var(--azul-medio);
+                    color: var(--cinza-claro);
+                    padding: 30px;
+                    border-radius: 15px;
+                    border: 3px solid var(--dourado);
+                    max-width: 400px;
+                    width: 100%;
+                `;
                 
-                // Fechar ao clicar
-                overlay.addEventListener('click', () => {
-                    document.body.removeChild(overlay);
-                });
+                modalContent.innerHTML = `
+                    <h3 style="color: var(--dourado); margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+                        <i class="fas fa-info-circle"></i> Informações da Mesa
+                    </h3>
+                    <div style="margin-bottom: 25px;">${infoMessage}</div>
+                    <button onclick="this.closest('div[style*=\"position: fixed\"]').remove()" 
+                            style="background: var(--verde); color: white; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; cursor: pointer; width: 100%;">
+                        Fechar
+                    </button>
+                `;
+                
+                modal.appendChild(modalContent);
+                document.body.appendChild(modal);
                 
             } catch (error) {
                 console.error('Erro ao buscar informações:', error);
