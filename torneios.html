@@ -1927,7 +1927,7 @@
                     rebuyCount: 0,
                     addonUsed: false,
                     isActive: true,
-                    registeredAt: firebase.firestore.FieldValue.serverTimestamp()
+                    registeredAt: new Date().toISOString()
                 };
                 
                 await db.collection('tournaments').doc(currentTournamentToRegister.id).update({
