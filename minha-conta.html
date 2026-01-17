@@ -340,19 +340,6 @@
             background: var(--azul-claro);
             color: white;
         }
-        
-        /* Tool Button */
-        .tool-btn {
-            background: var(--azul-claro);
-            color: white;
-            border: none;
-            padding: 10px 15px;
-            border-radius: 8px;
-            cursor: pointer;
-            margin-top: 10px;
-            font-size: 14px;
-            width: 100%;
-        }
     </style>
 </head>
 <body>
@@ -382,11 +369,6 @@
                         <i class="fas fa-camera"></i> Alterar Avatar
                     </button>
                     <input type="file" id="fileInput" accept="image/*">
-                    
-                    <!-- BOTÃO PARA CORRIGIR NICKNAMES -->
-                    <button class="tool-btn" onclick="fixNicknames()" id="fixNicknameBtn" style="display: none;">
-                        <i class="fas fa-tools"></i> Corrigir Nickname
-                    </button>
                     
                     <div class="account-info">
                         <div class="info-item">
@@ -524,12 +506,6 @@
                     
                     console.log('Dados carregados:', userData);
                     
-                    // Verificar se tem nickname
-                    if (!userData.nickname) {
-                        console.warn('Usuário sem nickname! Mostrando botão de correção...');
-                        document.getElementById('fixNicknameBtn').style.display = 'block';
-                    }
-                    
                     // Salvar no localStorage
                     localStorage.setItem('keepPokerUser', JSON.stringify(userData));
                     
@@ -660,14 +636,14 @@
             }
         }
         
-        // Salvar perfil - FUNÇÃO CORRIGIDA
+        // Salvar perfil - FUNÇÃO SIMPLIFICADA E CORRIGIDA
         async function saveProfile() {
             const name = document.getElementById('inputName').value.trim();
             const nickname = document.getElementById('inputNickname').value.trim();
             
-            console.log('Tentando salvar perfil...', { name, nickname, currentNickname: userData.nickname });
+            console.log('Tentando salvar perfil...', { name, nickname });
             
-            // Validações
+            // Validações básicas
             if (!name) {
                 showNotification('O nome é obrigatório', 'error');
                 return;
@@ -683,97 +659,68 @@
                 return;
             }
             
-            // Caracteres permitidos no nickname
-            const nicknameRegex = /^[a-zA-Z0-9_\-\. ]+$/;
-            if (!nicknameRegex.test(nickname)) {
-                showNotification('Nickname só pode conter letras, números, espaços, pontos, hífens e underlines', 'error');
-                return;
-            }
-            
-            try {
-                // Se o nickname não mudou, apenas atualiza o nome
-                const currentNickname = userData.nickname || userData.nome || '';
-                if (nickname === currentNickname) {
-                    await updateProfile(name, nickname);
-                    return;
-                }
-                
-                // Verificar se nickname já existe (excluindo o próprio usuário)
-                const snapshot = await db.collection('users')
-                    .where('nickname', '==', nickname)
-                    .get();
-                
-                let nicknameExists = false;
-                snapshot.forEach(doc => {
-                    if (doc.id !== currentUser.uid) {
-                        nicknameExists = true;
-                    }
-                });
-                
-                if (nicknameExists) {
-                    showNotification('Este nickname já está em uso por outro jogador', 'error');
-                    return;
-                }
-                
-                // Atualizar perfil
-                await updateProfile(name, nickname);
-                
-            } catch (error) {
-                console.error('Erro completo ao salvar perfil:', error);
-                
-                if (error.code === 'failed-precondition') {
-                    // Precisa criar índice no Firestore
-                    const indexError = `
-                        É necessário criar um índice no Firestore.
-                        Clique neste link: ${error.message.match(/https:\/\/[^ ]+/)?.[0] || 'Erro de índice'}
-                        Depois tente novamente.
-                    `;
-                    showNotification(indexError, 'error');
-                } else {
-                    showNotification('Erro ao salvar alterações: ' + error.message, 'error');
-                }
-            }
-        }
-        
-        // Função auxiliar para atualizar perfil
-        async function updateProfile(name, nickname) {
+            // Botão loading
             const btn = document.getElementById('saveProfileBtn');
             const originalText = btn.innerHTML;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Salvando...';
             btn.disabled = true;
             
             try {
+                // Criar objeto de atualização
                 const updateData = {
                     nome: name,
                     updatedAt: firebase.firestore.FieldValue.serverTimestamp()
                 };
                 
-                // Só atualiza nickname se for diferente
-                const currentNickname = userData.nickname || userData.nome || '';
-                if (nickname !== currentNickname) {
+                // Só adiciona nickname se for diferente do atual
+                if (nickname !== (userData.nickname || userData.nome || '')) {
                     updateData.nickname = nickname;
                 }
                 
-                console.log('Atualizando Firestore com:', updateData);
+                console.log('Atualizando Firestore:', updateData);
                 
+                // Atualizar no Firestore
                 await db.collection('users').doc(currentUser.uid).update(updateData);
                 
-                // Atualizar localmente
+                // Atualizar dados locais
                 userData.nome = name;
-                if (nickname !== currentNickname) {
+                if (nickname !== (userData.nickname || userData.nome || '')) {
                     userData.nickname = nickname;
                 }
+                
+                // Atualizar localStorage
                 localStorage.setItem('keepPokerUser', JSON.stringify(userData));
                 
                 // Atualizar UI
                 updateUI(userData);
                 
-                // Esconder botão de correção se tinha
-                document.getElementById('fixNicknameBtn').style.display = 'none';
-                
                 showNotification('Perfil atualizado com sucesso!', 'success');
                 
+            } catch (error) {
+                console.error('Erro ao salvar perfil:', error);
+                
+                // Verificar tipo de erro
+                if (error.code === 'failed-precondition') {
+                    // ERRO DE ÍNDICE - precisa criar índice no Firestore
+                    const errorMsg = error.message || '';
+                    const indexUrlMatch = errorMsg.match(/https:\/\/console\.firebase\.google\.com[^ ]+/);
+                    
+                    if (indexUrlMatch) {
+                        showNotification(
+                            'É necessário criar um índice no Firestore. ' +
+                            'Clique no link no console (F12) e crie o índice, depois tente novamente.',
+                            'error'
+                        );
+                        console.log('URL para criar índice:', indexUrlMatch[0]);
+                    } else {
+                        showNotification('Erro: ' + error.message, 'error');
+                    }
+                } else {
+                    showNotification('Erro ao salvar: ' + error.message, 'error');
+                }
+                
             } finally {
+                // Restaurar botão
                 btn.innerHTML = originalText;
                 btn.disabled = false;
             }
@@ -827,73 +774,6 @@
             }
         }
         
-        // FUNÇÃO PARA CORRIGIR NICKNAMES (executar uma vez)
-        async function fixNicknames() {
-            if (!confirm('Esta função adicionará nicknames a todos os usuários que não têm. Continuar?')) {
-                return;
-            }
-            
-            try {
-                showNotification('Corrigindo nicknames...', 'info');
-                
-                // 1. Corrigir o usuário atual primeiro
-                if (!userData.nickname) {
-                    const nickname = userData.nome 
-                        ? userData.nome.replace(/\s+/g, '_').substring(0, 15)
-                        : `Jogador_${currentUser.uid.substring(0, 4)}`;
-                    
-                    await db.collection('users').doc(currentUser.uid).update({
-                        nickname: nickname,
-                        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-                    });
-                    
-                    // Atualizar localmente
-                    userData.nickname = nickname;
-                    localStorage.setItem('keepPokerUser', JSON.stringify(userData));
-                    updateUI(userData);
-                    
-                    console.log('Nickname do usuário atual definido:', nickname);
-                }
-                
-                // 2. Corrigir todos os usuários (opcional - só admin)
-                if (confirm('Deseja também corrigir nicknames de TODOS os usuários? (Apenas se você for administrador)')) {
-                    const usersSnapshot = await db.collection('users').get();
-                    const batch = db.batch();
-                    let count = 0;
-                    
-                    usersSnapshot.forEach(doc => {
-                        const data = doc.data();
-                        if (!data.nickname) {
-                            const userNickname = data.nome 
-                                ? data.nome.replace(/\s+/g, '_').substring(0, 12) + '_' + doc.id.substring(0, 3)
-                                : `Jogador_${doc.id.substring(0, 6)}`;
-                            
-                            const userRef = db.collection('users').doc(doc.id);
-                            batch.update(userRef, {
-                                nickname: userNickname,
-                                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-                            });
-                            count++;
-                        }
-                    });
-                    
-                    if (count > 0) {
-                        await batch.commit();
-                        showNotification(`${count} usuários atualizados com nickname!`, 'success');
-                    } else {
-                        showNotification('Todos os usuários já têm nickname!', 'info');
-                    }
-                }
-                
-                // Esconder botão após correção
-                document.getElementById('fixNicknameBtn').style.display = 'none';
-                
-            } catch (error) {
-                console.error('Erro ao corrigir nicknames:', error);
-                showNotification('Erro: ' + error.message, 'error');
-            }
-        }
-        
         // Mostrar notificação
         function showNotification(message, type) {
             const notification = document.getElementById('notification');
@@ -905,10 +785,6 @@
                 notification.style.display = 'none';
             }, 4000);
         }
-        
-        // Expor funções globalmente
-        window.fixNicknames = fixNicknames;
-        window.saveProfile = saveProfile;
     </script>
 </body>
 </html>
