@@ -5,311 +5,346 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Mesa de Torneio | KeepPoker</title>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-    
-    body {
-      background: #0a1520;
-      color: white;
-      font-family: 'Segoe UI', sans-serif;
-      height: 100vh;
-      overflow: hidden;
-    }
-    
-    /* CABEÇALHO MINIMALISTA */
-    .header {
-      height: 60px;
-      background: rgba(13, 27, 42, 0.9);
-      border-bottom: 2px solid #d4af37;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 0 20px;
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      z-index: 100;
-    }
-    
-    .tournament-info {
-      font-size: 1.1em;
-      color: #d4af37;
-      font-weight: bold;
-    }
-    
-    .game-stats {
-      display: flex;
-      gap: 20px;
-    }
-    
-    .stat {
-      background: rgba(212, 175, 55, 0.15);
-      padding: 6px 12px;
-      border-radius: 12px;
-      border: 1px solid rgba(212, 175, 55, 0.3);
-      font-weight: bold;
-    }
-    
-    /* MESA REDUZIDA 15% */
-    .table-container {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 70%; /* Reduzido 15% */
-      height: 55%; /* Reduzido 15% */
-      z-index: 1;
-    }
-    
-    /* MESA FORMATO SALSICHA */
-    .poker-table {
-      width: 100%;
-      height: 100%;
-      background: #0a5c36;
-      border: 15px solid #8B4513;
-      border-radius: 50% / 40%; /* Formato salsicha */
-      box-shadow:
-        inset 0 0 40px rgba(0, 0, 0, 0.6),
-        0 0 30px rgba(0, 0, 0, 0.7);
-      position: relative;
-    }
-    
-    /* ÁREA CENTRAL DA MESA */
-    .table-center {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 40%;
-      height: 40%;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 15px;
-    }
-    
-    /* CARTAS COMUNITÁRIAS */
-    .community-cards {
-      display: flex;
-      gap: 8px;
-    }
-    
-    .card-placeholder {
-      width: 40px;
-      height: 56px;
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 5px;
-      border: 2px dashed rgba(255, 255, 255, 0.2);
-    }
-    
-    /* POT */
-    .pot {
-      color: #d4af37;
-      font-size: 1.4em;
-      font-weight: bold;
-    }
-    
-    /* AVATARS NAS EXTREMIDADES */
-    .avatar-container {
-      position: absolute;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      z-index: 10;
-    }
-    
-    /* AVATAR CIRCULAR */
-    .avatar {
-      width: 60px;
-      height: 60px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, #415a77, #1b263b);
-      border: 3px solid #d4af37;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      font-size: 1.4em;
-      margin-bottom: 5px;
-      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
-    }
-    
-    /* INFO DO JOGADOR (SÓ APARECE PARA VOCÊ) */
-    .player-info {
-      background: rgba(13, 27, 42, 0.95);
-      padding: 8px 12px;
-      border-radius: 8px;
-      border: 1px solid rgba(212, 175, 55, 0.3);
-      text-align: center;
-      min-width: 100px;
-      font-size: 0.9em;
-      display: none; /* Inicialmente escondido */
-    }
-    
-    /* POSICIONAMENTO DOS 6 AVATARS */
-    /* TOPO */
-    .pos-1 {
-      top: 5%;
-      left: 50%;
-      transform: translateX(-50%);
-    }
-    
-    /* TOPO DIREITA */
-    .pos-2 {
-      top: 20%;
-      right: 5%;
-    }
-    
-    /* BAIXO DIREITA */
-    .pos-3 {
-      bottom: 20%;
-      right: 5%;
-    }
-    
-    /* BAIXO CENTRO */
-    .pos-4 {
-      bottom: 5%;
-      left: 50%;
-      transform: translateX(-50%);
-    }
-    
-    /* BAIXO ESQUERDA */
-    .pos-5 {
-      bottom: 20%;
-      left: 5%;
-    }
-    
-    /* TOPO ESQUERDA */
-    .pos-6 {
-      top: 20%;
-      left: 5%;
-    }
-    
-    /* AVATAR DO JOGADOR (VOCÊ) */
-    .player-you .avatar {
-      border-color: #3498db;
-      box-shadow: 0 0 15px rgba(52, 152, 219, 0.5);
-    }
-    
-    .player-you .player-info {
-      display: block; /* Mostra info só para você */
-    }
-    
-    /* CONTROLES DO JOGADOR */
-    .controls {
-      position: fixed;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: rgba(13, 27, 42, 0.95);
-      padding: 15px;
-      border-radius: 12px;
-      border: 2px solid #d4af37;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 12px;
-      z-index: 100;
-      min-width: 400px;
-    }
-    
-    /* SUAS CARTAS (FORA DA MESA) */
-    .your-cards {
-      display: flex;
-      gap: 10px;
-    }
-    
-    .your-card {
-      width: 50px;
-      height: 70px;
-      background: white;
-      border-radius: 6px;
-      border: 2px solid #000;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.3em;
-      font-weight: bold;
-    }
-    
-    /* BOTÕES DE AÇÃO */
-    .action-buttons {
-      display: flex;
-      gap: 8px;
-    }
-    
-    .action-btn {
-      padding: 10px 20px;
-      border: none;
-      border-radius: 8px;
-      font-weight: bold;
-      cursor: pointer;
-      min-width: 80px;
-    }
-    
-    .btn-fold { background: #e74c3c; color: white; }
-    .btn-check { background: #3498db; color: white; }
-    .btn-call { background: #2ecc71; color: white; }
-    .btn-raise { background: #9b59b6; color: white; }
-    .btn-allin { background: #e67e22; color: white; }
-    
-    /* RESPONSIVIDADE */
-    @media (max-width: 768px) {
-      .table-container {
-        width: 85%;
-        height: 50%;
-      }
-      
-      .avatar {
-        width: 50px;
-        height: 50px;
-        font-size: 1.2em;
-      }
-      
-      .controls {
-        min-width: 90%;
-        padding: 12px;
-      }
-      
-      .action-btn {
-        padding: 8px 15px;
-        min-width: 70px;
-        font-size: 0.9em;
-      }
-    }
-    
-    @media (max-width: 480px) {
-      .header {
-        padding: 0 10px;
-      }
-      
-      .game-stats {
-        gap: 10px;
-      }
-      
-      .stat {
-        padding: 4px 8px;
-        font-size: 0.9em;
-      }
-      
-      .avatar {
-        width: 40px;
-        height: 40px;
-        font-size: 1em;
-      }
-      
-      .your-card {
-        width: 40px;
-        height: 56px;
-        font-size: 1.1em;
-      }
-    }
-  </style>
+/* ===== RESET ===== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* ===== BASE ===== */
+body {
+  background: #0a1520;
+  color: white;
+  font-family: 'Segoe UI', sans-serif;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ===== CABEÇALHO ===== */
+.header {
+  height: 60px;
+  background: rgba(13, 27, 42, 0.9);
+  border-bottom: 2px solid #d4af37;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+}
+
+.tournament-info {
+  font-size: 1.1em;
+  color: #d4af37;
+  font-weight: bold;
+}
+
+.game-stats {
+  display: flex;
+  gap: 20px;
+}
+
+.stat {
+  background: rgba(212, 175, 55, 0.15);
+  padding: 6px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  font-weight: bold;
+}
+
+/* ===== MESA ===== */
+.table-container {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 70%;
+  height: 55%;
+  z-index: 1;
+}
+
+/* MESA FORMATO SALSICHA */
+.poker-table {
+  width: 100%;
+  height: 100%;
+  background: #0a5c36;
+  border: 15px solid #8B4513;
+  border-radius: 50% / 40%; /* Formato salsicha */
+  box-shadow:
+    inset 0 0 40px rgba(0, 0, 0, 0.6),
+    0 0 30px rgba(0, 0, 0, 0.7);
+  position: relative;
+}
+
+/* ÁREA CENTRAL DA MESA */
+.table-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 40%;
+  height: 40%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+}
+
+/* CARTAS COMUNITÁRIAS */
+.community-cards {
+  display: flex;
+  gap: 8px;
+}
+
+.card-placeholder {
+  width: 40px;
+  height: 56px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 5px;
+  border: 2px dashed rgba(255, 255, 255, 0.2);
+}
+
+/* POT */
+.pot {
+  color: #d4af37;
+  font-size: 1.4em;
+  font-weight: bold;
+}
+
+/* ===== AVATARS ===== */
+.avatar-container {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 10;
+}
+
+/* AVATAR CIRCULAR */
+.avatar {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #415a77, #1b263b);
+  border: 3px solid #d4af37;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1.4em;
+  margin-bottom: 5px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+}
+
+/* INFO DO JOGADOR (SÓ APARECE PARA VOCÊ) */
+.player-info {
+  background: rgba(13, 27, 42, 0.95);
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  text-align: center;
+  min-width: 100px;
+  font-size: 0.9em;
+  display: none;
+}
+
+/* ===== POSICIONAMENTO AJUSTADO DOS AVATARS ===== */
+
+/* POSIÇÃO 1: TOPO (VOCÊ) - MAIS PARA CIMA */
+.pos-1 {
+  top: 2%; /* SUBIU 3% */
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+/* POSIÇÃO 2: DIREITA SUPERIOR - DIAGONAL PRA FORA */
+.pos-2 {
+  top: 17%; /* SUBIU 3% */
+  right: 2%; /* MAIS pra direita (3% mais) */
+}
+
+/* POSIÇÃO 3: DIREITA INFERIOR - DIAGONAL PRA FORA */
+.pos-3 {
+  bottom: 17%; /* DESCEU 3% */
+  right: 2%; /* MAIS pra direita (3% mais) */
+}
+
+/* POSIÇÃO 4: BAIXO CENTRO - MAIS PARA BAIXO */
+.pos-4 {
+  bottom: 2%; /* DESCEU 3% */
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+/* POSIÇÃO 5: ESQUERDA INFERIOR - DIAGONAL PRA FORA */
+.pos-5 {
+  bottom: 17%; /* DESCEU 3% */
+  left: 2%; /* MAIS pra esquerda (3% mais) */
+}
+
+/* POSIÇÃO 6: ESQUERDA SUPERIOR - DIAGONAL PRA FORA */
+.pos-6 {
+  top: 17%; /* SUBIU 3% */
+  left: 2%; /* MAIS pra esquerda (3% mais) */
+}
+
+/* AVATAR DO JOGADOR (VOCÊ) */
+.player-you .avatar {
+  border-color: #3498db;
+  box-shadow: 0 0 15px rgba(52, 152, 219, 0.5);
+}
+
+.player-you .player-info {
+  display: block;
+}
+
+/* ===== CONTROLES ===== */
+.controls {
+  position: fixed;
+  bottom: 15px; /* MAIS para cima (5px) */
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(13, 27, 42, 0.95);
+  padding: 12px 15px; /* Reduzido um pouco */
+  border-radius: 12px;
+  border: 2px solid #d4af37;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px; /* Reduzido */
+  z-index: 100;
+  min-width: 380px; /* Reduzido */
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+}
+
+/* SUAS CARTAS (FORA DA MESA) */
+.your-cards {
+  display: flex;
+  gap: 10px;
+}
+
+.your-card {
+  width: 48px; /* Reduzido */
+  height: 67px; /* Reduzido */
+  background: white;
+  border-radius: 6px;
+  border: 2px solid #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2em; /* Reduzido */
+  font-weight: bold;
+}
+
+/* BOTÕES DE AÇÃO */
+.action-buttons {
+  display: flex;
+  gap: 6px; /* Reduzido */
+}
+
+.action-btn {
+  padding: 9px 18px; /* Reduzido */
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  min-width: 75px; /* Reduzido */
+  font-size: 0.9em; /* Reduzido */
+}
+
+.btn-fold { background: #e74c3c; color: white; }
+.btn-check { background: #3498db; color: white; }
+.btn-call { background: #2ecc71; color: white; }
+.btn-raise { background: #9b59b6; color: white; }
+.btn-allin { background: #e67e22; color: white; }
+
+/* ===== RESPONSIVIDADE ===== */
+@media (max-width: 768px) {
+  .table-container {
+    width: 85%;
+    height: 50%;
+  }
+  
+  .avatar {
+    width: 50px;
+    height: 50px;
+    font-size: 1.2em;
+  }
+  
+  /* Ajustes mobile */
+  .pos-1 { top: 1%; }
+  .pos-4 { bottom: 1%; }
+  .pos-2, .pos-6 { top: 15%; }
+  .pos-3, .pos-5 { bottom: 15%; }
+  .pos-2, .pos-3 { right: 1%; }
+  .pos-5, .pos-6 { left: 1%; }
+  
+  .controls {
+    min-width: 90%;
+    padding: 10px;
+    bottom: 10px;
+  }
+  
+  .action-btn {
+    padding: 8px 14px;
+    min-width: 65px;
+    font-size: 0.85em;
+  }
+  
+  .your-card {
+    width: 42px;
+    height: 59px;
+    font-size: 1.1em;
+  }
+}
+
+@media (max-width: 480px) {
+  .header {
+    padding: 0 10px;
+  }
+  
+  .game-stats {
+    gap: 10px;
+  }
+  
+  .stat {
+    padding: 4px 8px;
+    font-size: 0.9em;
+  }
+  
+  .avatar {
+    width: 42px;
+    height: 42px;
+    font-size: 1.1em;
+  }
+  
+  .pos-1 { top: 0.5%; }
+  .pos-4 { bottom: 0.5%; }
+  .pos-2, .pos-6 { top: 13%; }
+  .pos-3, .pos-5 { bottom: 13%; }
+  
+  .your-card {
+    width: 38px;
+    height: 53px;
+    font-size: 1em;
+  }
+  
+  .action-buttons {
+    gap: 4px;
+  }
+  
+  .action-btn {
+    padding: 7px 12px;
+    min-width: 60px;
+    font-size: 0.8em;
+  }
+}
+</style>
 </head>
 <body>
   <!-- CABEÇALHO -->
