@@ -29,8 +29,7 @@
  
  <!-- Poker Engine (ARQUIVO SEPARADO) -->
  <script src="poker-engine.js"></script>
- 
-<style>
+ <style>
 /* ===== RESET E BASE ===== */
 * {
   margin: 0;
@@ -82,14 +81,14 @@ body {
   font-weight: bold;
 }
 
-/* ===== MESA (UM POUCO MAIOR) ===== */
+/* ===== MESA ===== */
 .table-container {
   position: absolute;
-  top: 43%; /* Um pouco mais para cima */
+  top: 45%; /* Centralizado verticalmente */
   left: 50%;
   transform: translate(-50%, -50%);
   width: 70%;
-  height: 50%; /* Aumentei a altura */
+  height: 50%;
   z-index: 1;
 }
 
@@ -107,21 +106,22 @@ body {
 
 .table-center {
   position: absolute;
-  top: 50%;
+  top: 55%; /* Abaixei um pouco as cartas comunitárias */
   left: 50%;
   transform: translate(-50%, -50%);
   width: 40%;
-  height: 40%;
+  height: 30%; /* Reduzi a altura para centralizar melhor */
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 15px;
+  gap: 10px;
 }
 
 .community-cards {
   display: flex;
   gap: 8px;
+  margin-top: -10px; /* Ajuste fino para centralização */
 }
 
 .card-placeholder {
@@ -143,6 +143,7 @@ body {
   color: #d4af37;
   font-size: 1.4em;
   font-weight: bold;
+  margin-top: 5px;
 }
 
 /* ===== AVATARS ===== */
@@ -178,15 +179,16 @@ body {
   border-radius: 50%;
 }
 
-/* CARTAS DO JOGADOR */
+/* CARTAS DO JOGADOR - TEXAS HOLD'EM (2 CARTAS) */
 .player-cards {
   position: absolute;
-  left: 85px;
+  left: 85px; /* Espaço para 2 cartas */
   top: 50%;
   transform: translateY(-50%);
   display: flex;
   gap: 5px;
   z-index: 25;
+  width: 90px; /* Espaço para 2 cartas */
 }
 
 .player-card {
@@ -202,6 +204,7 @@ body {
   font-size: 1em;
   color: #000;
   box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  flex-shrink: 0;
 }
 
 .player-chips {
@@ -249,7 +252,7 @@ body {
   display: none;
 }
 
-/* ===== POSICIONAMENTO DOS AVATARS (MUITO MAIS ESPAÇADOS) ===== */
+/* ===== POSICIONAMENTO DOS AVATARS (MAIS ESPAÇADOS) ===== */
 
 /* POSIÇÃO 1: TOPO */
 .pos-1 {
@@ -258,38 +261,38 @@ body {
   transform: translateX(-50%);
 }
 
-/* POSIÇÃO 2: DIREITA SUPERIOR - BEM ALTO */
+/* POSIÇÃO 2: DIREITA SUPERIOR - MAIS AFASTADA */
 .pos-2 {
-  top: 15%; /* BEM ALTO, perto do cabeçalho */
-  right: 3%;
+  top: 15%;
+  right: 5%; /* Aumentei de 3% para 5% */
   transform: translateY(0);
 }
 
-/* POSIÇÃO 3: DIREITA INFERIOR - BEM BAIXO */
+/* POSIÇÃO 3: DIREITA INFERIOR - MAIS AFASTADA */
 .pos-3 {
-  bottom: 30%; /* BEM BAIXO, perto da posição 4 */
-  right: 3%;
+  bottom: 30%;
+  right: 5%; /* Aumentei de 3% para 5% */
   transform: translateY(0);
 }
 
 /* POSIÇÃO 4: BAIXO (JOGADOR ATUAL) */
 .pos-4 {
-  bottom: 140px; /* Acima dos controles pequenos */
+  bottom: 140px;
   left: 50%;
   transform: translateX(-50%);
 }
 
-/* POSIÇÃO 5: ESQUERDA INFERIOR - BEM BAIXO */
+/* POSIÇÃO 5: ESQUERDA INFERIOR - MAIS AFASTADA */
 .pos-5 {
-  bottom: 30%; /* BEM BAIXO, alinhado com posição 3 */
-  left: 3%;
+  bottom: 30%;
+  left: 5%; /* Aumentei de 3% para 5% */
   transform: translateY(0);
 }
 
-/* POSIÇÃO 6: ESQUERDA SUPERIOR - BEM ALTO */
+/* POSIÇÃO 6: ESQUERDA SUPERIOR - MAIS AFASTADA */
 .pos-6 {
-  top: 15%; /* BEM ALTO, alinhado com posição 2 */
-  left: 3%;
+  top: 15%;
+  left: 5%; /* Aumentei de 3% para 5% */
   transform: translateY(0);
 }
 
@@ -303,10 +306,10 @@ body {
   display: block;
 }
 
-/* ===== CONTROLES (PEQUENOS) ===== */
+/* ===== CONTROLES ===== */
 .controls-container {
   position: fixed;
-  bottom: 15px;
+  bottom: 20px;
   left: 0;
   right: 0;
   display: flex;
@@ -316,36 +319,44 @@ body {
 
 .controls {
   background: rgba(13, 27, 42, 0.95);
-  padding: 10px 20px; /* Menor padding */
-  border-radius: 10px;
+  padding: 15px 30px; /* Aumentei o padding */
+  border-radius: 12px;
   border: 2px solid #d4af37;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px; /* Menor gap */
-  width: 400px; /* Largura fixa menor */
-  height: auto; /* Altura automática */
-  min-height: 110px; /* Altura mínima pequena */
+  gap: 12px;
+  width: 450px; /* Aumentei a largura */
+  height: auto;
+  min-height: 120px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6);
+}
+
+/* REMOVER CARTAS DOS CONTROLES (AS INTERROGAÇÕES) */
+.your-cards {
+  display: none !important; /* Esconde as cartas com ? dos controles */
 }
 
 /* BOTÕES DE AÇÃO */
 .action-buttons {
   display: flex;
-  gap: 8px; /* Menor gap */
+  gap: 10px;
   flex-wrap: wrap;
   justify-content: center;
+  width: 100%;
 }
 
 .action-btn {
-  padding: 10px 18px; /* Menor padding */
+  padding: 10px 20px;
   border: none;
   border-radius: 6px;
   font-weight: bold;
   cursor: pointer;
-  min-width: 80px; /* Menor largura */
-  font-size: 0.9em; /* Fonte menor */
+  min-width: 85px;
+  font-size: 0.95em;
   transition: all 0.3s;
+  flex: 1;
+  max-width: 90px;
 }
 
 .btn-fold { background: #e74c3c; color: white; }
@@ -368,39 +379,50 @@ body {
 /* CONTROLE DE APOSTA */
 .bet-controls {
   display: flex;
-  gap: 10px;
+  gap: 12px;
   align-items: center;
-  margin-top: 3px;
+  margin-top: 5px;
   width: 100%;
   display: none;
 }
 
 .bet-slider {
   flex: 1;
-  height: 6px; /* Mais fino */
+  height: 8px;
   background: rgba(255,255,255,0.1);
-  border-radius: 3px;
+  border-radius: 4px;
   outline: none;
+  -webkit-appearance: none;
+}
+
+.bet-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #d4af37;
+  cursor: pointer;
 }
 
 .bet-amount {
   background: rgba(212, 175, 55, 0.2);
-  padding: 5px 10px;
+  padding: 6px 12px;
   border-radius: 6px;
   font-weight: bold;
   color: #ffd700;
-  min-width: 60px;
+  min-width: 70px;
   text-align: center;
-  font-size: 0.85em;
+  font-size: 0.9em;
+  border: 1px solid rgba(212, 175, 55, 0.3);
 }
 
 /* TIMER DE AÇÃO */
 .action-timer {
   width: 100%;
-  height: 4px; /* Mais fino */
+  height: 5px;
   background: rgba(255,255,255,0.1);
-  border-radius: 2px;
-  margin-top: 3px;
+  border-radius: 3px;
+  margin-top: 5px;
   overflow: hidden;
   display: none;
 }
@@ -431,7 +453,7 @@ body {
 @media (max-width: 768px) {
   .table-container {
     width: 85%;
-    height: 45%; /* Mantido proporcional */
+    height: 45%;
     top: 40%;
   }
 
@@ -443,6 +465,7 @@ body {
 
   .player-cards {
     left: 60px;
+    width: 70px;
   }
 
   .player-card {
@@ -451,24 +474,25 @@ body {
     font-size: 0.9em;
   }
 
-  /* POSIÇÕES MOBILE - ESPAÇADAS */
+  /* POSIÇÕES MOBILE - MAIS ESPAÇADAS */
   .pos-1 { top: 65px; }
-  .pos-2 { top: 15%; right: 2%; }
-  .pos-6 { top: 15%; left: 2%; }
-  .pos-3 { bottom: 25%; right: 2%; }
-  .pos-5 { bottom: 25%; left: 2%; }
+  .pos-2 { top: 15%; right: 4%; }
+  .pos-6 { top: 15%; left: 4%; }
+  .pos-3 { bottom: 25%; right: 4%; }
+  .pos-5 { bottom: 25%; left: 4%; }
   .pos-4 { bottom: 120px; }
 
   .controls {
     width: 90%;
-    padding: 8px 15px;
-    min-height: 100px;
+    padding: 12px 20px;
+    min-height: 110px;
   }
 
   .action-btn {
-    padding: 8px 14px;
-    min-width: 70px;
+    padding: 8px 16px;
+    min-width: 75px;
     font-size: 0.85em;
+    max-width: 80px;
   }
 }
 
@@ -481,6 +505,7 @@ body {
 
   .player-cards {
     left: 50px;
+    width: 60px;
   }
 
   .player-card {
@@ -491,22 +516,23 @@ body {
 
   /* POSIÇÕES MOBILE PEQUENO */
   .pos-1 { top: 65px; }
-  .pos-2 { top: 16%; right: 1.5%; }
-  .pos-6 { top: 16%; left: 1.5%; }
-  .pos-3 { bottom: 26%; right: 1.5%; }
-  .pos-5 { bottom: 26%; left: 1.5%; }
+  .pos-2 { top: 16%; right: 3%; }
+  .pos-6 { top: 16%; left: 3%; }
+  .pos-3 { bottom: 26%; right: 3%; }
+  .pos-5 { bottom: 26%; left: 3%; }
   .pos-4 { bottom: 110px; }
 
   .controls {
     width: 95%;
-    padding: 6px 12px;
-    min-height: 90px;
+    padding: 10px 15px;
+    min-height: 100px;
   }
 
   .action-btn {
-    padding: 6px 10px;
-    min-width: 60px;
+    padding: 7px 12px;
+    min-width: 65px;
     font-size: 0.8em;
+    max-width: 70px;
   }
 }
 </style>
