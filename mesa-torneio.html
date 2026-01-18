@@ -1,369 +1,414 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mesa de Torneio | KeepPoker</title>
-    <style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mesa de Torneio | KeepPoker</title>
+  <style>
     * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-body {
-    background: #0a1520;
-    color: white;
-    font-family: 'Segoe UI', sans-serif;
-    height: 100vh;
-    overflow: hidden;
-}
-
-/* ================= HEADER ================= */
-.header {
-    height: 60px;
-    background: rgba(13, 27, 42, 0.95);
-    border-bottom: 2px solid #d4af37;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0 20px;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 100;
-}
-
-.tournament-info {
-    font-size: 1.1em;
-    color: #d4af37;
-    font-weight: bold;
-}
-
-.game-stats {
-    display: flex;
-    gap: 15px;
-}
-
-.stat {
-    background: rgba(212, 175, 55, 0.15);
-    padding: 6px 12px;
-    border-radius: 12px;
-    border: 1px solid rgba(212, 175, 55, 0.3);
-    font-weight: bold;
-}
-
-/* ================= MESA ================= */
-.table-container {
-    position: absolute;
-    top: 55%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 70%;
-    height: 55%;
-    z-index: 1;
-}
-
-.poker-table {
-    width: 100%;
-    height: 100%;
-    background: #0a5c36;
-    border: 15px solid #8B4513;
-    border-radius: 50% / 40%;
-    position: relative;
-    box-shadow:
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      background: #0a1520;
+      color: white;
+      font-family: 'Segoe UI', sans-serif;
+      height: 100vh;
+      overflow: hidden;
+    }
+    
+    /* CABEÇALHO MINIMALISTA */
+    .header {
+      height: 60px;
+      background: rgba(13, 27, 42, 0.9);
+      border-bottom: 2px solid #d4af37;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 20px;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+    }
+    
+    .tournament-info {
+      font-size: 1.1em;
+      color: #d4af37;
+      font-weight: bold;
+    }
+    
+    .game-stats {
+      display: flex;
+      gap: 20px;
+    }
+    
+    .stat {
+      background: rgba(212, 175, 55, 0.15);
+      padding: 6px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(212, 175, 55, 0.3);
+      font-weight: bold;
+    }
+    
+    /* MESA REDUZIDA 15% */
+    .table-container {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 70%; /* Reduzido 15% */
+      height: 55%; /* Reduzido 15% */
+      z-index: 1;
+    }
+    
+    /* MESA FORMATO SALSICHA */
+    .poker-table {
+      width: 100%;
+      height: 100%;
+      background: #0a5c36;
+      border: 15px solid #8B4513;
+      border-radius: 50% / 40%; /* Formato salsicha */
+      box-shadow:
         inset 0 0 40px rgba(0, 0, 0, 0.6),
         0 0 30px rgba(0, 0, 0, 0.7);
-}
-
-/* ================= CENTRO DA MESA ================= */
-.table-center {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 12px;
-}
-
-.community-cards {
-    display: flex;
-    gap: 8px;
-}
-
-.card-placeholder {
-    width: 42px;
-    height: 58px;
-    border-radius: 6px;
-    border: 2px dashed rgba(255, 255, 255, 0.3);
-    background: rgba(255, 255, 255, 0.08);
-}
-
-.pot {
-    color: #d4af37;
-    font-size: 1.4em;
-    font-weight: bold;
-}
-
-/* ================= AVATARS ================= */
-.avatar-container {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    z-index: 20;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-.avatar {
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #415a77, #1b263b);
-    border: 3px solid #d4af37;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.3em;
-    box-shadow: 0 6px 16px rgba(0,0,0,.5);
-}
-
-/* ================= POSIÇÕES NA BORDA DA MESA ================= */
-/* distância radial controlada (empurra pra fora da mesa) */
-
-.pos-1 { transform: translate(-50%, -50%) translateY(-285px); }
-.pos-2 { transform: translate(-50%, -50%) translate(260px, -160px); }
-.pos-3 { transform: translate(-50%, -50%) translate(260px, 160px); }
-.pos-4 { transform: translate(-50%, -50%) translateY(285px); }
-.pos-5 { transform: translate(-50%, -50%) translate(-260px, 160px); }
-.pos-6 { transform: translate(-50%, -50%) translate(-260px, -160px); }
-
-/* ================= JOGADOR ================= */
-.player-you .avatar {
-    border-color: #3498db;
-    box-shadow: 0 0 15px rgba(52,152,219,.6);
-}
-
-.player-info {
-    margin-top: 6px;
-    background: rgba(13, 27, 42, 0.95);
-    padding: 6px 10px;
-    border-radius: 8px;
-    font-size: .85em;
-    border: 1px solid rgba(212, 175, 55, 0.3);
-}
-
-/* ================= CONTROLES (FORA DA MESA) ================= */
-.controls {
-    position: fixed;
-    bottom: 25px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(13, 27, 42, 0.95);
-    padding: 16px 22px;
-    border-radius: 14px;
-    border: 2px solid #d4af37;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 14px;
-    min-width: 420px;
-    z-index: 200;
-}
-
-/* ================= CARTAS ================= */
-.your-cards {
-    display: flex;
-    gap: 14px;
-}
-
-.your-card {
-    width: 56px;
-    height: 78px;
-    background: white;
-    border-radius: 6px;
-    border: 2px solid #000;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-}
-
-/* ================= BOTÕES ================= */
-.action-buttons {
-    display: flex;
-    gap: 10px;
-}
-
-.action-btn {
-    padding: 10px 18px;
-    border-radius: 8px;
-    border: none;
-    font-weight: bold;
-    cursor: pointer;
-}
-
-.btn-fold { background: #e74c3c; color: #fff; }
-.btn-check { background: #3498db; color: #fff; }
-.btn-call { background: #2ecc71; color: #fff; }
-.btn-raise { background: #9b59b6; color: #fff; }
-.btn-allin { background: #e67e22; color: #fff; }
-
-/* ================= MOBILE ================= */
-@media (max-width: 768px) {
-    .table-container { width: 90%; height: 48%; }
-
-    .pos-1 { transform: translate(-50%, -50%) translateY(-210px); }
-    .pos-2 { transform: translate(-50%, -50%) translate(190px, -120px); }
-    .pos-3 { transform: translate(-50%, -50%) translate(190px, 120px); }
-    .pos-4 { transform: translate(-50%, -50%) translateY(210px); }
-    .pos-5 { transform: translate(-50%, -50%) translate(-190px, 120px); }
-    .pos-6 { transform: translate(-50%, -50%) translate(-190px, -120px); }
-
-    .controls { min-width: 90%; }
-}
-</style>
+      position: relative;
+    }
+    
+    /* ÁREA CENTRAL DA MESA */
+    .table-center {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 40%;
+      height: 40%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 15px;
+    }
+    
+    /* CARTAS COMUNITÁRIAS */
+    .community-cards {
+      display: flex;
+      gap: 8px;
+    }
+    
+    .card-placeholder {
+      width: 40px;
+      height: 56px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 5px;
+      border: 2px dashed rgba(255, 255, 255, 0.2);
+    }
+    
+    /* POT */
+    .pot {
+      color: #d4af37;
+      font-size: 1.4em;
+      font-weight: bold;
+    }
+    
+    /* AVATARS NAS EXTREMIDADES */
+    .avatar-container {
+      position: absolute;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      z-index: 10;
+    }
+    
+    /* AVATAR CIRCULAR */
+    .avatar {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #415a77, #1b263b);
+      border: 3px solid #d4af37;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 1.4em;
+      margin-bottom: 5px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+    }
+    
+    /* INFO DO JOGADOR (SÓ APARECE PARA VOCÊ) */
+    .player-info {
+      background: rgba(13, 27, 42, 0.95);
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1px solid rgba(212, 175, 55, 0.3);
+      text-align: center;
+      min-width: 100px;
+      font-size: 0.9em;
+      display: none; /* Inicialmente escondido */
+    }
+    
+    /* POSICIONAMENTO DOS 6 AVATARS */
+    /* TOPO */
+    .pos-1 {
+      top: 5%;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+    
+    /* TOPO DIREITA */
+    .pos-2 {
+      top: 20%;
+      right: 5%;
+    }
+    
+    /* BAIXO DIREITA */
+    .pos-3 {
+      bottom: 20%;
+      right: 5%;
+    }
+    
+    /* BAIXO CENTRO */
+    .pos-4 {
+      bottom: 5%;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+    
+    /* BAIXO ESQUERDA */
+    .pos-5 {
+      bottom: 20%;
+      left: 5%;
+    }
+    
+    /* TOPO ESQUERDA */
+    .pos-6 {
+      top: 20%;
+      left: 5%;
+    }
+    
+    /* AVATAR DO JOGADOR (VOCÊ) */
+    .player-you .avatar {
+      border-color: #3498db;
+      box-shadow: 0 0 15px rgba(52, 152, 219, 0.5);
+    }
+    
+    .player-you .player-info {
+      display: block; /* Mostra info só para você */
+    }
+    
+    /* CONTROLES DO JOGADOR */
+    .controls {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(13, 27, 42, 0.95);
+      padding: 15px;
+      border-radius: 12px;
+      border: 2px solid #d4af37;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      z-index: 100;
+      min-width: 400px;
+    }
+    
+    /* SUAS CARTAS (FORA DA MESA) */
+    .your-cards {
+      display: flex;
+      gap: 10px;
+    }
+    
+    .your-card {
+      width: 50px;
+      height: 70px;
+      background: white;
+      border-radius: 6px;
+      border: 2px solid #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3em;
+      font-weight: bold;
+    }
+    
+    /* BOTÕES DE AÇÃO */
+    .action-buttons {
+      display: flex;
+      gap: 8px;
+    }
+    
+    .action-btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+      min-width: 80px;
+    }
+    
+    .btn-fold { background: #e74c3c; color: white; }
+    .btn-check { background: #3498db; color: white; }
+    .btn-call { background: #2ecc71; color: white; }
+    .btn-raise { background: #9b59b6; color: white; }
+    .btn-allin { background: #e67e22; color: white; }
+    
+    /* RESPONSIVIDADE */
+    @media (max-width: 768px) {
+      .table-container {
+        width: 85%;
+        height: 50%;
+      }
+      
+      .avatar {
+        width: 50px;
+        height: 50px;
+        font-size: 1.2em;
+      }
+      
+      .controls {
+        min-width: 90%;
+        padding: 12px;
+      }
+      
+      .action-btn {
+        padding: 8px 15px;
+        min-width: 70px;
+        font-size: 0.9em;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .header {
+        padding: 0 10px;
+      }
+      
+      .game-stats {
+        gap: 10px;
+      }
+      
+      .stat {
+        padding: 4px 8px;
+        font-size: 0.9em;
+      }
+      
+      .avatar {
+        width: 40px;
+        height: 40px;
+        font-size: 1em;
+      }
+      
+      .your-card {
+        width: 40px;
+        height: 56px;
+        font-size: 1.1em;
+      }
+    }
+  </style>
 </head>
 <body>
-    <!-- CABEÇALHO -->
-    <div class="header">
-        <div class="tournament-info" id="tournamentName">Torneio</div>
-        <div class="game-stats">
-            <div class="stat" id="blinds">100/200</div>
-            <div class="stat" id="pot">Pote: 0</div>
+  <!-- CABEÇALHO -->
+  <div class="header">
+    <div class="tournament-info">Torneio</div>
+    <div class="game-stats">
+      <div class="stat" id="blinds">100/200</div>
+      <div class="stat" id="pot">Pote: 0</div>
+    </div>
+  </div>
+  
+  <!-- CONTAINER DA MESA -->
+  <div class="table-container">
+    <!-- MESA -->
+    <div class="poker-table">
+      <!-- ÁREA CENTRAL -->
+      <div class="table-center">
+        <div class="community-cards">
+          <div class="card-placeholder"></div>
+          <div class="card-placeholder"></div>
+          <div class="card-placeholder"></div>
+          <div class="card-placeholder"></div>
+          <div class="card-placeholder"></div>
         </div>
+        <div class="pot" id="potAmount">0</div>
+      </div>
     </div>
     
-    <!-- CONTAINER DA MESA -->
-    <div class="table-container">
-        <!-- MESA -->
-        <div class="poker-table">
-            <!-- ÁREA CENTRAL -->
-            <div class="table-center">
-                <div class="community-cards" id="communityCards">
-                    <div class="card-placeholder"></div>
-                    <div class="card-placeholder"></div>
-                    <div class="card-placeholder"></div>
-                    <div class="card-placeholder"></div>
-                    <div class="card-placeholder"></div>
-                </div>
-                <div class="pot" id="potAmount">0</div>
-            </div>
-        </div>
-        
-        <!-- AVATARS NAS EXTREMIDADES -->
-        <!-- Posição 1: TOPO (Você) -->
-        <div class="avatar-container pos-1 player-you" id="player1">
-            <div class="avatar">V</div>
-            <div class="player-info">
-                <div>Você</div>
-                <div id="player1Chips">-</div>
-            </div>
-        </div>
-        
-        <!-- Posição 2: TOPO DIREITA -->
-        <div class="avatar-container pos-2" id="player2">
-            <div class="avatar"></div>
-        </div>
-        
-        <!-- Posição 3: BAIXO DIREITA -->
-        <div class="avatar-container pos-3" id="player3">
-            <div class="avatar"></div>
-        </div>
-        
-        <!-- Posição 4: BAIXO CENTRO -->
-        <div class="avatar-container pos-4" id="player4">
-            <div class="avatar"></div>
-        </div>
-        
-        <!-- Posição 5: BAIXO ESQUERDA -->
-        <div class="avatar-container pos-5" id="player5">
-            <div class="avatar"></div>
-        </div>
-        
-        <!-- Posição 6: TOPO ESQUERDA -->
-        <div class="avatar-container pos-6" id="player6">
-            <div class="avatar"></div>
-        </div>
+    <!-- AVATARS NAS EXTREMIDADES -->
+    <!-- Posição 1: TOPO (Você - SB) -->
+    <div class="avatar-container pos-1 player-you">
+      <div class="avatar">V</div>
+      <div class="player-info">
+        <div>Você (SB)</div>
+        <div>1,500</div>
+      </div>
     </div>
     
-    <!-- CONTROLES (FORA DA MESA) -->
-    <div class="controls">
-        <!-- SUAS CARTAS -->
-        <div class="your-cards" id="yourCardsContainer">
-            <div class="your-card" id="card1">?</div>
-            <div class="your-card" id="card2">?</div>
-        </div>
-        
-        <!-- BOTÕES DE AÇÃO -->
-        <div class="action-buttons">
-            <button class="action-btn btn-fold" id="foldBtn">Fold</button>
-            <button class="action-btn btn-check" id="checkBtn">Check</button>
-            <button class="action-btn btn-call" id="callBtn">Call</button>
-            <button class="action-btn btn-raise" id="raiseBtn">Raise</button>
-            <button class="action-btn btn-allin" id="allinBtn">All-in</button>
-        </div>
+    <!-- Posição 2: TOPO DIREITA -->
+    <div class="avatar-container pos-2">
+      <div class="avatar"></div>
     </div>
+    
+    <!-- Posição 3: BAIXO DIREITA -->
+    <div class="avatar-container pos-3">
+      <div class="avatar"></div>
+    </div>
+    
+    <!-- Posição 4: BAIXO CENTRO -->
+    <div class="avatar-container pos-4">
+      <div class="avatar"></div>
+    </div>
+    
+    <!-- Posição 5: BAIXO ESQUERDA -->
+    <div class="avatar-container pos-5">
+      <div class="avatar"></div>
+    </div>
+    
+    <!-- Posição 6: TOPO ESQUERDA -->
+    <div class="avatar-container pos-6">
+      <div class="avatar"></div>
+    </div>
+  </div>
+  
+  <!-- CONTROLES (FORA DA MESA) -->
+  <div class="controls">
+    <!-- SUAS CARTAS -->
+    <div class="your-cards">
+      <div class="your-card">?</div>
+      <div class="your-card">?</div>
+    </div>
+    
+    <!-- BOTÕES DE AÇÃO -->
+    <div class="action-buttons">
+      <button class="action-btn btn-fold">Fold</button>
+      <button class="action-btn btn-check">Check</button>
+      <button class="action-btn btn-call">Call</button>
+      <button class="action-btn btn-raise">Raise</button>
+      <button class="action-btn btn-allin">All-in</button>
+    </div>
+  </div>
 
-    <script>
-        // CONFIGURAÇÃO INICIAL - SEM DADOS FICTÍCIOS
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('Mesa carregada - Layout puro');
-            
-            // Inicializar placeholders
-            initializePlaceholders();
-            
-            // Configurar botões (sem ação ainda)
-            setupButtons();
-        });
-        
-        function initializePlaceholders() {
-            // Apenas placeholders - sem dados fictícios
-            document.getElementById('blinds').textContent = '-/-';
-            document.getElementById('pot').textContent = 'Pote: -';
-            document.getElementById('potAmount').textContent = '-';
-            document.getElementById('player1Chips').textContent = '-';
-            
-            // Placeholders para outros avatares
-            const emptyAvatars = document.querySelectorAll('.avatar:empty');
-            emptyAvatars.forEach(avatar => {
-                avatar.textContent = '';
-            });
-            
-            // Placeholder para suas cartas
-            document.getElementById('card1').textContent = '?';
-            document.getElementById('card2').textContent = '?';
-        }
-        
-        function setupButtons() {
-            // Botões desabilitados até receber dados reais
-            const buttons = document.querySelectorAll('.action-btn');
-            buttons.forEach(btn => {
-                btn.disabled = true;
-                btn.style.opacity = '0.6';
-                btn.style.cursor = 'not-allowed';
-            });
-            
-            // Adicionar tooltip informativo
-            buttons.forEach(btn => {
-                btn.title = 'Aguardando dados do servidor...';
-            });
-        }
-        
-        // Função para atualizar com dados reais (vazia por enquanto)
-        function updateWithRealData(data) {
-            // Esta função será preenchida quando integrar com Firebase
-            console.log('Atualizando com dados reais:', data);
-        }
-        
-        // Função para limpar tudo (reset)
-        function clearAllData() {
-            initializePlaceholders();
-        }
-    </script>
+
+  <script>
+    // CONFIGURAÇÃO INICIAL
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('Mesa carregada - Layout puro');
+      
+      // Atualizar displays
+      document.getElementById('blinds').textContent = '100/200';
+      document.getElementById('pot').textContent = 'Pote: 0';
+      document.getElementById('potAmount').textContent = '0';
+      
+      // Configurar avatares vazios (sem dados fictícios)
+      const avatars = document.querySelectorAll('.avatar:empty');
+      avatars.forEach(avatar => {
+        avatar.innerHTML = '?'; // Placeholder
+      });
+    });
+  </script>
 </body>
 </html>
