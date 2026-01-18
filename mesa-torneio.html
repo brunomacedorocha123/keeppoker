@@ -254,36 +254,36 @@ body {
   display: none;
 }
 
-/* ===== POSIÇÕES DOS AVATARES - AJUSTE FINO ===== */
+/* ===== POSIÇÕES DOS AVATARES - AJUSTE FINAL ===== */
 .pos-1 {
   top: 100px;
   left: 50%;
   transform: translateX(-50%);
-  /* Mantido exatamente como estava */
+  /* Mantido exatamente como está */
 }
 
 .pos-2 {
-  top: 160px;      /* ↑ um pouco mais alto que antes (180 → 160) */
-  right: 26%;      /* ← movido para FORA (22% → 26%) */
+  top: 160px;
+  right: 30%; /* ← movido mais para DIREITA (era 26%) */
 }
 
 .pos-6 {
-  top: 160px;      /* ↑ mais alto */
-  left: 26%;       /* ← movido para FORA */
+  top: 160px;
+  left: 30%; /* ← movido mais para ESQUERDA (era 26%) */
 }
 
 .pos-3 {
-  bottom: 160px;   /* ↑ um pouco mais alto (180 → 160) */
-  right: 26%;      /* ← movido para FORA */
+  bottom: 160px;
+  right: 30%; /* ← mais para DIREITA */
 }
 
 .pos-5 {
   bottom: 160px;
-  left: 26%;       /* ← movido para FORA */
+  left: 30%; /* ← mais para ESQUERDA */
 }
 
 .pos-4 {
-  bottom: 110px;   /* ↓ movido para BAIXO (era 140px → agora 110px) */
+  bottom: 80px; /* ← muito mais para BAIXO (era 110px → agora 80px) */
   left: 50%;
   transform: translateX(-50%);
 }
@@ -298,10 +298,10 @@ body {
   display: block;
 }
 
-/* ===== CONTROLES - AJUSTE FINO ===== */
+/* ===== CONTROLES - ALTURA REDUZIDA E POSIÇÃO AJUSTADA ===== */
 .controls-container {
   position: fixed;
-  bottom: 12px; /* ↓ movido um pouco mais para baixo (era 20px → 12px) */
+  bottom: 8px; /* ← mais próximo da borda inferior */
   left: 0;
   right: 0;
   display: flex;
@@ -311,37 +311,37 @@ body {
 
 .controls {
   background: rgba(13, 27, 42, 0.95);
-  padding: 16px 30px;    /* ← reduzido padding lateral */
+  padding: 12px 25px;    /* ↓ padding reduzido */
   border-radius: 12px;
   border: 2px solid #d4af37;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
-  width: 580px;         /* ← reduzido de 620px → 580px (container menor) */
-  min-height: 125px;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.7);
+  gap: 10px;            /* ↓ gap reduzido */
+  width: 560px;         /* ← levemente mais estreito */
+  min-height: 100px;    /* ↓ altura significativamente reduzida */
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.7); /* ↓ sombra mais sutil */
 }
 
 .action-buttons {
   display: flex;
-  gap: 10px;            /* ← gap ligeiramente reduzido */
+  gap: 10px;
   flex-wrap: nowrap;
   justify-content: center;
   width: 100%;
 }
 
 .action-btn {
-  padding: 12px 14px;   /* ← ajuste fino */
+  padding: 10px 12px;   /* ↓ altura dos botões reduzida */
   border: none;
   border-radius: 8px;
   font-weight: bold;
   cursor: pointer;
-  min-width: 95px;
-  font-size: 1em;
+  min-width: 90px;
+  font-size: 0.95em;
   transition: all 0.3s;
   flex: 1;
-  max-width: 105px;
+  max-width: 100px;
 }
 
 .btn-fold { background: #e74c3c; color: white; }
@@ -351,8 +351,8 @@ body {
 .btn-allin { background: #e67e22; color: white; }
 
 .action-btn:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 5px 12px rgba(0,0,0,0.4);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.4);
 }
 
 .action-btn:disabled {
@@ -363,16 +363,16 @@ body {
 
 .bet-controls {
   display: flex;
-  gap: 15px;
+  gap: 12px;
   align-items: center;
-  margin-top: 5px;
+  margin-top: 4px;
   width: 100%;
   display: none;
 }
 
 .bet-slider {
   flex: 1;
-  height: 8px;
+  height: 7px;
   background: rgba(255,255,255,0.1);
   border-radius: 4px;
   outline: none;
@@ -381,8 +381,8 @@ body {
 
 .bet-slider::-webkit-slider-thumb {
   -webkit-appearance: none;
-  width: 22px;
-  height: 22px;
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
   background: #d4af37;
   cursor: pointer;
@@ -391,22 +391,22 @@ body {
 
 .bet-amount {
   background: rgba(212, 175, 55, 0.2);
-  padding: 8px 15px;
+  padding: 6px 12px;
   border-radius: 8px;
   font-weight: bold;
   color: #ffd700;
-  min-width: 80px;
+  min-width: 70px;
   text-align: center;
-  font-size: 1em;
+  font-size: 0.95em;
   border: 1px solid rgba(212, 175, 55, 0.3);
 }
 
 .action-timer {
   width: 100%;
-  height: 6px;
+  height: 5px;
   background: rgba(255,255,255,0.1);
   border-radius: 3px;
-  margin-top: 8px;
+  margin-top: 6px;
   overflow: hidden;
   display: none;
 }
@@ -461,23 +461,23 @@ body {
   }
 
   .pos-1 { top: 75px; }
-  .pos-2 { top: 120px; right: 22%; }
-  .pos-6 { top: 120px; left: 22%; }
-  .pos-3 { bottom: 140px; right: 22%; }
-  .pos-5 { bottom: 140px; left: 22%; }
-  .pos-4 { bottom: 90px; }
+  .pos-2 { top: 120px; right: 26%; }
+  .pos-6 { top: 120px; left: 26%; }
+  .pos-3 { bottom: 140px; right: 26%; }
+  .pos-5 { bottom: 140px; left: 26%; }
+  .pos-4 { bottom: 60px; } /* ↓ mais espaço */
 
   .controls {
     width: 92%;
-    padding: 14px 22px;
-    min-height: 115px;
+    padding: 10px 20px;
+    min-height: 90px;
   }
 
   .action-btn {
-    padding: 10px 12px;
-    min-width: 70px;
+    padding: 8px 10px;
+    min-width: 65px;
     font-size: 0.9em;
-    max-width: 78px;
+    max-width: 75px;
   }
 }
 
@@ -500,27 +500,27 @@ body {
   }
 
   .pos-1 { top: 70px; }
-  .pos-2 { top: 100px; right: 18%; }
-  .pos-6 { top: 100px; left: 18%; }
-  .pos-3 { bottom: 130px; right: 18%; }
-  .pos-5 { bottom: 130px; left: 18%; }
-  .pos-4 { bottom: 80px; }
+  .pos-2 { top: 100px; right: 22%; }
+  .pos-6 { top: 100px; left: 22%; }
+  .pos-3 { bottom: 120px; right: 22%; }
+  .pos-5 { bottom: 120px; left: 22%; }
+  .pos-4 { bottom: 50px; }
 
   .controls {
     width: 96%;
-    padding: 12px 18px;
-    min-height: 105px;
+    padding: 8px 16px;
+    min-height: 80px;
   }
 
   .action-btn {
-    padding: 8px 10px;
-    min-width: 60px;
+    padding: 6px 8px;
+    min-width: 55px;
     font-size: 0.85em;
-    max-width: 68px;
+    max-width: 65px;
   }
 
   .bet-controls {
-    gap: 10px;
+    gap: 8px;
     flex-wrap: wrap;
     justify-content: center;
   }
