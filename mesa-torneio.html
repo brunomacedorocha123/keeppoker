@@ -254,38 +254,38 @@ body {
   display: none;
 }
 
-/* ===== POSIÇÕES DOS AVATARES - AJUSTE FINAL EXATO ===== */
+/* ===== POSIÇÕES DOS AVATARES - AJUSTE FINAL VISUAL ===== */
 .pos-1 {
   top: 100px;
   left: 50%;
   transform: translateX(-50%);
-  /* Mantido intacto */
 }
 
+/* Posições 2 e 3 → MOVER PARA A DIREITA (→→→) */
 .pos-2 {
   top: 160px;
-  right: 34%; /* ← mais para DIREITA (era 30%) */
+  right: 20%; /* mais perto da borda direita */
 }
-
 .pos-3 {
   bottom: 160px;
-  right: 34%; /* ← mais para DIREITA */
+  right: 20%;
 }
 
-.pos-4 {
-  bottom: 130px; /* ← MOVIDO PARA CIMA (era 80px → agora 130px) */
-  left: 50%;
-  transform: translateX(-50%);
-}
-
-.pos-5 {
-  bottom: 160px;
-  left: 34%; /* ← mais para ESQUERDA */
-}
-
+/* Posições 5 e 6 → MOVER PARA A ESQUERDA (←←←) */
 .pos-6 {
   top: 160px;
-  left: 34%; /* ← mais para ESQUERDA */
+  left: 20%; /* mais perto da borda esquerda */
+}
+.pos-5 {
+  bottom: 160px;
+  left: 20%;
+}
+
+/* Posição 4 → MOVER PARA CIMA (↑↑↑) */
+.pos-4 {
+  bottom: 150px; /* mais alto na tela, longe dos controles */
+  left: 50%;
+  transform: translateX(-50%);
 }
 
 /* JOGADOR ATUAL (VOCÊ) */
@@ -298,7 +298,7 @@ body {
   display: block;
 }
 
-/* ===== CONTROLES - MANTIDOS COMPACTOS ===== */
+/* ===== CONTROLES ===== */
 .controls-container {
   position: fixed;
   bottom: 8px;
@@ -437,19 +437,93 @@ body {
 
 /* ===== RESPONSIVIDADE ===== */
 @media (max-width: 768px) {
-  .pos-2 { right: 30%; }
-  .pos-3 { right: 30%; }
-  .pos-5 { left: 30%; }
-  .pos-6 { left: 30%; }
-  .pos-4 { bottom: 100px; }
+  .table-container {
+    width: 85%;
+    height: 45%;
+    top: 40%;
+  }
+
+  .avatar {
+    width: 55px;
+    height: 55px;
+    font-size: 1.2em;
+  }
+
+  .player-cards {
+    left: 65px;
+    width: 80px;
+  }
+
+  .player-card {
+    width: 35px;
+    height: 49px;
+    font-size: 0.9em;
+  }
+
+  .pos-1 { top: 75px; }
+  .pos-2 { top: 120px; right: 24%; }
+  .pos-6 { top: 120px; left: 24%; }
+  .pos-3 { bottom: 140px; right: 24%; }
+  .pos-5 { bottom: 140px; left: 24%; }
+  .pos-4 { bottom: 120px; }
+
+  .controls {
+    width: 92%;
+    padding: 10px 20px;
+    min-height: 90px;
+  }
+
+  .action-btn {
+    padding: 8px 10px;
+    min-width: 65px;
+    font-size: 0.9em;
+    max-width: 75px;
+  }
 }
 
 @media (max-width: 480px) {
-  .pos-2 { right: 26%; }
-  .pos-3 { right: 26%; }
-  .pos-5 { left: 26%; }
-  .pos-6 { left: 26%; }
-  .pos-4 { bottom: 90px; }
+  .avatar {
+    width: 45px;
+    height: 45px;
+    font-size: 1em;
+  }
+
+  .player-cards {
+    left: 55px;
+    width: 70px;
+  }
+
+  .player-card {
+    width: 30px;
+    height: 42px;
+    font-size: 0.85em;
+  }
+
+  .pos-1 { top: 70px; }
+  .pos-2 { top: 100px; right: 20%; }
+  .pos-6 { top: 100px; left: 20%; }
+  .pos-3 { bottom: 120px; right: 20%; }
+  .pos-5 { bottom: 120px; left: 20%; }
+  .pos-4 { bottom: 100px; }
+
+  .controls {
+    width: 96%;
+    padding: 8px 16px;
+    min-height: 80px;
+  }
+
+  .action-btn {
+    padding: 6px 8px;
+    min-width: 55px;
+    font-size: 0.85em;
+    max-width: 65px;
+  }
+
+  .bet-controls {
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
 }
 </style>
 </head>
