@@ -155,7 +155,7 @@ body {
  display: flex;
  flex-direction: column;
  align-items: center;
- z-index: 10;
+ z-index: 20; /* ⬅️ MAIOR que controls */
 }
 
 /* AVATAR CIRCULAR */
@@ -191,7 +191,7 @@ body {
  transform: translateY(-50%);
  display: flex;
  gap: 5px;
- z-index: 20;
+ z-index: 25; /* ⬅️ MAIOR que avatar */
 }
 
 .player-card {
@@ -263,40 +263,40 @@ body {
 
 /* POSIÇÃO 1: TOPO CENTRO (VOCÊ) */
 .pos-1 {
- top: -15%; /* MAIS PRA CIMA */
+ top: -16.5%; /* MAIS PRA CIMA */
  left: 50%;
  transform: translateX(-50%);
 }
 
 /* POSIÇÃO 2: DIREITA SUPERIOR - FORA DA MESA */
 .pos-2 {
- top: 10%; /* MAIS PRA CIMA */
- right: 2%; /* MAIS PRA DIREITA (fora da mesa) */
+ top: 16.5%; /* MAIS PRA CIMA */
+ right: 3%; /* MAIS PRA DIREITA (fora da mesa) */
 }
 
 /* POSIÇÃO 3: DIREITA INFERIOR - FORA DA MESA */
 .pos-3 {
- bottom: 10%; /* MAIS PRA BAIXO */
- right: 2%; /* MAIS PRA DIREITA (fora da mesa) */
+ bottom: 16.5%; /* MAIS PRA BAIXO */
+ right: 3%; /* MAIS PRA DIREITA (fora da mesa) */
 }
 
 /* POSIÇÃO 4: BAIXO CENTRO - TOTALMENTE VISÍVEL */
 .pos-4 {
- bottom: -15%; /* MAIS PRA BAIXO */
+ bottom: -16.5%; /* MAIS PRA BAIXO */
  left: 50%;
  transform: translateX(-50%);
 }
 
 /* POSIÇÃO 5: ESQUERDA INFERIOR - FORA DA MESA */
 .pos-5 {
- bottom: 10%; /* MAIS PRA BAIXO */
- left: 2%; /* MAIS PRA ESQUERDA (fora da mesa) */
+ bottom: 16.5%; /* MAIS PRA BAIXO */
+ left: 3%; /* MAIS PRA ESQUERDA (fora da mesa) */
 }
 
 /* POSIÇÃO 6: ESQUERDA SUPERIOR - FORA DA MESA */
 .pos-6 {
- top: 10%; /* MAIS PRA CIMA */
- left: 2%; /* MAIS PRA ESQUERDA (fora da mesa) */
+ top: 16.5%; /* MAIS PRA CIMA */
+ left: 3%; /* MAIS PRA ESQUERDA (fora da mesa) */
 }
 
 /* AVATAR DO JOGADOR (VOCÊ) */
@@ -312,7 +312,7 @@ body {
 /* ===== CONTROLES ===== */
 .controls {
  position: fixed;
- bottom: 2%; /* LÁ EM BAIXO (2% da margem) */
+ bottom: 2%; /* LÁ EM BAIXO DA TELA */
  left: 50%;
  transform: translateX(-50%);
  background: rgba(13, 27, 42, 0.95);
@@ -323,7 +323,7 @@ body {
  flex-direction: column;
  align-items: center;
  gap: 8px; /* GAP REDUZIDO */
- z-index: 100;
+ z-index: 10; /* ⬅️ MENOR que avatares (20) */
  min-width: 400px;
  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
  max-height: 120px; /* ALTURA MÁXIMA REDUZIDA */
@@ -450,10 +450,10 @@ body {
 
  /* POSIÇÕES MOBILE */
  .pos-1 { top: -18%; }
- .pos-2 { top: 8%; right: 1%; }
- .pos-6 { top: 8%; left: 1%; }
- .pos-3 { bottom: 8%; right: 1%; }
- .pos-5 { bottom: 8%; left: 1%; }
+ .pos-2 { top: 14%; right: 2%; }
+ .pos-6 { top: 14%; left: 2%; }
+ .pos-3 { bottom: 14%; right: 2%; }
+ .pos-5 { bottom: 14%; left: 2%; }
  .pos-4 { bottom: -18%; }
 
  .controls {
@@ -512,10 +512,10 @@ body {
 
  /* POSIÇÕES MOBILE PEQUENO */
  .pos-1 { top: -20%; }
- .pos-2 { top: 6%; right: 0.5%; }
- .pos-6 { top: 6%; left: 0.5%; }
- .pos-3 { bottom: 6%; right: 0.5%; }
- .pos-5 { bottom: 6%; left: 0.5%; }
+ .pos-2 { top: 12%; right: 1.5%; }
+ .pos-6 { top: 12%; left: 1.5%; }
+ .pos-3 { bottom: 12%; right: 1.5%; }
+ .pos-5 { bottom: 12%; left: 1.5%; }
  .pos-4 { bottom: -20%; }
 
  .controls {
