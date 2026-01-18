@@ -635,6 +635,7 @@ let timeLeft = 30;
 let myPlayerPosition = -1;
 let gameStarted = false;
 let dealerPosition = 0;
+let myCards = []; // Armazenar minhas cartas localmente
 
 const positionMap = [1, 2, 6, 3, 5, 4];
 
@@ -734,6 +735,7 @@ function initializeInterface() {
          const isMe = player.userId === currentUser.uid;
          if (isMe) {
             myPlayerPosition = index;
+            container.classList.add('player-you');
          }
          
          if (player.avatarUrl) {
@@ -741,12 +743,6 @@ function initializeInterface() {
          } else {
             const initial = (player.nickname || player.playerName || '?').charAt(0).toUpperCase();
             avatarElement.textContent = initial;
-         }
-         
-         if (isMe) {
-            container.classList.add('player-you');
-            const myCards = container.querySelector('.player-cards');
-            if (myCards) myCards.style.display = 'flex';
          }
          
          const chips = player.chips || tournamentData.startingStack || 1500;
@@ -761,6 +757,7 @@ function setupRealtimeListener() {
          if (doc.exists) {
             const newData = doc.data();
             
+            // Verificar mudanças importantes
             const playersChanged = JSON.stringify(newData.players) !== JSON.stringify(tournamentData?.players);
             const communityChanged = JSON.stringify(newData.communityCards) !== JSON.stringify(tournamentData?.communityCards);
             const potChanged = newData.pot !== tournamentData?.pot;
@@ -771,15 +768,27 @@ function setupRealtimeListener() {
                updateInterface();
             }
          }
+      }, (error) => {
+         console.error('Erro no listener:', error);
       });
 }
 
 function updateInterface() {
+   if (!tournamentData) return;
+   
+   // Atualizar estatísticas
    document.getElementById('playersCount').textContent = 
       `${tournamentData.players?.length || 1}/${tournamentData.maxPlayers || 6}`;
    
-   const players = tournamentData.players || [];
+   const pot = tournamentData.pot || 0;
+   document.getElementById('pot').textContent = `Pote: ${pot}`;
+   document.getElementById('potAmount').textContent = pot;
    
+   // Atualizar cartas comunitárias
+   updateCommunityCards();
+   
+   // Atualizar jogadores
+   const players = tournamentData.players || [];
    players.forEach((player, index) => {
       if (index < 6) {
          const pos = positionMap[index];
@@ -787,37 +796,37 @@ function updateInterface() {
          const avatarElement = document.getElementById(`avatar${pos}`);
          const container = document.getElementById(`playerPos${pos}`);
          
+         // Atualizar fichas
          const chips = player.chips || tournamentData.startingStack || 1500;
          const name = player.nickname || player.playerName || 'Jogador';
          chipsElement.innerHTML = `${name}<br>${chips}`;
          
+         // Destacar jogador da vez
          if (tournamentData.currentPlayerTurn === player.userId) {
             avatarElement.classList.add('current-turn');
          } else {
             avatarElement.classList.remove('current-turn');
          }
          
+         // Marcar se foldou
          if (player.isActive === false) {
             avatarElement.classList.add('player-folded');
          } else {
             avatarElement.classList.remove('player-folded');
          }
-         
-         const isMe = player.userId === currentUser.uid;
-         if (isMe && player.cards && player.cards.length > 0) {
-            const myCards = container.querySelector('.player-cards');
-            if (myCards) myCards.style.display = 'flex';
-         }
       }
    });
    
-   updateCommunityCards();
-   updatePot();
+   // Atualizar minhas cartas (usar as armazenadas localmente)
    updateMyCards();
+   
+   // Verificar se é minha vez
    checkMyTurn();
 }
 
 function updateCommunityCards() {
+   if (!tournamentData) return;
+   
    const communityCards = tournamentData.communityCards || [];
    const container = document.getElementById('communityCards');
    const cards = container.querySelectorAll('.card-placeholder');
@@ -843,40 +852,57 @@ function updateCommunityCards() {
    });
 }
 
-function updatePot() {
-   const pot = tournamentData.pot || 0;
-   document.getElementById('pot').textContent = `Pote: ${pot}`;
-   document.getElementById('potAmount').textContent = pot;
-}
-
 function updateMyCards() {
-   if (!tournamentData.players || !currentUser) return;
+   if (!currentUser) return;
    
-   const me = tournamentData.players.find(p => p.userId === currentUser.uid);
-   if (!me || !me.cards || me.cards.length < 2) {
-      const myCardsContainer = document.querySelector('#playerPos1 .player-cards');
-      if (myCardsContainer) myCardsContainer.style.display = 'none';
-      return;
-   }
-   
-   const cards = me.cards;
    const card1Element = document.getElementById('playerCard1');
    const card2Element = document.getElementById('playerCard2');
+   const myCardsContainer = document.querySelector('#playerPos1 .player-cards');
    
-   if (card1Element && card2Element) {
-      card1Element.textContent = formatCard(cards[0]);
-      card2Element.textContent = formatCard(cards[1]);
-      
-      card1Element.style.color = getCardColor(cards[0]);
-      card2Element.style.color = getCardColor(cards[1]);
-      
-      const myCardsContainer = document.querySelector('#playerPos1 .player-cards');
-      if (myCardsContainer) myCardsContainer.style.display = 'flex';
+   // Usar cartas armazenadas localmente
+   if (myCards.length >= 2) {
+      if (card1Element && card2Element) {
+         card1Element.textContent = formatCard(myCards[0]);
+         card2Element.textContent = formatCard(myCards[1]);
+         
+         card1Element.style.color = getCardColor(myCards[0]);
+         card2Element.style.color = getCardColor(myCards[1]);
+         
+         if (myCardsContainer) {
+            myCardsContainer.style.display = 'flex';
+         }
+      }
+   } else {
+      // Tentar buscar do Firestore
+      const me = tournamentData?.players?.find(p => p.userId === currentUser.uid);
+      if (me && me.cards && me.cards.length >= 2) {
+         myCards = me.cards;
+         if (card1Element && card2Element) {
+            card1Element.textContent = formatCard(myCards[0]);
+            card2Element.textContent = formatCard(myCards[1]);
+            
+            card1Element.style.color = getCardColor(myCards[0]);
+            card2Element.style.color = getCardColor(myCards[1]);
+            
+            if (myCardsContainer) {
+               myCardsContainer.style.display = 'flex';
+            }
+         }
+      } else {
+         // Esconder cartas se não tiver
+         if (myCardsContainer) {
+            myCardsContainer.style.display = 'none';
+         }
+      }
    }
 }
 
 function checkMyTurn() {
-   if (!tournamentData.currentPlayerTurn) return;
+   if (!tournamentData || !tournamentData.currentPlayerTurn) {
+      disablePlayerControls();
+      stopActionTimer();
+      return;
+   }
    
    const isMyTurn = tournamentData.currentPlayerTurn === currentUser.uid;
    
@@ -887,11 +913,17 @@ function checkMyTurn() {
    } else {
       disablePlayerControls();
       stopActionTimer();
+      
+      // Mostrar quem está jogando
+      const currentPlayer = tournamentData.players?.find(p => p.userId === tournamentData.currentPlayerTurn);
+      if (currentPlayer) {
+         showNotification(`${currentPlayer.nickname} está jogando...`, 'info');
+      }
    }
 }
 
 function checkIfGameCanStart() {
-   const playersCount = tournamentData.players?.length || 0;
+   const playersCount = tournamentData?.players?.length || 0;
    
    if (playersCount >= 2 && !gameStarted) {
       showNotification('🎮 Iniciando jogo...', 'info');
@@ -934,9 +966,10 @@ async function initializePokerEngine() {
       
       showNotification('🎮 Jogo iniciado! Preparando primeira mão...', 'success');
       
+      // Pequeno delay para estabilizar
       setTimeout(async () => {
          await startNewHand();
-      }, 1000);
+      }, 1500);
       
    } catch (error) {
       showNotification('Erro ao iniciar jogo: ' + error.message, 'error');
@@ -947,30 +980,25 @@ async function startNewHand() {
    if (!pokerGame || !gameStarted) return;
    
    try {
-      showNotification('Nova mão iniciada! Distribuindo cartas...', 'info');
+      showNotification('🃏 Nova mão iniciada! Distribuindo cartas...', 'info');
       
       const handResult = await pokerGame.startHand();
       const gameInfo = pokerGame.getGameInfo();
       
-      const me = gameInfo.players.find(p => p.userId === currentUser.uid);
-      if (me && me.cards && me.cards.length >= 2) {
-         const card1Element = document.getElementById('playerCard1');
-         const card2Element = document.getElementById('playerCard2');
+      // Obter minhas cartas do Poker Engine
+      const myPlayerInfo = pokerGame.getPlayerInfo(currentUser.uid);
+      if (myPlayerInfo && myPlayerInfo.cards && myPlayerInfo.cards.length >= 2) {
+         myCards = myPlayerInfo.cards;
+         console.log('🃏 Minhas cartas:', myCards);
          
-         if (card1Element && card2Element) {
-            card1Element.textContent = me.cards[0];
-            card2Element.textContent = me.cards[1];
-            
-            card1Element.style.color = getCardColor(me.cards[0]);
-            card2Element.style.color = getCardColor(me.cards[1]);
-            
-            const myCardsContainer = document.querySelector('#playerPos1 .player-cards');
-            if (myCardsContainer) myCardsContainer.style.display = 'flex';
-         }
+         // Atualizar cartas na interface IMEDIATAMENTE
+         updateMyCards();
       }
       
+      // Atualizar Firestore mantendo as cartas
       await updateGameStateInFirestore(gameInfo);
       
+      // Atualizar interface completa após 500ms
       setTimeout(() => {
          updateInterface();
          checkMyTurn();
@@ -980,6 +1008,10 @@ async function startNewHand() {
       showNotification('Erro: ' + error.message, 'error');
    }
 }
+
+// =============================================
+// CONTROLES DO JOGADOR
+// =============================================
 
 function setupControls() {
    const slider = document.getElementById('betSlider');
@@ -1011,26 +1043,33 @@ async function playerAction(action) {
          if (result.success) {
             showNotification(`Você ${action}${amount > 0 ? ' ' + amount : ''}`, 'success');
             
+            // Obter estado atualizado do jogo
             const gameState = pokerGame.getGameInfo();
+            
+            // Atualizar minhas cartas localmente se necessário
+            const myPlayerInfo = pokerGame.getPlayerInfo(currentUser.uid);
+            if (myPlayerInfo && myPlayerInfo.cards) {
+               myCards = myPlayerInfo.cards;
+            }
+            
+            // Atualizar Firestore
             await updateGameStateInFirestore(gameState);
             
+            // Atualizar interface
             updateInterface();
+            
+            // Desabilitar controles temporariamente
             disablePlayerControls();
             hideRaiseControls();
             
-            if (result.gameState) {
-               tournamentData = {
-                  ...tournamentData,
-                  players: result.gameState.players,
-                  pot: result.gameState.pot,
-                  currentPlayerTurn: result.gameState.currentPlayerTurn,
-                  communityCards: result.gameState.communityCards
-               };
-            }
+            // Parar timer
+            stopActionTimer();
+            
          } else {
             showNotification(`Erro: ${result.error}`, 'error');
          }
       } else {
+         // Fallback: atualizar diretamente no Firestore
          await updatePlayerActionInFirestore(action, amount);
       }
       
@@ -1042,7 +1081,7 @@ async function playerAction(action) {
 function showRaiseControls() {
    if (!isMyTurn()) return;
    
-   const me = tournamentData.players?.find(p => p.userId === currentUser.uid);
+   const me = tournamentData?.players?.find(p => p.userId === currentUser.uid);
    if (!me) return;
    
    const maxBet = me.chips || 0;
@@ -1075,6 +1114,7 @@ function confirmRaise() {
 }
 
 function isMyTurn() {
+   if (!tournamentData || !tournamentData.currentPlayerTurn) return false;
    return tournamentData.currentPlayerTurn === currentUser.uid;
 }
 
@@ -1096,6 +1136,10 @@ function disablePlayerControls() {
    document.getElementById('actionTimerContainer').style.display = 'none';
 }
 
+// =============================================
+// TIMER DE AÇÃO
+// =============================================
+
 function startActionTimer() {
    timeLeft = 30;
    const timerBar = document.getElementById('actionTimerBar');
@@ -1109,6 +1153,7 @@ function startActionTimer() {
       const percentage = (timeLeft / 30) * 100;
       timerBar.style.width = percentage + '%';
       
+      // Mudar cor conforme o tempo
       if (timeLeft <= 10) {
          timerBar.style.background = '#e74c3c';
       } else if (timeLeft <= 20) {
@@ -1116,6 +1161,7 @@ function startActionTimer() {
       }
       
       if (timeLeft <= 0) {
+         // Tempo esgotado - fold automático
          playerAction('fold');
          stopActionTimer();
       }
@@ -1128,6 +1174,10 @@ function stopActionTimer() {
       actionTimerInterval = null;
    }
 }
+
+// =============================================
+// FUNÇÕES AUXILIARES
+// =============================================
 
 function formatCard(card) {
    if (!card) return '?';
@@ -1168,22 +1218,37 @@ function getSuitSymbol(suit) {
 
 async function updateGameStateInFirestore(gameState) {
    try {
-      const firestorePlayers = gameState.players.map(player => ({
-         userId: player.userId,
-         nickname: player.nickname,
-         chips: player.chips,
-         isActive: player.isActive,
-         bet: player.bet || 0,
-         lastAction: player.lastAction,
-         cards: player.cards || [],
-         avatarUrl: player.avatarUrl || ''
-      }));
+      // Buscar estado atual para preservar dados
+      const currentDoc = await db.collection('tournaments').doc(tournamentId).get();
+      const currentData = currentDoc.data();
+      const currentPlayers = currentData?.players || [];
+      
+      const firestorePlayers = gameState.players.map(player => {
+         // Encontrar jogador atual para preservar cartas
+         const currentPlayer = currentPlayers.find(p => p.userId === player.userId);
+         
+         // Se for o jogador atual, usar cartas armazenadas localmente
+         const cards = player.userId === currentUser.uid && myCards.length >= 2 
+            ? myCards 
+            : (currentPlayer?.cards || player.cards || []);
+         
+         return {
+            userId: player.userId,
+            nickname: player.nickname,
+            chips: player.chips,
+            isActive: player.isActive !== undefined ? player.isActive : true,
+            bet: player.bet || 0,
+            lastAction: player.lastAction || null,
+            cards: cards,
+            avatarUrl: player.avatarUrl || ''
+         };
+      });
       
       await db.collection('tournaments').doc(tournamentId).update({
          players: firestorePlayers,
          communityCards: gameState.communityCards || [],
          pot: gameState.pot || 0,
-         currentPlayerTurn: gameState.currentPlayerTurn,
+         currentPlayerTurn: gameState.currentPlayerTurn || (firestorePlayers[0]?.userId || ''),
          currentRound: gameState.round || 'preflop',
          dealerPosition: gameState.dealerPosition || 0,
          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
@@ -1219,6 +1284,7 @@ async function updatePlayerActionInFirestore(action, amount) {
       showNotification(`Você ${action}${amount > 0 ? ' ' + amount : ''}`, 'success');
       
    } catch (error) {
+      console.error('Erro ao atualizar ação:', error);
       showNotification('Erro ao processar ação', 'error');
    }
 }
