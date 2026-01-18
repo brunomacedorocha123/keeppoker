@@ -29,7 +29,8 @@
  
  <!-- Poker Engine (ARQUIVO SEPARADO) -->
  <script src="poker-engine.js"></script>
- <style>
+ 
+<style>
 /* ===== RESET E BASE ===== */
 * {
   margin: 0;
@@ -84,7 +85,7 @@ body {
 /* ===== MESA ===== */
 .table-container {
   position: absolute;
-  top: 45%; /* Centralizado verticalmente */
+  top: 45%;
   left: 50%;
   transform: translate(-50%, -50%);
   width: 70%;
@@ -106,22 +107,23 @@ body {
 
 .table-center {
   position: absolute;
-  top: 55%; /* Abaixei um pouco as cartas comunitárias */
+  top: 52%; /* Centralizado verticalmente */
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 40%;
-  height: 30%; /* Reduzi a altura para centralizar melhor */
+  width: 45%;
+  height: 35%;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 8px;
 }
 
 .community-cards {
   display: flex;
   gap: 8px;
-  margin-top: -10px; /* Ajuste fino para centralização */
+  justify-content: center;
+  align-items: center;
 }
 
 .card-placeholder {
@@ -182,13 +184,13 @@ body {
 /* CARTAS DO JOGADOR - TEXAS HOLD'EM (2 CARTAS) */
 .player-cards {
   position: absolute;
-  left: 85px; /* Espaço para 2 cartas */
+  left: 85px;
   top: 50%;
   transform: translateY(-50%);
   display: flex;
   gap: 5px;
   z-index: 25;
-  width: 90px; /* Espaço para 2 cartas */
+  width: 90px;
 }
 
 .player-card {
@@ -252,47 +254,47 @@ body {
   display: none;
 }
 
-/* ===== POSICIONAMENTO DOS AVATARS (MAIS ESPAÇADOS) ===== */
+/* ===== POSICIONAMENTO DOS AVATARS (REAJUSTADO - BEM ESPAÇADOS) ===== */
 
-/* POSIÇÃO 1: TOPO */
+/* POSIÇÃO 1: TOPO - MAIS PARA CIMA */
 .pos-1 {
-  top: 80px;
+  top: 55px;
   left: 50%;
   transform: translateX(-50%);
 }
 
-/* POSIÇÃO 2: DIREITA SUPERIOR - MAIS AFASTADA */
+/* POSIÇÃO 2: DIREITA SUPERIOR - MAIS PARA CIMA E DIREITA */
 .pos-2 {
-  top: 15%;
-  right: 5%; /* Aumentei de 3% para 5% */
+  top: 8%;
+  right: 6%;
   transform: translateY(0);
 }
 
-/* POSIÇÃO 3: DIREITA INFERIOR - MAIS AFASTADA */
+/* POSIÇÃO 3: DIREITA INFERIOR - MAIS PARA BAIXO E DIREITA */
 .pos-3 {
-  bottom: 30%;
-  right: 5%; /* Aumentei de 3% para 5% */
+  bottom: 22%;
+  right: 6%;
   transform: translateY(0);
 }
 
-/* POSIÇÃO 4: BAIXO (JOGADOR ATUAL) */
+/* POSIÇÃO 4: BAIXO - MAIS PARA CIMA (LONGE DOS CONTROLES) */
 .pos-4 {
-  bottom: 140px;
+  bottom: 160px;
   left: 50%;
   transform: translateX(-50%);
 }
 
-/* POSIÇÃO 5: ESQUERDA INFERIOR - MAIS AFASTADA */
+/* POSIÇÃO 5: ESQUERDA INFERIOR - MAIS PARA BAIXO E ESQUERDA */
 .pos-5 {
-  bottom: 30%;
-  left: 5%; /* Aumentei de 3% para 5% */
+  bottom: 22%;
+  left: 6%;
   transform: translateY(0);
 }
 
-/* POSIÇÃO 6: ESQUERDA SUPERIOR - MAIS AFASTADA */
+/* POSIÇÃO 6: ESQUERDA SUPERIOR - MAIS PARA CIMA E ESQUERDA */
 .pos-6 {
-  top: 15%;
-  left: 5%; /* Aumentei de 3% para 5% */
+  top: 8%;
+  left: 6%;
   transform: translateY(0);
 }
 
@@ -306,7 +308,7 @@ body {
   display: block;
 }
 
-/* ===== CONTROLES ===== */
+/* ===== CONTROLES (REAJUSTADO) ===== */
 .controls-container {
   position: fixed;
   bottom: 20px;
@@ -319,44 +321,39 @@ body {
 
 .controls {
   background: rgba(13, 27, 42, 0.95);
-  padding: 15px 30px; /* Aumentei o padding */
+  padding: 18px 35px;
   border-radius: 12px;
   border: 2px solid #d4af37;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 12px;
-  width: 450px; /* Aumentei a largura */
+  width: 500px; /* Mais largo */
   height: auto;
-  min-height: 120px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6);
+  min-height: 130px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.7);
 }
 
-/* REMOVER CARTAS DOS CONTROLES (AS INTERROGAÇÕES) */
-.your-cards {
-  display: none !important; /* Esconde as cartas com ? dos controles */
-}
-
-/* BOTÕES DE AÇÃO */
+/* BOTÕES DE AÇÃO - MELHOR DISTRIBUÍDOS */
 .action-buttons {
   display: flex;
-  gap: 10px;
+  gap: 12px;
   flex-wrap: wrap;
   justify-content: center;
   width: 100%;
 }
 
 .action-btn {
-  padding: 10px 20px;
+  padding: 12px 20px;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   font-weight: bold;
   cursor: pointer;
-  min-width: 85px;
-  font-size: 0.95em;
+  min-width: 90px;
+  font-size: 1em;
   transition: all 0.3s;
   flex: 1;
-  max-width: 90px;
+  max-width: 95px;
 }
 
 .btn-fold { background: #e74c3c; color: white; }
@@ -366,8 +363,8 @@ body {
 .btn-allin { background: #e67e22; color: white; }
 
 .action-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+  transform: translateY(-3px);
+  box-shadow: 0 5px 12px rgba(0,0,0,0.4);
 }
 
 .action-btn:disabled {
@@ -379,7 +376,7 @@ body {
 /* CONTROLE DE APOSTA */
 .bet-controls {
   display: flex;
-  gap: 12px;
+  gap: 15px;
   align-items: center;
   margin-top: 5px;
   width: 100%;
@@ -397,32 +394,33 @@ body {
 
 .bet-slider::-webkit-slider-thumb {
   -webkit-appearance: none;
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
   background: #d4af37;
   cursor: pointer;
+  border: 2px solid white;
 }
 
 .bet-amount {
   background: rgba(212, 175, 55, 0.2);
-  padding: 6px 12px;
-  border-radius: 6px;
+  padding: 8px 15px;
+  border-radius: 8px;
   font-weight: bold;
   color: #ffd700;
-  min-width: 70px;
+  min-width: 80px;
   text-align: center;
-  font-size: 0.9em;
+  font-size: 1em;
   border: 1px solid rgba(212, 175, 55, 0.3);
 }
 
 /* TIMER DE AÇÃO */
 .action-timer {
   width: 100%;
-  height: 5px;
+  height: 6px;
   background: rgba(255,255,255,0.1);
   border-radius: 3px;
-  margin-top: 5px;
+  margin-top: 8px;
   overflow: hidden;
   display: none;
 }
@@ -440,13 +438,16 @@ body {
   top: 70px;
   left: 50%;
   transform: translateX(-50%);
-  background: rgba(0,0,0,0.8);
-  padding: 10px 20px;
+  background: rgba(0,0,0,0.9);
+  padding: 12px 25px;
   border-radius: 20px;
-  border: 1px solid #d4af37;
+  border: 2px solid #d4af37;
   z-index: 1000;
   font-weight: bold;
+  font-size: 1.1em;
   display: none;
+  text-align: center;
+  min-width: 300px;
 }
 
 /* ===== RESPONSIVIDADE ===== */
@@ -458,81 +459,87 @@ body {
   }
 
   .avatar {
-    width: 50px;
-    height: 50px;
+    width: 55px;
+    height: 55px;
     font-size: 1.2em;
   }
 
   .player-cards {
-    left: 60px;
+    left: 65px;
+    width: 80px;
+  }
+
+  .player-card {
+    width: 35px;
+    height: 49px;
+    font-size: 0.9em;
+  }
+
+  /* POSIÇÕES MOBILE - AINDA BEM ESPAÇADAS */
+  .pos-1 { top: 50px; }
+  .pos-2 { top: 7%; right: 4%; }
+  .pos-6 { top: 7%; left: 4%; }
+  .pos-3 { bottom: 20%; right: 4%; }
+  .pos-5 { bottom: 20%; left: 4%; }
+  .pos-4 { bottom: 150px; }
+
+  .controls {
+    width: 92%;
+    padding: 15px 25px;
+    min-height: 120px;
+  }
+
+  .action-btn {
+    padding: 10px 16px;
+    min-width: 80px;
+    font-size: 0.9em;
+    max-width: 85px;
+  }
+}
+
+@media (max-width: 480px) {
+  .avatar {
+    width: 45px;
+    height: 45px;
+    font-size: 1em;
+  }
+
+  .player-cards {
+    left: 55px;
     width: 70px;
   }
 
   .player-card {
     width: 30px;
     height: 42px;
-    font-size: 0.9em;
+    font-size: 0.85em;
   }
 
-  /* POSIÇÕES MOBILE - MAIS ESPAÇADAS */
-  .pos-1 { top: 65px; }
-  .pos-2 { top: 15%; right: 4%; }
-  .pos-6 { top: 15%; left: 4%; }
-  .pos-3 { bottom: 25%; right: 4%; }
-  .pos-5 { bottom: 25%; left: 4%; }
-  .pos-4 { bottom: 120px; }
+  /* POSIÇÕES MOBILE PEQUENO - AINDA ESPAÇADAS */
+  .pos-1 { top: 50px; }
+  .pos-2 { top: 8%; right: 3%; }
+  .pos-6 { top: 8%; left: 3%; }
+  .pos-3 { bottom: 22%; right: 3%; }
+  .pos-5 { bottom: 22%; left: 3%; }
+  .pos-4 { bottom: 140px; }
 
   .controls {
-    width: 90%;
+    width: 96%;
     padding: 12px 20px;
     min-height: 110px;
   }
 
   .action-btn {
-    padding: 8px 16px;
-    min-width: 75px;
+    padding: 8px 14px;
+    min-width: 70px;
     font-size: 0.85em;
-    max-width: 80px;
+    max-width: 75px;
   }
-}
-
-@media (max-width: 480px) {
-  .avatar {
-    width: 40px;
-    height: 40px;
-    font-size: 1em;
-  }
-
-  .player-cards {
-    left: 50px;
-    width: 60px;
-  }
-
-  .player-card {
-    width: 25px;
-    height: 35px;
-    font-size: 0.8em;
-  }
-
-  /* POSIÇÕES MOBILE PEQUENO */
-  .pos-1 { top: 65px; }
-  .pos-2 { top: 16%; right: 3%; }
-  .pos-6 { top: 16%; left: 3%; }
-  .pos-3 { bottom: 26%; right: 3%; }
-  .pos-5 { bottom: 26%; left: 3%; }
-  .pos-4 { bottom: 110px; }
-
-  .controls {
-    width: 95%;
-    padding: 10px 15px;
-    min-height: 100px;
-  }
-
-  .action-btn {
-    padding: 7px 12px;
-    min-width: 65px;
-    font-size: 0.8em;
-    max-width: 70px;
+  
+  .bet-controls {
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
   }
 }
 </style>
@@ -607,33 +614,29 @@ body {
 </div>
 
  <!-- CONTROLES (FORA DA MESA) -->
- <div class="controls" id="playerControls">
-  <!-- SUAS CARTAS -->
-  <div class="your-cards">
-   <div class="your-card" id="card1">?</div>
-   <div class="your-card" id="card2">?</div>
-  </div>
-  
-  <!-- BOTÕES DE AÇÃO -->
-  <div class="action-buttons" id="actionButtons">
-   <button class="action-btn btn-fold" onclick="playerAction('fold')">Fold</button>
-   <button class="action-btn btn-check" onclick="playerAction('check')">Check</button>
-   <button class="action-btn btn-call" onclick="playerAction('call')">Call</button>
-   <button class="action-btn btn-raise" onclick="showRaiseControls()">Raise</button>
-   <button class="action-btn btn-allin" onclick="playerAction('allin')">All-in</button>
-  </div>
-  
-  <!-- CONTROLE DE APOSTA -->
-  <div class="bet-controls" id="raiseControls">
-   <input type="range" min="0" max="100" value="0" class="bet-slider" id="betSlider" oninput="updateBetAmount()">
-   <div class="bet-amount" id="betAmount">0</div>
-   <button class="action-btn btn-raise" onclick="confirmRaise()">Confirmar</button>
-   <button class="action-btn btn-fold" onclick="hideRaiseControls()">Cancelar</button>
-  </div>
-  
-  <!-- TIMER DE AÇÃO -->
-  <div class="action-timer" id="actionTimerContainer">
-   <div class="timer-bar" id="actionTimerBar"></div>
+ <div class="controls-container">
+  <div class="controls" id="playerControls">
+   <!-- BOTÕES DE AÇÃO -->
+   <div class="action-buttons" id="actionButtons">
+    <button class="action-btn btn-fold" onclick="playerAction('fold')">Fold</button>
+    <button class="action-btn btn-check" onclick="playerAction('check')">Check</button>
+    <button class="action-btn btn-call" onclick="playerAction('call')">Call</button>
+    <button class="action-btn btn-raise" onclick="showRaiseControls()">Raise</button>
+    <button class="action-btn btn-allin" onclick="playerAction('allin')">All-in</button>
+   </div>
+   
+   <!-- CONTROLE DE APOSTA -->
+   <div class="bet-controls" id="raiseControls">
+    <input type="range" min="0" max="100" value="0" class="bet-slider" id="betSlider" oninput="updateBetAmount()">
+    <div class="bet-amount" id="betAmount">0</div>
+    <button class="action-btn btn-raise" onclick="confirmRaise()">Confirmar</button>
+    <button class="action-btn btn-fold" onclick="hideRaiseControls()">Cancelar</button>
+   </div>
+   
+   <!-- TIMER DE AÇÃO -->
+   <div class="action-timer" id="actionTimerContainer">
+    <div class="timer-bar" id="actionTimerBar"></div>
+   </div>
   </div>
  </div>
 
@@ -992,14 +995,6 @@ body {
       myCardsContainer.style.display = 'flex';
      }
     }
-    
-    // Remover cartas antigas (se ainda existirem)
-    const oldCard1 = document.getElementById('card1');
-    const oldCard2 = document.getElementById('card2');
-    if (oldCard1 && oldCard2) {
-     oldCard1.style.display = 'none';
-     oldCard2.style.display = 'none';
-    }
    }
   }
   
@@ -1112,13 +1107,6 @@ body {
    if (slider) {
     slider.addEventListener('input', updateBetAmount);
    }
-   
-   // Configurar botões de ação
-   document.getElementById('btnFold').addEventListener('click', () => playerAction('fold'));
-   document.getElementById('btnCheck').addEventListener('click', () => playerAction('check'));
-   document.getElementById('btnCall').addEventListener('click', () => playerAction('call'));
-   document.getElementById('btnRaise').addEventListener('click', showRaiseControls);
-   document.getElementById('btnAllin').addEventListener('click', () => playerAction('allin'));
   }
   
   async function playerAction(action) {
