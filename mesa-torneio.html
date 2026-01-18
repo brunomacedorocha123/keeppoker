@@ -56,10 +56,10 @@ body {
   font-weight: bold;
 }
 
-/* ===== MESA - MAIS PRA CIMA ===== */
+/* ===== MESA ===== */
 .table-container {
   position: absolute;
-  top: 45%; /* MAIS PRA CIMA (antes 48%) */
+  top: 45%;
   left: 50%;
   transform: translate(-50%, -50%);
   width: 70%;
@@ -153,41 +153,41 @@ body {
   display: none;
 }
 
-/* ===== POSICIONAMENTO DOS AVATARS - POSIÇÃO 1 MAIS PRA CIMA ===== */
+/* ===== POSICIONAMENTO DOS AVATARS ===== */
 
-/* POSIÇÃO 1: TOPO (VOCÊ) - MAIS PRA CIMA */
+/* POSIÇÃO 1: TOPO (VOCÊ) - SOMENTE ESSE MOVIDO PRA CIMA */
 .pos-1 {
-  top: 0.5%; /* MAIS PRA CIMA (antes 1.5%) */
+  top: -1%; /* NEGATIVO - bem mais pra cima (antes 0.5%) */
   left: 50%;
   transform: translateX(-50%);
 }
 
-/* POSIÇÃO 2: DIREITA SUPERIOR */
+/* POSIÇÃO 2: DIREITA SUPERIOR - MANTÉM */
 .pos-2 {
   top: 16.5%;
   right: 1.5%;
 }
 
-/* POSIÇÃO 3: DIREITA INFERIOR */
+/* POSIÇÃO 3: DIREITA INFERIOR - MANTÉM */
 .pos-3 {
   bottom: 16.5%;
   right: 1.5%;
 }
 
-/* POSIÇÃO 4: BAIXO CENTRO */
+/* POSIÇÃO 4: BAIXO CENTRO - MANTÉM */
 .pos-4 {
   bottom: 1.5%;
   left: 50%;
   transform: translateX(-50%);
 }
 
-/* POSIÇÃO 5: ESQUERDA INFERIOR */
+/* POSIÇÃO 5: ESQUERDA INFERIOR - MANTÉM */
 .pos-5 {
   bottom: 16.5%;
   left: 1.5%;
 }
 
-/* POSIÇÃO 6: ESQUERDA SUPERIOR */
+/* POSIÇÃO 6: ESQUERDA SUPERIOR - MANTÉM */
 .pos-6 {
   top: 16.5%;
   left: 1.5%;
@@ -267,7 +267,7 @@ body {
   .table-container {
     width: 85%;
     height: 50%;
-    top: 44%; /* MAIS PRA CIMA proporcional */
+    top: 44%;
   }
   
   .avatar {
@@ -276,11 +276,14 @@ body {
     font-size: 1.2em;
   }
   
-  .pos-1 { top: 0.2%; } /* MAIS PRA CIMA mobile */
-  .pos-4 { bottom: 1%; }
+  /* SOMENTE POSIÇÃO 1 AJUSTADA NO MOBILE */
+  .pos-1 { top: -2%; } /* MAIS PRA CIMA no mobile */
+  
+  /* OS OUTROS 5 MANTÊM */
   .pos-2, .pos-6 { top: 14.5%; }
   .pos-3, .pos-5 { bottom: 14.5%; }
   .pos-2, .pos-3 { right: 1%; }
+  .pos-4 { bottom: 1%; left: 50%; transform: translateX(-50%); }
   .pos-5, .pos-6 { left: 1%; }
   
   .controls {
@@ -323,14 +326,17 @@ body {
   }
   
   .table-container {
-    top: 43%; /* MAIS PRA CIMA mobile */
+    top: 43%;
   }
   
-  .pos-1 { top: 0%; } /* MAIS PRA CIMA mobile */
-  .pos-4 { bottom: 0.5%; }
+  /* SOMENTE POSIÇÃO 1 AJUSTADA NO MOBILE PEQUENO */
+  .pos-1 { top: -3%; } /* AINDA MAIS PRA CIMA */
+  
+  /* OS OUTROS 5 MANTÊM */
   .pos-2, .pos-6 { top: 12.5%; }
   .pos-3, .pos-5 { bottom: 12.5%; }
   .pos-2, .pos-3 { right: 0.5%; }
+  .pos-4 { bottom: 0.5%; left: 50%; transform: translateX(-50%); }
   .pos-5, .pos-6 { left: 0.5%; }
   
   .controls {
