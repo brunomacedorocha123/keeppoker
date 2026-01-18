@@ -31,514 +31,514 @@
  <script src="poker-engine.js"></script>
  
  <style>
- /* ===== RESET ===== */
- * {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
- }
+/* ===== RESET ===== */
+* {
+ margin: 0;
+ padding: 0;
+ box-sizing: border-box;
+}
 
+/* ===== BASE ===== */
+body {
+ background: #0a1520;
+ color: white;
+ font-family: 'Segoe UI', sans-serif;
+ height: 100vh;
+ overflow: hidden;
+}
 
- /* ===== BASE ===== */
- body {
-  background: #0a1520;
-  color: white;
-  font-family: 'Segoe UI', sans-serif;
-  height: 100vh;
-  overflow: hidden;
- }
+/* ===== CABEÇALHO ===== */
+.header {
+ height: 60px;
+ background: rgba(13, 27, 42, 0.9);
+ border-bottom: 2px solid #d4af37;
+ display: flex;
+ justify-content: space-between;
+ align-items: center;
+ padding: 0 20px;
+ position: fixed;
+ top: 0;
+ left: 0;
+ right: 0;
+ z-index: 100;
+}
 
+.tournament-info {
+ font-size: 1.1em;
+ color: #d4af37;
+ font-weight: bold;
+}
 
- /* ===== CABEÇALHO ===== */
- .header {
-  height: 60px;
-  background: rgba(13, 27, 42, 0.9);
-  border-bottom: 2px solid #d4af37;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0 20px;
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 100;
- }
+.game-stats {
+ display: flex;
+ gap: 20px;
+}
 
+.stat {
+ background: rgba(212, 175, 55, 0.15);
+ padding: 6px 12px;
+ border-radius: 12px;
+ border: 1px solid rgba(212, 175, 55, 0.3);
+ font-weight: bold;
+}
 
- .tournament-info {
-  font-size: 1.1em;
-  color: #d4af37;
-  font-weight: bold;
- }
+/* ===== MESA ===== */
+.table-container {
+ position: absolute;
+ top: 45%;
+ left: 50%;
+ transform: translate(-50%, -50%);
+ width: 70%;
+ height: 55%;
+ z-index: 1;
+}
 
+/* MESA FORMATO SALSICHA */
+.poker-table {
+ width: 100%;
+ height: 100%;
+ background: #0a5c36;
+ border: 15px solid #8B4513;
+ border-radius: 50% / 40%; /* Formato salsicha */
+ box-shadow:
+  inset 0 0 40px rgba(0, 0, 0, 0.6),
+  0 0 30px rgba(0, 0, 0, 0.7);
+ position: relative;
+}
 
- .game-stats {
-  display: flex;
-  gap: 20px;
- }
+/* ÁREA CENTRAL DA MESA */
+.table-center {
+ position: absolute;
+ top: 50%;
+ left: 50%;
+ transform: translate(-50%, -50%);
+ width: 40%;
+ height: 40%;
+ display: flex;
+ flex-direction: column;
+ align-items: center;
+ justify-content: center;
+ gap: 15px;
+}
 
+/* CARTAS COMUNITÁRIAS */
+.community-cards {
+ display: flex;
+ gap: 8px;
+}
 
- .stat {
-  background: rgba(212, 175, 55, 0.15);
-  padding: 6px 12px;
-  border-radius: 12px;
-  border: 1px solid rgba(212, 175, 55, 0.3);
-  font-weight: bold;
- }
+.card-placeholder {
+ width: 50px;
+ height: 70px;
+ background: white;
+ border-radius: 5px;
+ border: 2px solid #333;
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ font-weight: bold;
+ font-size: 1.2em;
+ box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+ color: #2c3e50;
+}
 
+/* POT */
+.pot {
+ color: #d4af37;
+ font-size: 1.4em;
+ font-weight: bold;
+}
 
- /* ===== MESA ===== */
+/* ===== AVATARS ===== */
+.avatar-container {
+ position: absolute;
+ display: flex;
+ flex-direction: column;
+ align-items: center;
+ z-index: 10;
+}
+
+/* AVATAR CIRCULAR */
+.avatar {
+ width: 70px;
+ height: 70px;
+ border-radius: 50%;
+ background: linear-gradient(135deg, #415a77, #1b263b);
+ border: 3px solid #d4af37;
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ color: white;
+ font-size: 1.4em;
+ margin-bottom: 5px;
+ box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+ position: relative;
+ overflow: hidden;
+}
+
+.avatar img {
+ width: 100%;
+ height: 100%;
+ object-fit: cover;
+ border-radius: 50%;
+}
+
+/* CARTAS DO JOGADOR (AO LADO DO AVATAR) */
+.player-cards {
+ position: absolute;
+ left: 85px; /* Ao lado direito do avatar */
+ top: 50%;
+ transform: translateY(-50%);
+ display: flex;
+ gap: 5px;
+ z-index: 20;
+}
+
+.player-card {
+ width: 40px;
+ height: 56px;
+ background: white;
+ border-radius: 4px;
+ border: 2px solid #000;
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ font-weight: bold;
+ font-size: 1em;
+ color: #000;
+ box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
+/* CHIPS DO JOGADOR */
+.player-chips {
+ background: rgba(0, 0, 0, 0.7);
+ color: #ffd700;
+ padding: 4px 8px;
+ border-radius: 10px;
+ font-size: 0.9em;
+ font-weight: bold;
+ margin-top: 5px;
+ min-width: 80px;
+ text-align: center;
+}
+
+/* JOGADOR ATUAL (vez) */
+.current-turn .avatar {
+ border-color: #00ff00;
+ box-shadow: 0 0 15px rgba(0, 255, 0, 0.5);
+}
+
+/* APOSTA DO JOGADOR */
+.player-bet {
+ position: absolute;
+ top: -15px;
+ background: rgba(212, 175, 55, 0.9);
+ color: #000;
+ padding: 3px 8px;
+ border-radius: 10px;
+ font-weight: bold;
+ font-size: 0.8em;
+ white-space: nowrap;
+}
+
+/* FOLDED/INATIVO */
+.player-folded .avatar {
+ opacity: 0.5;
+ border-color: #666;
+}
+
+/* INFO DO JOGADOR (SÓ APARECE PARA VOCÊ) */
+.player-info {
+ background: rgba(13, 27, 42, 0.95);
+ padding: 8px 12px;
+ border-radius: 8px;
+ border: 1px solid rgba(212, 175, 55, 0.3);
+ text-align: center;
+ min-width: 100px;
+ font-size: 0.9em;
+ display: none;
+}
+
+/* ===== POSICIONAMENTO DOS AVATARS ===== */
+
+/* POSIÇÃO 1: TOPO (VOCÊ) - MAIS PRA CIMA */
+.pos-1 {
+ top: -10%; /* SUBIU MAIS */
+ left: 50%;
+ transform: translateX(-50%);
+}
+
+/* POSIÇÃO 2: DIREITA SUPERIOR - MAIS AFASTADO */
+.pos-2 {
+ top: 15%; /* AJUSTADO */
+ right: 5%; /* MAIS AFASTADO */
+}
+
+/* POSIÇÃO 3: DIREITA INFERIOR - MAIS AFASTADO */
+.pos-3 {
+ bottom: 15%; /* AJUSTADO */
+ right: 5%; /* MAIS AFASTADO */
+}
+
+/* POSIÇÃO 4: BAIXO CENTRO - MAIS PRA BAIXO */
+.pos-4 {
+ bottom: -8%; /* DESCEU MAIS */
+ left: 50%;
+ transform: translateX(-50%);
+}
+
+/* POSIÇÃO 5: ESQUERDA INFERIOR - MAIS AFASTADO */
+.pos-5 {
+ bottom: 15%; /* AJUSTADO */
+ left: 5%; /* MAIS AFASTADO */
+}
+
+/* POSIÇÃO 6: ESQUERDA SUPERIOR - MAIS AFASTADO */
+.pos-6 {
+ top: 15%; /* AJUSTADO */
+ left: 5%; /* MAIS AFASTADO */
+}
+
+/* AVATAR DO JOGADOR (VOCÊ) */
+.player-you .avatar {
+ border-color: #3498db;
+ box-shadow: 0 0 15px rgba(52, 152, 219, 0.5);
+}
+
+.player-you .player-info {
+ display: block;
+}
+
+/* ===== CONTROLES ===== */
+.controls {
+ position: fixed;
+ bottom: 10px;
+ left: 50%;
+ transform: translateX(-50%);
+ background: rgba(13, 27, 42, 0.95);
+ padding: 12px 15px; /* REDUZIDO PADDING (menor altura) */
+ border-radius: 12px;
+ border: 2px solid #d4af37;
+ display: flex;
+ flex-direction: column;
+ align-items: center;
+ gap: 10px; /* REDUZIDO GAP */
+ z-index: 100;
+ min-width: 400px;
+ box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+ max-height: 140px; /* ALTURA MÁXIMA REDUZIDA */
+}
+
+/* SUAS CARTAS (FORA DA MESA) - REMOVIDAS (agora ficam ao lado do avatar) */
+
+/* BOTÕES DE AÇÃO */
+.action-buttons {
+ display: flex;
+ gap: 8px;
+}
+
+.action-btn {
+ padding: 10px 18px; /* BOTÕES MANTÊM TAMANHO */
+ border: none;
+ border-radius: 8px;
+ font-weight: bold;
+ cursor: pointer;
+ min-width: 80px;
+ font-size: 0.9em;
+ transition: all 0.3s;
+}
+
+.btn-fold { background: #e74c3c; color: white; }
+.btn-check { background: #3498db; color: white; }
+.btn-call { background: #2ecc71; color: white; }
+.btn-raise { background: #9b59b6; color: white; }
+.btn-allin { background: #e67e22; color: white; }
+
+.action-btn:hover {
+ transform: translateY(-2px);
+ box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+.action-btn:disabled {
+ opacity: 0.5;
+ cursor: not-allowed;
+ transform: none;
+}
+
+/* CONTROLE DE APOSTA */
+.bet-controls {
+ display: flex;
+ gap: 10px;
+ align-items: center;
+ margin-top: 8px; /* REDUZIDO */
+ display: none;
+}
+
+.bet-slider {
+ flex: 1;
+ height: 8px;
+ background: rgba(255,255,255,0.1);
+ border-radius: 4px;
+ outline: none;
+}
+
+.bet-amount {
+ background: rgba(212, 175, 55, 0.2);
+ padding: 6px 12px; /* REDUZIDO */
+ border-radius: 8px;
+ font-weight: bold;
+ color: #ffd700;
+ min-width: 70px; /* REDUZIDO */
+ text-align: center;
+ font-size: 0.9em;
+}
+
+/* TIMER DE AÇÃO */
+.action-timer {
+ width: 100%;
+ height: 5px; /* REDUZIDO */
+ background: rgba(255,255,255,0.1);
+ border-radius: 3px;
+ margin-top: 8px; /* REDUZIDO */
+ overflow: hidden;
+ display: none;
+}
+
+.timer-bar {
+ height: 100%;
+ background: linear-gradient(90deg, #2ecc71, #e67e22, #e74c3c);
+ width: 100%;
+ transition: width 1s linear;
+}
+
+/* MENSAGEM DE STATUS */
+.status-message {
+ position: fixed;
+ top: 70px;
+ left: 50%;
+ transform: translateX(-50%);
+ background: rgba(0,0,0,0.8);
+ padding: 10px 20px;
+ border-radius: 20px;
+ border: 1px solid #d4af37;
+ z-index: 1000;
+ font-weight: bold;
+ display: none;
+}
+
+/* ===== RESPONSIVIDADE ===== */
+@media (max-width: 768px) {
  .table-container {
-  position: absolute;
-  top: 45%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 70%;
-  height: 55%;
-  z-index: 1;
+  width: 85%;
+  height: 50%;
+  top: 44%;
  }
 
-
- /* MESA FORMATO SALSICHA */
- .poker-table {
-  width: 100%;
-  height: 100%;
-  background: #0a5c36;
-  border: 15px solid #8B4513;
-  border-radius: 50% / 40%; /* Formato salsicha */
-  box-shadow:
-   inset 0 0 40px rgba(0, 0, 0, 0.6),
-   0 0 30px rgba(0, 0, 0, 0.7);
-  position: relative;
- }
-
-
- /* ÁREA CENTRAL DA MESA */
- .table-center {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 40%;
-  height: 40%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 15px;
- }
-
-
- /* CARTAS COMUNITÁRIAS */
- .community-cards {
-  display: flex;
-  gap: 8px;
- }
-
-
- .card-placeholder {
-  width: 50px;
-  height: 70px;
-  background: white;
-  border-radius: 5px;
-  border: 2px solid #333;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-  font-size: 1.2em;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-  color: #2c3e50;
- }
-
- /* POT */
- .pot {
-  color: #d4af37;
-  font-size: 1.4em;
-  font-weight: bold;
- }
-
-
- /* ===== AVATARS ===== */
- .avatar-container {
-  position: absolute;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  z-index: 10;
- }
-
-
- /* AVATAR CIRCULAR */
  .avatar {
-  width: 70px;
-  height: 70px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #415a77, #1b263b);
-  border: 3px solid #d4af37;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-size: 1.4em;
-  margin-bottom: 5px;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
-  position: relative;
-  overflow: hidden;
+  width: 50px;
+  height: 50px;
+  font-size: 1.2em;
  }
 
- .avatar img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  border-radius: 50%;
+ .player-cards {
+  left: 60px;
  }
 
- /* CHIPS DO JOGADOR */
- .player-chips {
-  background: rgba(0, 0, 0, 0.7);
-  color: #ffd700;
-  padding: 4px 8px;
-  border-radius: 10px;
+ .player-card {
+  width: 30px;
+  height: 42px;
   font-size: 0.9em;
-  font-weight: bold;
-  margin-top: 5px;
-  min-width: 80px;
-  text-align: center;
  }
 
- /* JOGADOR ATUAL (vez) */
- .current-turn .avatar {
-  border-color: #00ff00;
-  box-shadow: 0 0 15px rgba(0, 255, 0, 0.5);
- }
+ /* POSIÇÕES MOBILE */
+ .pos-1 { top: -12%; }
+ .pos-2 { top: 12%; right: 3%; }
+ .pos-6 { top: 12%; left: 3%; }
+ .pos-3 { bottom: 12%; right: 3%; }
+ .pos-5 { bottom: 12%; left: 3%; }
+ .pos-4 { bottom: -10%; }
 
- /* APOSTA DO JOGADOR */
- .player-bet {
-  position: absolute;
-  top: -15px;
-  background: rgba(212, 175, 55, 0.9);
-  color: #000;
-  padding: 3px 8px;
-  border-radius: 10px;
-  font-weight: bold;
-  font-size: 0.8em;
-  white-space: nowrap;
- }
-
- /* FOLDED/INATIVO */
- .player-folded .avatar {
-  opacity: 0.5;
-  border-color: #666;
- }
-
- /* INFO DO JOGADOR (SÓ APARECE PARA VOCÊ) */
- .player-info {
-  background: rgba(13, 27, 42, 0.95);
-  padding: 8px 12px;
-  border-radius: 8px;
-  border: 1px solid rgba(212, 175, 55, 0.3);
-  text-align: center;
-  min-width: 100px;
-  font-size: 0.9em;
-  display: none;
- }
-
-
- /* ===== POSICIONAMENTO DOS AVATARS ===== */
-
-
- /* POSIÇÃO 1: TOPO (VOCÊ) - MAIS PRA CIMA AGORA */
- .pos-1 {
-  top: -5%;
-  left: 50%;
-  transform: translateX(-50%);
- }
-
-
- /* POSIÇÃO 2: DIREITA SUPERIOR */
- .pos-2 {
-  top: 16.5%;
-  right: 1.5%;
- }
-
-
- /* POSIÇÃO 3: DIREITA INFERIOR */
- .pos-3 {
-  bottom: 16.5%;
-  right: 1.5%;
- }
-
-
- /* POSIÇÃO 4: BAIXO CENTRO */
- .pos-4 {
-  bottom: 1.5%;
-  left: 50%;
-  transform: translateX(-50%);
- }
-
-
- /* POSIÇÃO 5: ESQUERDA INFERIOR */
- .pos-5 {
-  bottom: 16.5%;
-  left: 1.5%;
- }
-
-
- /* POSIÇÃO 6: ESQUERDA SUPERIOR */
- .pos-6 {
-  top: 16.5%;
-  left: 1.5%;
- }
-
-
- /* AVATAR DO JOGADOR (VOCÊ) */
- .player-you .avatar {
-  border-color: #3498db;
-  box-shadow: 0 0 15px rgba(52, 152, 219, 0.5);
- }
-
-
- .player-you .player-info {
-  display: block;
- }
-
-
- /* ===== CONTROLES ===== */
  .controls {
-  position: fixed;
-  bottom: 10px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(13, 27, 42, 0.95);
-  padding: 15px;
-  border-radius: 12px;
-  border: 2px solid #d4af37;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  z-index: 100;
-  min-width: 400px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+  min-width: 90%;
+  padding: 10px 12px;
+  bottom: 8px;
+  max-height: 130px;
  }
-
-
- /* SUAS CARTAS (FORA DA MESA) */
- .your-cards {
-  display: flex;
-  gap: 10px;
- }
-
-
- .your-card {
-  width: 60px;
-  height: 84px;
-  background: white;
-  border-radius: 6px;
-  border: 2px solid #000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.5em;
-  font-weight: bold;
-  color: #000;
-  box-shadow: 0 3px 10px rgba(0,0,0,0.3);
- }
-
-
- /* BOTÕES DE AÇÃO */
- .action-buttons {
-  display: flex;
-  gap: 8px;
- }
-
 
  .action-btn {
-  padding: 12px 20px;
-  border: none;
-  border-radius: 8px;
-  font-weight: bold;
-  cursor: pointer;
-  min-width: 80px;
+  padding: 8px 15px;
+  min-width: 70px;
   font-size: 0.9em;
-  transition: all 0.3s;
- }
-
-
- .btn-fold { background: #e74c3c; color: white; }
- .btn-check { background: #3498db; color: white; }
- .btn-call { background: #2ecc71; color: white; }
- .btn-raise { background: #9b59b6; color: white; }
- .btn-allin { background: #e67e22; color: white; }
-
- .action-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
- }
-
- .action-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  transform: none;
- }
-
- /* CONTROLE DE APOSTA */
- .bet-controls {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  margin-top: 10px;
-  display: none;
- }
-
- .bet-slider {
-  flex: 1;
-  height: 8px;
-  background: rgba(255,255,255,0.1);
-  border-radius: 4px;
-  outline: none;
  }
 
  .bet-amount {
-  background: rgba(212, 175, 55, 0.2);
-  padding: 8px 15px;
-  border-radius: 8px;
-  font-weight: bold;
-  color: #ffd700;
-  min-width: 80px;
-  text-align: center;
+  padding: 5px 10px;
+  min-width: 60px;
+  font-size: 0.8em;
+ }
+}
+
+@media (max-width: 480px) {
+ .header {
+  padding: 0 10px;
  }
 
- /* TIMER DE AÇÃO */
- .action-timer {
-  width: 100%;
-  height: 6px;
-  background: rgba(255,255,255,0.1);
-  border-radius: 3px;
-  margin-top: 10px;
-  overflow: hidden;
-  display: none;
+ .game-stats {
+  gap: 10px;
  }
 
- .timer-bar {
-  height: 100%;
-  background: linear-gradient(90deg, #2ecc71, #e67e22, #e74c3c);
-  width: 100%;
-  transition: width 1s linear;
+ .stat {
+  padding: 4px 8px;
+  font-size: 0.9em;
  }
 
- /* MENSAGEM DE STATUS */
- .status-message {
-  position: fixed;
-  top: 70px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(0,0,0,0.8);
-  padding: 10px 20px;
-  border-radius: 20px;
-  border: 1px solid #d4af37;
-  z-index: 1000;
-  font-weight: bold;
-  display: none;
+ .avatar {
+  width: 40px;
+  height: 40px;
+  font-size: 1em;
  }
 
- /* ===== RESPONSIVIDADE ===== */
- @media (max-width: 768px) {
-  .table-container {
-   width: 85%;
-   height: 50%;
-   top: 44%;
-  }
-
-  .avatar {
-   width: 50px;
-   height: 50px;
-   font-size: 1.2em;
-  }
-
-  /* POSIÇÃO 1 MAIS PRA CIMA NO MOBILE */
-  .pos-1 { top: -8%; }
-
-  /* OS OUTROS 5 MANTÊM */
-  .pos-2, .pos-6 { top: 14.5%; }
-  .pos-3, .pos-5 { bottom: 14.5%; }
-  .pos-2, .pos-3 { right: 1%; }
-  .pos-4 { bottom: 1%; left: 50%; transform: translateX(-50%); }
-  .pos-5, .pos-6 { left: 1%; }
-
-  .controls {
-   min-width: 90%;
-   padding: 12px;
-   bottom: 8px;
-  }
-
-  .action-btn {
-   padding: 8px 15px;
-   min-width: 70px;
-   font-size: 0.9em;
-  }
-
-  .your-card {
-   width: 40px;
-   height: 56px;
-   font-size: 1.1em;
-  }
+ .player-cards {
+  left: 50px;
  }
 
-
- @media (max-width: 480px) {
-  .header {
-   padding: 0 10px;
-  }
-
-  .game-stats {
-   gap: 10px;
-  }
-
-  .stat {
-   padding: 4px 8px;
-   font-size: 0.9em;
-  }
-
-  .avatar {
-   width: 40px;
-   height: 40px;
-   font-size: 1em;
-  }
-
-  .table-container {
-   top: 43%;
-  }
-
-  /* POSIÇÃO 1 AINDA MAIS PRA CIMA NO MOBILE PEQUENO */
-  .pos-1 { top: -12%; }
-
-  /* OS OUTROS 5 MANTÊM */
-  .pos-2, .pos-6 { top: 12.5%; }
-  .pos-3, .pos-5 { bottom: 12.5%; }
-  .pos-2, .pos-3 { right: 0.5%; }
-  .pos-4 { bottom: 0.5%; left: 50%; transform: translateX(-50%); }
-  .pos-5, .pos-6 { left: 0.5%; }
-
-  .controls {
-   bottom: 6px;
-  }
-
-  .your-card {
-   width: 40px;
-   height: 56px;
-   font-size: 1.1em;
-  }
-
-  .action-btn {
-   padding: 7px 12px;
-   min-width: 60px;
-   font-size: 0.8em;
-  }
+ .player-card {
+  width: 25px;
+  height: 35px;
+  font-size: 0.8em;
  }
- </style>
+
+ .table-container {
+  top: 43%;
+ }
+
+ /* POSIÇÕES MOBILE PEQUENO */
+ .pos-1 { top: -15%; }
+ .pos-2 { top: 10%; right: 2%; }
+ .pos-6 { top: 10%; left: 2%; }
+ .pos-3 { bottom: 10%; right: 2%; }
+ .pos-5 { bottom: 10%; left: 2%; }
+ .pos-4 { bottom: -12%; }
+
+ .controls {
+  bottom: 6px;
+  padding: 8px 10px;
+  max-height: 120px;
+ }
+
+ .action-btn {
+  padding: 7px 12px;
+  min-width: 60px;
+  font-size: 0.8em;
+ }
+
+ .bet-amount {
+  padding: 4px 8px;
+  min-width: 50px;
+  font-size: 0.7em;
+ }
+}
+</style>
 </head>
 <body>
  <!-- CABEÇALHO -->
@@ -572,36 +572,42 @@
   </div>
   
   <!-- OS 6 AVATARS NAS POSIÇÕES CORRETAS -->
-  <div class="avatar-container pos-1" id="playerPos1">
-   <div class="avatar" id="avatar1">?</div>
-   <div class="player-chips" id="chips1">-<br>0</div>
+<div class="avatar-container pos-1" id="playerPos1">
+  <div class="avatar" id="avatar1">?</div>
+  
+  <!-- CARTAS AO LADO DO SEU AVATAR (POSIÇÃO 1) -->
+  <div class="player-cards">
+    <div class="player-card" id="playerCard1">?</div>
+    <div class="player-card" id="playerCard2">?</div>
   </div>
   
-  <div class="avatar-container pos-2" id="playerPos2">
-   <div class="avatar" id="avatar2">?</div>
-   <div class="player-chips" id="chips2">-<br>0</div>
-  </div>
-  
-  <div class="avatar-container pos-6" id="playerPos6">
-   <div class="avatar" id="avatar6">?</div>
-   <div class="player-chips" id="chips6">-<br>0</div>
-  </div>
-  
-  <div class="avatar-container pos-3" id="playerPos3">
-   <div class="avatar" id="avatar3">?</div>
-   <div class="player-chips" id="chips3">-<br>0</div>
-  </div>
-  
-  <div class="avatar-container pos-5" id="playerPos5">
-   <div class="avatar" id="avatar5">?</div>
-   <div class="player-chips" id="chips5">-<br>0</div>
-  </div>
-  
-  <div class="avatar-container pos-4" id="playerPos4">
-   <div class="avatar" id="avatar4">?</div>
-   <div class="player-chips" id="chips4">-<br>0</div>
-  </div>
- </div>
+  <div class="player-chips" id="chips1">-<br>0</div>
+</div>
+
+<div class="avatar-container pos-2" id="playerPos2">
+  <div class="avatar" id="avatar2">?</div>
+  <div class="player-chips" id="chips2">-<br>0</div>
+</div>
+
+<div class="avatar-container pos-6" id="playerPos6">
+  <div class="avatar" id="avatar6">?</div>
+  <div class="player-chips" id="chips6">-<br>0</div>
+</div>
+
+<div class="avatar-container pos-3" id="playerPos3">
+  <div class="avatar" id="avatar3">?</div>
+  <div class="player-chips" id="chips3">-<br>0</div>
+</div>
+
+<div class="avatar-container pos-5" id="playerPos5">
+  <div class="avatar" id="avatar5">?</div>
+  <div class="player-chips" id="chips5">-<br>0</div>
+</div>
+
+<div class="avatar-container pos-4" id="playerPos4">
+  <div class="avatar" id="avatar4">?</div>
+  <div class="player-chips" id="chips4">-<br>0</div>
+</div>
 
  <!-- CONTROLES (FORA DA MESA) -->
  <div class="controls" id="playerControls">
