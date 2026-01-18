@@ -44,6 +44,7 @@ body {
   font-family: 'Segoe UI', sans-serif;
   height: 100vh;
   overflow: hidden;
+  position: relative;
 }
 
 /* ===== CABEÇALHO ===== */
@@ -81,14 +82,14 @@ body {
   font-weight: bold;
 }
 
-/* ===== MESA ===== */
+/* ===== MESA (MENOR E MAIS PARA CIMA) ===== */
 .table-container {
   position: absolute;
-  top: 45%; /* Mesa mais para cima */
+  top: 35%; /* Mesa mais para cima */
   left: 50%;
   transform: translate(-50%, -50%);
   width: 70%;
-  height: 45%; /* Mesa menor */
+  height: 35%; /* Mesa menor */
   z-index: 1;
 }
 
@@ -177,9 +178,10 @@ body {
   border-radius: 50%;
 }
 
+/* CARTAS DO JOGADOR - RESTAURADO */
 .player-cards {
   position: absolute;
-  left: 85px;
+  left: 85px; /* Cartas à direita do avatar */
   top: 50%;
   transform: translateY(-50%);
   display: flex;
@@ -247,46 +249,51 @@ body {
   display: none;
 }
 
-/* ===== POSICIONAMENTO DOS AVATARS ===== */
+/* ===== POSICIONAMENTO DOS AVATARS (CORRIGIDO) ===== */
 
-/* POSIÇÃO 1: TOPO - ALTO PRA CARALHO (abaixo do cabeçalho) */
+/* POSIÇÃO 1: TOPO */
 .pos-1 {
-  top: 70px; /* 60px cabeçalho + 10px margem */
+  top: 80px;
   left: 50%;
   transform: translateX(-50%);
 }
 
-/* POSIÇÃO 2: DIREITA SUPERIOR - AFASTADO VERTICALMENTE */
+/* POSIÇÃO 2: DIREITA SUPERIOR - MAIS ESPAÇADO VERTICALMENTE */
 .pos-2 {
-  top: 15%;
-  right: 3%;
+  top: 20%;
+  right: 50px;
+  transform: translateY(0);
 }
 
-/* POSIÇÃO 3: DIREITA INFERIOR - AFASTADO VERTICALMENTE */
+/* POSIÇÃO 3: DIREITA INFERIOR - MAIS ESPAÇADO VERTICALMENTE */
 .pos-3 {
-  bottom: 25%; /* Mais para cima para não atrapalhar botões */
-  right: 3%;
+  bottom: 40%;
+  right: 50px;
+  transform: translateY(0);
 }
 
-/* POSIÇÃO 4: BAIXO - BAIXO PRA CARALHO */
+/* POSIÇÃO 4: BAIXO (JOGADOR ATUAL) */
 .pos-4 {
-  bottom: 25%; /* Acima dos botões */
+  bottom: 200px; /* Acima dos controles */
   left: 50%;
   transform: translateX(-50%);
 }
 
-/* POSIÇÃO 5: ESQUERDA INFERIOR - AFASTADO VERTICALMENTE */
+/* POSIÇÃO 5: ESQUERDA INFERIOR - MAIS ESPAÇADO VERTICALMENTE */
 .pos-5 {
-  bottom: 25%; /* Mais para cima para não atrapalhar botões */
-  left: 3%;
+  bottom: 40%;
+  left: 50px;
+  transform: translateY(0);
 }
 
-/* POSIÇÃO 6: ESQUERDA SUPERIOR - AFASTADO VERTICALMENTE */
+/* POSIÇÃO 6: ESQUERDA SUPERIOR - MAIS ESPAÇADO VERTICALMENTE */
 .pos-6 {
-  top: 15%;
-  left: 3%;
+  top: 20%;
+  left: 50px;
+  transform: translateY(0);
 }
 
+/* JOGADOR ATUAL (VOCÊ) */
 .player-you .avatar {
   border-color: #3498db;
   box-shadow: 0 0 15px rgba(52, 152, 219, 0.5);
@@ -297,12 +304,17 @@ body {
 }
 
 /* ===== CONTROLES (FORA DA MESA) ===== */
-/* AQUI É O QUE IMPORTA: CONTROLES BEM LÁ EMBAIXO FORA DA MESA */
-.controls {
+.controls-container {
   position: fixed;
-  bottom: 10px; /* BEM NO FUNDO DA TELA */
-  left: 50%;
-  transform: translateX(-50%);
+  bottom: 20px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  z-index: 30;
+}
+
+.controls {
   background: rgba(13, 27, 42, 0.95);
   padding: 15px 25px;
   border-radius: 12px;
@@ -311,16 +323,16 @@ body {
   flex-direction: column;
   align-items: center;
   gap: 12px;
-  z-index: 30;
   min-width: 500px;
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
-  max-height: 140px;
 }
 
 /* BOTÕES DE AÇÃO */
 .action-buttons {
   display: flex;
   gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
 .action-btn {
@@ -357,6 +369,7 @@ body {
   gap: 12px;
   align-items: center;
   margin-top: 5px;
+  width: 100%;
   display: none;
 }
 
@@ -416,8 +429,8 @@ body {
 @media (max-width: 768px) {
   .table-container {
     width: 85%;
-    height: 40%;
-    top: 40%;
+    height: 30%;
+    top: 30%;
   }
 
   .avatar {
@@ -436,19 +449,18 @@ body {
     font-size: 0.9em;
   }
 
-  /* POSIÇÕES MOBILE */
+  /* POSIÇÕES MOBILE - MAIS ESPAÇADAS */
   .pos-1 { top: 65px; }
-  .pos-2 { top: 15%; right: 2%; }
-  .pos-6 { top: 15%; left: 2%; }
-  .pos-3 { bottom: 30%; right: 2%; }
-  .pos-5 { bottom: 30%; left: 2%; }
-  .pos-4 { bottom: 30%; }
+  .pos-2 { top: 20%; right: 20px; }
+  .pos-6 { top: 20%; left: 20px; }
+  .pos-3 { bottom: 40%; right: 20px; }
+  .pos-5 { bottom: 40%; left: 20px; }
+  .pos-4 { bottom: 180px; }
 
   .controls {
     min-width: 90%;
     padding: 12px 18px;
-    bottom: 5px;
-    max-height: 130px;
+    bottom: 10px;
   }
 
   .action-btn {
@@ -477,16 +489,15 @@ body {
 
   /* POSIÇÕES MOBILE PEQUENO */
   .pos-1 { top: 65px; }
-  .pos-2 { top: 15%; right: 1.5%; }
-  .pos-6 { top: 15%; left: 1.5%; }
-  .pos-3 { bottom: 35%; right: 1.5%; }
-  .pos-5 { bottom: 35%; left: 1.5%; }
-  .pos-4 { bottom: 35%; }
+  .pos-2 { top: 22%; right: 15px; }
+  .pos-6 { top: 22%; left: 15px; }
+  .pos-3 { bottom: 42%; right: 15px; }
+  .pos-5 { bottom: 42%; left: 15px; }
+  .pos-4 { bottom: 160px; }
 
   .controls {
-    bottom: 3px;
-    padding: 10px 14px;
     min-width: 95%;
+    padding: 10px 14px;
   }
 
   .action-btn {
