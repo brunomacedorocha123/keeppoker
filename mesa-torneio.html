@@ -87,6 +87,7 @@
   font-weight: bold;
  }
 
+
  /* ===== MESA ===== */
  .table-container {
   position: absolute;
@@ -149,13 +150,6 @@
   font-size: 1.2em;
   box-shadow: 0 2px 5px rgba(0,0,0,0.3);
   color: #2c3e50;
- }
-
- /* Carta virada (back) */
- .card-back {
-  background: linear-gradient(45deg, #1a237e, #283593);
-  color: white;
-  border: 2px solid #3949ab;
  }
 
  /* POT */
@@ -257,27 +251,27 @@
 
  /* POSIÇÃO 1: TOPO (VOCÊ) - MAIS PRA CIMA AGORA */
  .pos-1 {
-  top: -5%; /* MAIS PRA CIMA (antes -1%) */
+  top: -5%;
   left: 50%;
   transform: translateX(-50%);
  }
 
 
- /* POSIÇÃO 2: DIREITA SUPERIOR - MANTÉM */
+ /* POSIÇÃO 2: DIREITA SUPERIOR */
  .pos-2 {
   top: 16.5%;
   right: 1.5%;
  }
 
 
- /* POSIÇÃO 3: DIREITA INFERIOR - MANTÉM */
+ /* POSIÇÃO 3: DIREITA INFERIOR */
  .pos-3 {
   bottom: 16.5%;
   right: 1.5%;
  }
 
 
- /* POSIÇÃO 4: BAIXO CENTRO - MANTÉM */
+ /* POSIÇÃO 4: BAIXO CENTRO */
  .pos-4 {
   bottom: 1.5%;
   left: 50%;
@@ -285,14 +279,14 @@
  }
 
 
- /* POSIÇÃO 5: ESQUERDA INFERIOR - MANTÉM */
+ /* POSIÇÃO 5: ESQUERDA INFERIOR */
  .pos-5 {
   bottom: 16.5%;
   left: 1.5%;
  }
 
 
- /* POSIÇÃO 6: ESQUERDA SUPERIOR - MANTÉM */
+ /* POSIÇÃO 6: ESQUERDA SUPERIOR */
  .pos-6 {
   top: 16.5%;
   left: 1.5%;
@@ -465,7 +459,7 @@
   }
 
   /* POSIÇÃO 1 MAIS PRA CIMA NO MOBILE */
-  .pos-1 { top: -8%; } /* MAIS PRA CIMA (antes -2%) */
+  .pos-1 { top: -8%; }
 
   /* OS OUTROS 5 MANTÊM */
   .pos-2, .pos-6 { top: 14.5%; }
@@ -519,7 +513,7 @@
   }
 
   /* POSIÇÃO 1 AINDA MAIS PRA CIMA NO MOBILE PEQUENO */
-  .pos-1 { top: -12%; } /* MAIS PRA CIMA (antes -3%) */
+  .pos-1 { top: -12%; }
 
   /* OS OUTROS 5 MANTÊM */
   .pos-2, .pos-6 { top: 12.5%; }
@@ -577,9 +571,35 @@
    </div>
   </div>
   
-  <!-- AVATARS (SERÃO PREENCHIDOS DINAMICAMENTE) -->
-  <div id="playersContainer">
-   <!-- Os 6 avatares serão gerados aqui -->
+  <!-- OS 6 AVATARS NAS POSIÇÕES CORRETAS -->
+  <div class="avatar-container pos-1" id="playerPos1">
+   <div class="avatar" id="avatar1">?</div>
+   <div class="player-chips" id="chips1">-<br>0</div>
+  </div>
+  
+  <div class="avatar-container pos-2" id="playerPos2">
+   <div class="avatar" id="avatar2">?</div>
+   <div class="player-chips" id="chips2">-<br>0</div>
+  </div>
+  
+  <div class="avatar-container pos-6" id="playerPos6">
+   <div class="avatar" id="avatar6">?</div>
+   <div class="player-chips" id="chips6">-<br>0</div>
+  </div>
+  
+  <div class="avatar-container pos-3" id="playerPos3">
+   <div class="avatar" id="avatar3">?</div>
+   <div class="player-chips" id="chips3">-<br>0</div>
+  </div>
+  
+  <div class="avatar-container pos-5" id="playerPos5">
+   <div class="avatar" id="avatar5">?</div>
+   <div class="player-chips" id="chips5">-<br>0</div>
+  </div>
+  
+  <div class="avatar-container pos-4" id="playerPos4">
+   <div class="avatar" id="avatar4">?</div>
+   <div class="player-chips" id="chips4">-<br>0</div>
   </div>
  </div>
 
@@ -593,14 +613,14 @@
   
   <!-- BOTÕES DE AÇÃO -->
   <div class="action-buttons" id="actionButtons">
-   <button class="action-btn btn-fold" onclick="playerAction('fold')" id="btnFold">Fold</button>
-   <button class="action-btn btn-check" onclick="playerAction('check')" id="btnCheck">Check</button>
-   <button class="action-btn btn-call" onclick="playerAction('call')" id="btnCall">Call</button>
-   <button class="action-btn btn-raise" onclick="showRaiseControls()" id="btnRaise">Raise</button>
-   <button class="action-btn btn-allin" onclick="playerAction('allin')" id="btnAllin">All-in</button>
+   <button class="action-btn btn-fold" onclick="playerAction('fold')">Fold</button>
+   <button class="action-btn btn-check" onclick="playerAction('check')">Check</button>
+   <button class="action-btn btn-call" onclick="playerAction('call')">Call</button>
+   <button class="action-btn btn-raise" onclick="showRaiseControls()">Raise</button>
+   <button class="action-btn btn-allin" onclick="playerAction('allin')">All-in</button>
   </div>
   
-  <!-- CONTROLE DE APOSTA (aparece quando clica em Raise) -->
+  <!-- CONTROLE DE APOSTA -->
   <div class="bet-controls" id="raiseControls">
    <input type="range" min="0" max="100" value="0" class="bet-slider" id="betSlider" oninput="updateBetAmount()">
    <div class="bet-amount" id="betAmount">0</div>
@@ -627,20 +647,24 @@
   let realtimeListener = null;
   let actionTimerInterval = null;
   let timeLeft = 30;
-  let currentPlayerPosition = -1;
+  let myPlayerPosition = -1;
+  let gameStarted = false;
+
+  // Mapeamento das posições na mesa (0-5)
+  const positionMap = [1, 2, 6, 3, 5, 4]; // Ordem das posições visuais
 
   // =============================================
-  // INICIALIZAÇÃO DA MESA
+  // INICIALIZAÇÃO
   // =============================================
   document.addEventListener('DOMContentLoaded', function() {
-   console.log('🎮 Inicializando mesa de poker...');
+   console.log('🎮 Mesa de torneio carregada');
    
    // 1. Obter ID do torneio da URL
    const urlParams = new URLSearchParams(window.location.search);
    tournamentId = urlParams.get('tournamentId');
    
    if (!tournamentId) {
-    alert('Torneio não especificado!');
+    alert('Torneio não especificado! Redirecionando...');
     window.location.href = 'torneios.html';
     return;
    }
@@ -669,19 +693,22 @@
      showNotification('❌ Você não está inscrito neste torneio', 'error');
      setTimeout(() => {
       window.location.href = 'torneios.html';
-     }, 2000);
+     }, 3000);
      return;
     }
     
-    // 6. Inicializar Poker Engine
-    initializePokerGame();
+    // 6. Inicializar interface com dados REAIS
+    initializeInterface();
     
     // 7. Configurar listener em tempo real
     setupRealtimeListener();
     
-    // 8. Configurar controles
-    setupControls();
+    // 8. Verificar se pode iniciar jogo
+    checkIfGameCanStart();
    });
+   
+   // Configurar controles
+   setupControls();
   });
 
   // =============================================
@@ -694,7 +721,7 @@
     const userDoc = await db.collection('users').doc(currentUser.uid).get();
     if (userDoc.exists) {
      userData = userDoc.data();
-     console.log('📊 Dados do usuário carregados:', userData.nickname);
+     console.log('📊 Usuário:', userData.nickname || userData.nome);
     }
    } catch (error) {
     console.error('❌ Erro ao carregar dados do usuário:', error);
@@ -712,14 +739,14 @@
     tournamentData = tournamentDoc.data();
     tournamentData.id = tournamentId;
     
-    console.log('🎲 Dados do torneio:', tournamentData.name);
-    console.log('👥 Jogadores inscritos:', tournamentData.players?.length || 0);
+    console.log('🎲 Torneio:', tournamentData.name);
+    console.log('👥 Jogadores:', tournamentData.players?.length || 0);
     
     // Atualizar header
     document.getElementById('tournamentName').textContent = tournamentData.name;
     document.getElementById('playersCount').textContent = 
      `${tournamentData.players?.length || 1}/${tournamentData.maxPlayers || 6}`;
-    
+     
    } catch (error) {
     console.error('❌ Erro ao carregar torneio:', error);
     showNotification('Erro ao carregar torneio', 'error');
@@ -732,119 +759,64 @@
    return tournamentData.players.some(p => p.userId === currentUser.uid);
   }
   
-  // 4. Inicializar Poker Engine
-  function initializePokerGame() {
-   console.log('🎴 Inicializando Poker Engine...');
+  // 4. Inicializar interface com dados REAIS
+  function initializeInterface() {
+   console.log('🎨 Inicializando interface com dados reais...');
    
-   // Preparar jogadores (dados REAIS do Firestore)
-   const players = tournamentData.players.map((player, index) => ({
-    userId: player.userId,
-    nickname: player.nickname || player.playerName || `Jogador ${index + 1}`,
-    chips: player.chips || tournamentData.startingStack || 1500,
-    position: index,
-    isActive: true,
-    avatarUrl: player.avatarUrl || ''
-   }));
-   
-   // Encontrar posição do usuário atual
-   currentPlayerPosition = players.findIndex(p => p.userId === currentUser.uid);
-   
-   // Criar instância do jogo
-   if (window.PokerEngine && window.PokerEngine.PokerGameEngine) {
-    pokerGame = new window.PokerEngine.PokerGameEngine(tournamentId);
-    pokerGame.initialize(players);
-    
-    console.log('✅ Poker Engine inicializado');
-    console.log(`🎮 Você está na posição: ${currentPlayerPosition + 1}`);
-    
-    // Renderizar jogadores
-    renderPlayers(players);
-    
-    // Iniciar jogo se tiver 2+ jogadores
-    if (players.length >= 2) {
-     startPokerHand();
-    } else {
-     showNotification('⏳ Aguardando mais jogadores...', 'info');
-    }
-    
-   } else {
-    console.error('❌ Poker Engine não encontrado!');
-    showNotification('Erro: Poker Engine não carregado', 'error');
+   // Limpar avatares
+   for (let i = 1; i <= 6; i++) {
+    document.getElementById(`avatar${i}`).innerHTML = '?';
+    document.getElementById(`chips${i}`).innerHTML = '-<br>0';
    }
-  }
-  
-  // 5. Renderizar jogadores REAIS
-  function renderPlayers(players) {
-   const container = document.getElementById('playersContainer');
-   container.innerHTML = '';
    
-   // Posições pré-definidas para 6 jogadores
-   const positions = ['pos-1', 'pos-2', 'pos-6', 'pos-3', 'pos-5', 'pos-4'];
+   // Preencher com jogadores REAIS
+   const players = tournamentData.players || [];
    
    players.forEach((player, index) => {
-    const positionClass = positions[index] || 'pos-1';
-    const isYou = player.userId === currentUser.uid;
-    const playerClass = isYou ? 'avatar-container player-you' : 'avatar-container';
-    
-    const avatarHTML = player.avatarUrl 
-     ? `<img src="${player.avatarUrl}" alt="${player.nickname}">`
-     : `<i class="fas fa-user"></i>`;
-    
-    const playerHTML = `
-     <div class="${playerClass} ${positionClass}" data-user-id="${player.userId}">
-      <div class="avatar" id="avatar-${player.userId}">
-       ${avatarHTML}
-      </div>
-      <div class="player-chips" id="chips-${player.userId}">
-       ${player.nickname}<br>${player.chips}
-      </div>
-      ${isYou ? `
-       <div class="player-info">
-        <div>Você</div>
-        <div>${player.chips}</div>
-       </div>
-      ` : ''}
-     </div>
-    `;
-    
-    container.innerHTML += playerHTML;
-   });
-  }
-  
-  // 6. Iniciar mão de poker
-  async function startPokerHand() {
-   if (!pokerGame) return;
-   
-   try {
-    console.log('🃏 Iniciando nova mão...');
-    showNotification('Nova mão iniciada!', 'info');
-    
-    const handResult = await pokerGame.startHand();
-    
-    // Atualizar cartas comunitárias (se houver)
-    if (handResult.communityCards && handResult.communityCards.length > 0) {
-     updateCommunityCards(handResult.communityCards);
+    if (index < 6) { // Máximo 6 jogadores
+     const pos = positionMap[index]; // Mapear para posição visual
+     const avatarElement = document.getElementById(`avatar${pos}`);
+     const chipsElement = document.getElementById(`chips${pos}`);
+     
+     // Verificar se é o usuário atual
+     const isMe = player.userId === currentUser.uid;
+     if (isMe) {
+      myPlayerPosition = index;
+      console.log(`🎮 Você está na posição: ${index + 1} (visual: ${pos})`);
+     }
+     
+     // Avatar
+     if (player.avatarUrl) {
+      avatarElement.innerHTML = `<img src="${player.avatarUrl}" alt="${player.nickname}">`;
+     } else {
+      // Primeira letra do nome
+      const initial = (player.nickname || player.playerName || '?').charAt(0).toUpperCase();
+      avatarElement.textContent = initial;
+     }
+     
+     // Adicionar classe "player-you" se for o usuário
+     const container = document.getElementById(`playerPos${pos}`);
+     if (isMe) {
+      container.classList.add('player-you');
+     } else {
+      container.classList.remove('player-you');
+     }
+     
+     // Chips
+     const chips = player.chips || tournamentData.startingStack || 1500;
+     chipsElement.innerHTML = `${player.nickname || 'Jogador'}<br>${chips}`;
+     
+     // Posição vazia se não houver jogador
+    } else {
+     console.warn(`⚠️ Mais de 6 jogadores, ignorando jogador ${index + 1}`);
     }
-    
-    // Atualizar pot
-    updatePot(handResult.pot);
-    
-    // Atualizar blinds
-    updateBlinds(handResult.blinds);
-    
-    // Mostrar cartas do jogador (se for a vez dele)
-    showPlayerCards();
-    
-    // Verificar se é a vez do jogador
-    checkPlayerTurn();
-    
-   } catch (error) {
-    console.error('❌ Erro ao iniciar mão:', error);
-    showNotification('Erro ao iniciar mão: ' + error.message, 'error');
-   }
+   });
+   
+   // Atualizar minhas cartas (se já tiver)
+   updateMyCards();
   }
   
-  // 7. Configurar listener em tempo real
+  // 5. Configurar listener em tempo real
   function setupRealtimeListener() {
    console.log('👂 Configurando listener em tempo real...');
    
@@ -853,113 +825,228 @@
      if (doc.exists) {
       const newData = doc.data();
       
-      // Atualizar dados do torneio
-      tournamentData = newData;
+      // Verificar se houve mudanças importantes
+      const playersChanged = JSON.stringify(newData.players) !== JSON.stringify(tournamentData?.players);
+      const communityChanged = JSON.stringify(newData.communityCards) !== JSON.stringify(tournamentData?.communityCards);
+      const potChanged = newData.pot !== tournamentData?.pot;
       
-      // Atualizar contador de jogadores
-      document.getElementById('playersCount').textContent = 
-       `${newData.players?.length || 1}/${newData.maxPlayers || 6}`;
-      
-      // Atualizar cartas comunitárias se mudaram
-      if (newData.communityCards && JSON.stringify(newData.communityCards) !== 
-          JSON.stringify(tournamentData.communityCards)) {
-       updateCommunityCards(newData.communityCards);
+      if (playersChanged || communityChanged || potChanged) {
+       tournamentData = newData;
+       
+       // Atualizar interface
+       updateInterface();
       }
-      
-      // Atualizar pot se mudou
-      if (newData.pot !== tournamentData.pot) {
-       updatePot(newData.pot);
-      }
-      
      }
     }, (error) => {
      console.error('❌ Erro no listener:', error);
     });
   }
   
-  // =============================================
-  // ATUALIZAÇÃO DA INTERFACE
-  // =============================================
-  
-  function updateCommunityCards(cards) {
-   const communityContainer = document.getElementById('communityCards');
-   const cardElements = communityContainer.querySelectorAll('.card-placeholder');
+  // 6. Atualizar interface completa
+  function updateInterface() {
+   // Atualizar contador de jogadores
+   document.getElementById('playersCount').textContent = 
+    `${tournamentData.players?.length || 1}/${tournamentData.maxPlayers || 6}`;
    
-   cards.forEach((card, index) => {
-    if (cardElements[index]) {
-     if (typeof card === 'string') {
-      cardElements[index].textContent = card;
-      cardElements[index].style.color = card.includes('♥') || card.includes('♦') ? '#e74c3c' : '#2c3e50';
-     } else if (card.suit && card.rank) {
-      const cardObj = new window.PokerEngine.PokerCard(card.suit, card.rank);
-      cardElements[index].textContent = cardObj.toString();
-      cardElements[index].style.color = cardObj.color === 'red' ? '#e74c3c' : '#2c3e50';
+   // Atualizar avatares e chips
+   const players = tournamentData.players || [];
+   
+   players.forEach((player, index) => {
+    if (index < 6) {
+     const pos = positionMap[index];
+     const chipsElement = document.getElementById(`chips${pos}`);
+     
+     // Atualizar chips
+     const chips = player.chips || tournamentData.startingStack || 1500;
+     const name = player.nickname || player.playerName || 'Jogador';
+     chipsElement.innerHTML = `${name}<br>${chips}`;
+     
+     // Destacar jogador atual (se houver informação)
+     if (tournamentData.currentPlayerTurn === player.userId) {
+      document.getElementById(`avatar${pos}`).classList.add('current-turn');
+     } else {
+      document.getElementById(`avatar${pos}`).classList.remove('current-turn');
      }
+     
+     // Marcar se foldou
+     if (player.isActive === false) {
+      document.getElementById(`avatar${pos}`).classList.add('player-folded');
+     } else {
+      document.getElementById(`avatar${pos}`).classList.remove('player-folded');
+     }
+    }
+   });
+   
+   // Atualizar cartas comunitárias
+   updateCommunityCards();
+   
+   // Atualizar pot
+   updatePot();
+   
+   // Atualizar minhas cartas
+   updateMyCards();
+   
+   // Verificar se é minha vez
+   checkMyTurn();
+  }
+  
+  // 7. Atualizar cartas comunitárias
+  function updateCommunityCards() {
+   const communityCards = tournamentData.communityCards || [];
+   const container = document.getElementById('communityCards');
+   const cards = container.querySelectorAll('.card-placeholder');
+   
+   cards.forEach((cardEl, index) => {
+    if (communityCards[index]) {
+     const card = communityCards[index];
+     let displayText = '?';
+     let color = '#2c3e50';
+     
+     if (typeof card === 'string') {
+      displayText = card;
+      color = (card.includes('♥') || card.includes('♦')) ? '#e74c3c' : '#2c3e50';
+     } else if (card.suit && card.rank) {
+      // Usar Poker Engine para formatar
+      if (window.PokerEngine && window.PokerEngine.PokerCard) {
+       const cardObj = new window.PokerEngine.PokerCard(card.suit, card.rank);
+       displayText = cardObj.toString();
+       color = cardObj.color === 'red' ? '#e74c3c' : '#2c3e50';
+      } else {
+       displayText = `${card.rank}${getSuitSymbol(card.suit)}`;
+       color = (card.suit === 'hearts' || card.suit === 'diamonds') ? '#e74c3c' : '#2c3e50';
+      }
+     }
+     
+     cardEl.textContent = displayText;
+     cardEl.style.color = color;
+     cardEl.style.background = 'white';
+    } else {
+     cardEl.textContent = '';
+     cardEl.style.background = 'rgba(255,255,255,0.1)';
     }
    });
   }
   
-  function updatePot(potAmount) {
-   document.getElementById('pot').textContent = `Pote: ${potAmount}`;
-   document.getElementById('potAmount').textContent = potAmount;
+  // 8. Atualizar pot
+  function updatePot() {
+   const pot = tournamentData.pot || 0;
+   document.getElementById('pot').textContent = `Pote: ${pot}`;
+   document.getElementById('potAmount').textContent = pot;
   }
   
-  function updateBlinds(blinds) {
-   if (blinds && blinds.smallBlind && blinds.bigBlind) {
-    document.getElementById('blinds').textContent = `${blinds.smallBlind}/${blinds.bigBlind}`;
-   }
-  }
-  
-  function showPlayerCards() {
-   if (!pokerGame || !currentUser) return;
+  // 9. Atualizar minhas cartas
+  function updateMyCards() {
+   if (!tournamentData.players || !currentUser) return;
    
-   const playerInfo = pokerGame.getPlayerInfo(currentUser.uid);
-   if (playerInfo && playerInfo.cards && playerInfo.cards.length === 2) {
-    document.getElementById('card1').textContent = playerInfo.cards[0];
-    document.getElementById('card2').textContent = playerInfo.cards[1];
+   const me = tournamentData.players.find(p => p.userId === currentUser.uid);
+   if (!me || !me.cards) return;
+   
+   const cards = me.cards;
+   if (cards.length >= 2) {
+    document.getElementById('card1').textContent = formatCard(cards[0]);
+    document.getElementById('card2').textContent = formatCard(cards[1]);
     
     // Colorir cartas
-    const card1 = document.getElementById('card1');
-    const card2 = document.getElementById('card2');
-    
-    card1.style.color = playerInfo.cards[0].includes('♥') || playerInfo.cards[0].includes('♦') ? '#e74c3c' : '#2c3e50';
-    card2.style.color = playerInfo.cards[1].includes('♥') || playerInfo.cards[1].includes('♦') ? '#e74c3c' : '#2c3e50';
+    document.getElementById('card1').style.color = getCardColor(cards[0]);
+    document.getElementById('card2').style.color = getCardColor(cards[1]);
    }
   }
   
-  function checkPlayerTurn() {
-   if (!pokerGame) return;
+  // 10. Verificar se é minha vez
+  function checkMyTurn() {
+   if (!tournamentData.currentPlayerTurn) return;
    
-   const gameInfo = pokerGame.getGameInfo();
-   const currentPlayerId = gameInfo.currentPlayerTurn;
+   const isMyTurn = tournamentData.currentPlayerTurn === currentUser.uid;
    
-   // Remover highlight de todos
-   document.querySelectorAll('.avatar').forEach(avatar => {
-    avatar.classList.remove('current-turn');
-   });
-   
-   // Destacar jogador atual
-   if (currentPlayerId) {
-    const currentAvatar = document.querySelector(`[data-user-id="${currentPlayerId}"] .avatar`);
-    if (currentAvatar) {
-     currentAvatar.classList.add('current-turn');
-    }
+   if (isMyTurn) {
+    enablePlayerControls();
+    startActionTimer();
+    showNotification('✅ SUA VEZ! Faça sua jogada', 'turn');
+   } else {
+    disablePlayerControls();
+    stopActionTimer();
     
-    // Verificar se é a vez do usuário atual
-    if (currentPlayerId === currentUser.uid) {
-     enablePlayerControls();
-     startActionTimer();
-     showNotification('✅ SUA VEZ! Faça sua jogada', 'turn');
-    } else {
-     disablePlayerControls();
-     stopActionTimer();
-     
-     // Mostrar quem está jogando
-     const currentPlayer = tournamentData.players?.find(p => p.userId === currentPlayerId);
-     if (currentPlayer) {
-      showNotification(`${currentPlayer.nickname} está jogando...`, 'info');
-     }
+    // Mostrar quem está jogando
+    const currentPlayer = tournamentData.players?.find(p => p.userId === tournamentData.currentPlayerTurn);
+    if (currentPlayer) {
+     showNotification(`${currentPlayer.nickname} está jogando...`, 'info');
     }
+   }
+  }
+  
+  // 11. Verificar se pode iniciar jogo
+  function checkIfGameCanStart() {
+   const playersCount = tournamentData.players?.length || 0;
+   const maxPlayers = tournamentData.maxPlayers || 6;
+   
+   if (playersCount >= 2 && !gameStarted) {
+    // Iniciar Poker Engine se tiver 2+ jogadores
+    initializePokerEngine();
+   } else if (playersCount < 2) {
+    showNotification('⏳ Aguardando mais jogadores... (mínimo 2)', 'info');
+   }
+  }
+  
+  // 12. Inicializar Poker Engine
+  function initializePokerEngine() {
+   if (gameStarted) return;
+   
+   console.log('🎴 Inicializando Poker Engine...');
+   
+   if (!window.PokerEngine || !window.PokerEngine.PokerGameEngine) {
+    console.error('❌ Poker Engine não carregado!');
+    showNotification('Erro: Poker Engine não encontrado', 'error');
+    return;
+   }
+   
+   // Preparar jogadores para o engine
+   const players = tournamentData.players.map((player, index) => ({
+    userId: player.userId,
+    nickname: player.nickname || player.playerName || `Jogador ${index + 1}`,
+    chips: player.chips || tournamentData.startingStack || 1500,
+    position: index,
+    isActive: true
+   }));
+   
+   // Criar instância do jogo
+   try {
+    pokerGame = new window.PokerEngine.PokerGameEngine(tournamentId);
+    pokerGame.initialize(players);
+    
+    gameStarted = true;
+    console.log('✅ Poker Engine inicializado com sucesso');
+    showNotification('🎮 Jogo iniciado! Aguardando primeira mão...', 'success');
+    
+    // Iniciar primeira mão após 3 segundos
+    setTimeout(() => {
+     startNewHand();
+    }, 3000);
+    
+   } catch (error) {
+    console.error('❌ Erro ao inicializar Poker Engine:', error);
+    showNotification('Erro ao iniciar jogo: ' + error.message, 'error');
+   }
+  }
+  
+  // 13. Iniciar nova mão
+  async function startNewHand() {
+   if (!pokerGame || !gameStarted) return;
+   
+   try {
+    console.log('🃏 Iniciando nova mão...');
+    showNotification('Nova mão iniciada!', 'info');
+    
+    await pokerGame.startHand();
+    
+    // Atualizar interface com dados do engine
+    const gameInfo = pokerGame.getGameInfo();
+    
+    // Atualizar dados no Firestore
+    await updateGameStateInFirestore(gameInfo);
+    
+   } catch (error) {
+    console.error('❌ Erro ao iniciar mão:', error);
+    showNotification('Erro: ' + error.message, 'error');
    }
   }
   
@@ -973,22 +1060,15 @@
    if (slider) {
     slider.addEventListener('input', updateBetAmount);
    }
-   
-   // Configurar botões
-   document.getElementById('btnFold').addEventListener('click', () => playerAction('fold'));
-   document.getElementById('btnCheck').addEventListener('click', () => playerAction('check'));
-   document.getElementById('btnCall').addEventListener('click', () => playerAction('call'));
-   document.getElementById('btnRaise').addEventListener('click', showRaiseControls);
-   document.getElementById('btnAllin').addEventListener('click', () => playerAction('allin'));
   }
   
   async function playerAction(action) {
-   if (!pokerGame || !isPlayerTurn()) {
+   if (!isMyTurn()) {
     showNotification('Não é sua vez!', 'error');
     return;
    }
    
-   console.log(`🎮 Ação: ${action}`);
+   console.log(`🎮 Ação do jogador: ${action}`);
    
    try {
     let amount = 0;
@@ -1002,27 +1082,29 @@
      }
     }
     
-    // Processar ação
-    const result = await pokerGame.playerAction(currentUser.uid, action, amount);
-    
-    if (result.success) {
-     showNotification(`Você ${action}${amount > 0 ? ' ' + amount : ''}`, 'success');
+    // Se tiver Poker Engine, usar ele
+    if (pokerGame && gameStarted) {
+     const result = await pokerGame.playerAction(currentUser.uid, action, amount);
      
-     // Atualizar interface
-     updatePot(result.gameState.pot);
-     updatePlayerChips(currentUser.uid, result.player.chips);
-     
-     // Desabilitar controles temporariamente
-     disablePlayerControls();
-     hideRaiseControls();
-     
-     // Aguardar próximo jogador
-     setTimeout(() => {
-      checkPlayerTurn();
-     }, 1000);
-     
+     if (result.success) {
+      showNotification(`Você ${action}${amount > 0 ? ' ' + amount : ''}`, 'success');
+      
+      // Atualizar interface
+      updateInterface();
+      
+      // Desabilitar controles temporariamente
+      disablePlayerControls();
+      hideRaiseControls();
+      
+      // Atualizar Firestore
+      await updateGameStateInFirestore(result.gameState);
+      
+     } else {
+      showNotification(`Erro: ${result.error}`, 'error');
+     }
     } else {
-     showNotification(`Erro: ${result.error}`, 'error');
+     // Fallback: atualizar diretamente no Firestore
+     await updatePlayerActionInFirestore(action, amount);
     }
     
    } catch (error) {
@@ -1032,14 +1114,14 @@
   }
   
   function showRaiseControls() {
-   if (!isPlayerTurn()) return;
+   if (!isMyTurn()) return;
    
    // Obter máximo que pode apostar
-   const playerInfo = pokerGame.getPlayerInfo(currentUser.uid);
-   if (!playerInfo) return;
+   const me = tournamentData.players?.find(p => p.userId === currentUser.uid);
+   if (!me) return;
    
-   const maxBet = playerInfo.chips;
-   const minBet = pokerGame.getGameInfo().currentMaxBet || 100;
+   const maxBet = me.chips || 0;
+   const minBet = tournamentData.currentBet || 100;
    
    // Configurar slider
    const slider = document.getElementById('betSlider');
@@ -1070,10 +1152,8 @@
    playerAction('raise');
   }
   
-  function isPlayerTurn() {
-   if (!pokerGame) return false;
-   const gameInfo = pokerGame.getGameInfo();
-   return gameInfo.currentPlayerTurn === currentUser.uid;
+  function isMyTurn() {
+   return tournamentData.currentPlayerTurn === currentUser.uid;
   }
   
   function enablePlayerControls() {
@@ -1139,14 +1219,97 @@
   // FUNÇÕES AUXILIARES
   // =============================================
   
-  function updatePlayerChips(userId, chips) {
-   const chipsElement = document.getElementById(`chips-${userId}`);
-   if (chipsElement) {
-    const nickname = chipsElement.textContent.split('\n')[0];
-    chipsElement.innerHTML = `${nickname}<br>${chips}`;
+  // Formatar carta para exibição
+  function formatCard(card) {
+   if (!card) return '?';
+   
+   if (typeof card === 'string') {
+    return card;
+   }
+   
+   if (card.rank && card.suit) {
+    const rank = card.rank;
+    const suitSymbol = getSuitSymbol(card.suit);
+    return rank + suitSymbol;
+   }
+   
+   return '?';
+  }
+  
+  // Obter cor da carta
+  function getCardColor(card) {
+   if (typeof card === 'string') {
+    return (card.includes('♥') || card.includes('♦')) ? '#e74c3c' : '#2c3e50';
+   }
+   
+   if (card.suit) {
+    return (card.suit === 'hearts' || card.suit === 'diamonds') ? '#e74c3c' : '#2c3e50';
+   }
+   
+   return '#2c3e50';
+  }
+  
+  // Obter símbolo do naipe
+  function getSuitSymbol(suit) {
+   switch(suit) {
+    case 'hearts': return '♥';
+    case 'diamonds': return '♦';
+    case 'clubs': return '♣';
+    case 'spades': return '♠';
+    default: return '?';
    }
   }
   
+  // Atualizar estado do jogo no Firestore
+  async function updateGameStateInFirestore(gameState) {
+   try {
+    await db.collection('tournaments').doc(tournamentId).update({
+     players: gameState.players,
+     communityCards: gameState.communityCards,
+     pot: gameState.pot,
+     currentPlayerTurn: gameState.currentPlayerTurn,
+     currentRound: gameState.round,
+     updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+   } catch (error) {
+    console.error('❌ Erro ao atualizar Firestore:', error);
+   }
+  }
+  
+  // Atualizar ação do jogador no Firestore (fallback)
+  async function updatePlayerActionInFirestore(action, amount) {
+   try {
+    const playerIndex = tournamentData.players.findIndex(p => p.userId === currentUser.uid);
+    if (playerIndex === -1) return;
+    
+    const updates = {
+     [`players.${playerIndex}.lastAction`]: action,
+     updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    };
+    
+    // Atualizar chips se for aposta
+    if (['bet', 'raise', 'call', 'allin'].includes(action) && amount > 0) {
+     const currentChips = tournamentData.players[playerIndex].chips || 1500;
+     updates[`players.${playerIndex}.chips`] = currentChips - amount;
+     updates.pot = firebase.firestore.FieldValue.increment(amount);
+    }
+    
+    // Se fold, marcar como inativo
+    if (action === 'fold') {
+     updates[`players.${playerIndex}.isActive`] = false;
+    }
+    
+    await db.collection('tournaments').doc(tournamentId).update(updates);
+    
+    showNotification(`Você ${action}${amount > 0 ? ' ' + amount : ''}`, 'success');
+    
+   } catch (error) {
+    console.error('❌ Erro ao atualizar ação:', error);
+    showNotification('Erro ao processar ação', 'error');
+   }
+  }
+  
+  // Mostrar notificação
   function showNotification(message, type = 'info') {
    const messageEl = document.getElementById('statusMessage');
    messageEl.textContent = message;
@@ -1181,7 +1344,7 @@
    stopActionTimer();
   });
   
-  console.log('✅ Mesa de torneio carregada e pronta!');
+  console.log('✅ Mesa de torneio pronta!');
  </script>
  
  <!-- Font Awesome para ícones -->
