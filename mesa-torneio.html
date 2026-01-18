@@ -85,7 +85,7 @@ body {
 /* ===== MESA ===== */
 .table-container {
   position: absolute;
-  top: 45%;
+  top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
   width: 70%;
@@ -103,6 +103,7 @@ body {
     inset 0 0 40px rgba(0, 0, 0, 0.6),
     0 0 30px rgba(0, 0, 0, 0.7);
   position: relative;
+  overflow: visible; /* ← Evita clipping acidental */
 }
 
 .table-center {
@@ -181,7 +182,6 @@ body {
   border-radius: 50%;
 }
 
-/* CARTAS DO JOGADOR - TEXAS HOLD'EM (2 CARTAS) */
 .player-cards {
   position: absolute;
   left: 85px;
@@ -254,48 +254,41 @@ body {
   display: none;
 }
 
-/* ===== POSICIONAMENTO DOS AVATARS (REVISADO - MUITO MAIS ESPAÇADOS) ===== */
-
-/* POSIÇÃO 1: TOPO - MAIS PARA CIMA */
+/* ===== POSIÇÕES DOS AVATARES - AJUSTADAS (ESPAÇADAS E PREVISÍVEIS) ===== */
 .pos-1 {
-  top: 50px;
+  top: 80px;
   left: 50%;
   transform: translateX(-50%);
 }
 
-/* POSIÇÃO 2: DIREITA SUPERIOR - MUITO MAIS PARA CIMA E DIREITA */
 .pos-2 {
-  top: 5%;
-  right: 8%;
-  transform: translateY(0);
+  top: 120px;
+  right: 10%;
+  transform: none;
 }
 
-/* POSIÇÃO 3: DIREITA INFERIOR - MUITO MAIS PARA BAIXO E DIREITA */
 .pos-3 {
-  bottom: 15%;
-  right: 8%;
-  transform: translateY(0);
+  bottom: 140px;
+  right: 10%;
+  transform: none;
 }
 
-/* POSIÇÃO 4: BAIXO - BEM MAIS PARA CIMA (LONGE DOS CONTROLES) */
 .pos-4 {
-  bottom: 180px;
+  bottom: 100px;
   left: 50%;
   transform: translateX(-50%);
 }
 
-/* POSIÇÃO 5: ESQUERDA INFERIOR - MUITO MAIS PARA BAIXO E ESQUERDA */
 .pos-5 {
-  bottom: 15%;
-  left: 8%;
-  transform: translateY(0);
+  bottom: 140px;
+  left: 10%;
+  transform: none;
 }
 
-/* POSIÇÃO 6: ESQUERDA SUPERIOR - MUITO MAIS PARA CIMA E ESQUERDA */
 .pos-6 {
-  top: 5%;
-  left: 8%;
-  transform: translateY(0);
+  top: 120px;
+  left: 10%;
+  transform: none;
 }
 
 /* JOGADOR ATUAL (VOCÊ) */
@@ -308,15 +301,15 @@ body {
   display: block;
 }
 
-/* ===== CONTROLES (FORA DA MESA - CORRIGIDO) ===== */
+/* ===== CONTROLES - FORA DA MESA, ABAIXO E CENTRALIZADO ===== */
 .controls-container {
   position: fixed;
-  bottom: 30px;
+  bottom: 20px;
   left: 0;
   right: 0;
   display: flex;
   justify-content: center;
-  z-index: 50; /* MAIOR que a mesa */
+  z-index: 1000; /* Garante que fique acima de tudo */
 }
 
 .controls {
@@ -329,12 +322,10 @@ body {
   align-items: center;
   gap: 12px;
   width: 500px;
-  height: auto;
   min-height: 130px;
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.7);
 }
 
-/* BOTÕES DE AÇÃO - MELHOR DISTRIBUÍDOS */
 .action-buttons {
   display: flex;
   gap: 12px;
@@ -373,7 +364,6 @@ body {
   transform: none;
 }
 
-/* CONTROLE DE APOSTA */
 .bet-controls {
   display: flex;
   gap: 15px;
@@ -414,7 +404,6 @@ body {
   border: 1px solid rgba(212, 175, 55, 0.3);
 }
 
-/* TIMER DE AÇÃO */
 .action-timer {
   width: 100%;
   height: 6px;
@@ -432,7 +421,6 @@ body {
   transition: width 1s linear;
 }
 
-/* MENSAGEM DE STATUS */
 .status-message {
   position: fixed;
   top: 70px;
@@ -475,13 +463,13 @@ body {
     font-size: 0.9em;
   }
 
-  /* POSIÇÕES MOBILE - AINDA BEM ESPAÇADAS */
-  .pos-1 { top: 45px; }
-  .pos-2 { top: 4%; right: 5%; }
-  .pos-6 { top: 4%; left: 5%; }
-  .pos-3 { bottom: 18%; right: 5%; }
-  .pos-5 { bottom: 18%; left: 5%; }
-  .pos-4 { bottom: 170px; }
+  /* POSIÇÕES MOBILE - AJUSTADAS */
+  .pos-1 { top: 75px; }
+  .pos-2 { top: 100px; right: 8%; }
+  .pos-6 { top: 100px; left: 8%; }
+  .pos-3 { bottom: 150px; right: 8%; }
+  .pos-5 { bottom: 150px; left: 8%; }
+  .pos-4 { bottom: 110px; }
 
   .controls {
     width: 92%;
@@ -515,13 +503,12 @@ body {
     font-size: 0.85em;
   }
 
-  /* POSIÇÕES MOBILE PEQUENO - AINDA ESPAÇADAS */
-  .pos-1 { top: 45px; }
-  .pos-2 { top: 5%; right: 4%; }
-  .pos-6 { top: 5%; left: 4%; }
-  .pos-3 { bottom: 20%; right: 4%; }
-  .pos-5 { bottom: 20%; left: 4%; }
-  .pos-4 { bottom: 160px; }
+  .pos-1 { top: 70px; }
+  .pos-2 { top: 90px; right: 6%; }
+  .pos-6 { top: 90px; left: 6%; }
+  .pos-3 { bottom: 140px; right: 6%; }
+  .pos-5 { bottom: 140px; left: 6%; }
+  .pos-4 { bottom: 100px; }
 
   .controls {
     width: 96%;
@@ -535,7 +522,7 @@ body {
     font-size: 0.85em;
     max-width: 75px;
   }
-  
+
   .bet-controls {
     gap: 10px;
     flex-wrap: wrap;
