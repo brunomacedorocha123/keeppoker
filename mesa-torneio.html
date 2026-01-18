@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Mesa de Torneio | KeepPoker</title>
-  <style>
+ <style>
 /* ===== RESET ===== */
 * {
   margin: 0;
@@ -56,10 +56,10 @@ body {
   font-weight: bold;
 }
 
-/* ===== MESA - MESMO TAMANHO ===== */
+/* ===== MESA - AJUSTE SUTIL PRA CIMA ===== */
 .table-container {
   position: absolute;
-  top: 48%; /* SUBIU 2% - libera espaço em baixo */
+  top: 47%; /* AJUSTE: 1% pra cima (antes 48%) */
   left: 50%;
   transform: translate(-50%, -50%);
   width: 70%;
@@ -153,44 +153,44 @@ body {
   display: none;
 }
 
-/* ===== POSICIONAMENTO - AJUSTES SUTIS ===== */
+/* ===== POSICIONAMENTO DOS AVATARS ===== */
 
-/* POSIÇÃO 1: TOPO (VOCÊ) - POUCO MAIS PRA CIMA */
+/* POSIÇÃO 1: TOPO (VOCÊ) */
 .pos-1 {
-  top: 1.5%; /* Mais 0.5% pra cima */
+  top: 1.5%;
   left: 50%;
   transform: translateX(-50%);
 }
 
-/* POSIÇÃO 2: DIREITA SUPERIOR - POUCO MAIS FORA */
+/* POSIÇÃO 2: DIREITA SUPERIOR */
 .pos-2 {
-  top: 16.5%; /* Mais 0.5% pra cima */
-  right: 1.5%; /* Mais 0.5% pra fora */
+  top: 16.5%;
+  right: 1.5%;
 }
 
-/* POSIÇÃO 3: DIREITA INFERIOR - POUCO MAIS FORA */
+/* POSIÇÃO 3: DIREITA INFERIOR */
 .pos-3 {
-  bottom: 16.5%; /* Mais 0.5% pra baixo */
-  right: 1.5%; /* Mais 0.5% pra fora */
+  bottom: 16.5%;
+  right: 1.5%;
 }
 
-/* POSIÇÃO 4: BAIXO CENTRO - POUCO MAIS PRA BAIXO */
+/* POSIÇÃO 4: BAIXO CENTRO */
 .pos-4 {
-  bottom: 1.5%; /* Mais 0.5% pra baixo */
+  bottom: 1.5%;
   left: 50%;
   transform: translateX(-50%);
 }
 
-/* POSIÇÃO 5: ESQUERDA INFERIOR - POUCO MAIS FORA */
+/* POSIÇÃO 5: ESQUERDA INFERIOR */
 .pos-5 {
-  bottom: 16.5%; /* Mais 0.5% pra baixo */
-  left: 1.5%; /* Mais 0.5% pra fora */
+  bottom: 16.5%;
+  left: 1.5%;
 }
 
-/* POSIÇÃO 6: ESQUERDA SUPERIOR - POUCO MAIS FORA */
+/* POSIÇÃO 6: ESQUERDA SUPERIOR */
 .pos-6 {
-  top: 16.5%; /* Mais 0.5% pra cima */
-  left: 1.5%; /* Mais 0.5% pra fora */
+  top: 16.5%;
+  left: 1.5%;
 }
 
 /* AVATAR DO JOGADOR (VOCÊ) */
@@ -203,10 +203,10 @@ body {
   display: block;
 }
 
-/* ===== CONTROLES - MAIS PRA BAIIXO ===== */
+/* ===== CONTROLES - QUADRO DO CARD ===== */
 .controls {
   position: fixed;
-  bottom: 10px; /* DESCEU 5px - pra não ficar em cima */
+  bottom: 10px;
   left: 50%;
   transform: translateX(-50%);
   background: rgba(13, 27, 42, 0.95);
@@ -267,7 +267,7 @@ body {
   .table-container {
     width: 85%;
     height: 50%;
-    top: 47%; /* Ajuste proporcional */
+    top: 46%; /* Ajuste proporcional (1% pra cima) */
   }
   
   .avatar {
@@ -276,7 +276,6 @@ body {
     font-size: 1.2em;
   }
   
-  /* Ajustes mobile sutis */
   .pos-1 { top: 1%; }
   .pos-4 { bottom: 1%; }
   .pos-2, .pos-6 { top: 14.5%; }
@@ -287,7 +286,7 @@ body {
   .controls {
     min-width: 90%;
     padding: 12px;
-    bottom: 8px; /* Ajuste proporcional */
+    bottom: 8px;
   }
   
   .action-btn {
@@ -321,6 +320,10 @@ body {
     width: 40px;
     height: 40px;
     font-size: 1em;
+  }
+  
+  .table-container {
+    top: 45%; /* Ajuste proporcional (1% pra cima) */
   }
   
   .pos-1 { top: 0.5%; }
