@@ -33,317 +33,321 @@
  <style>
 /* ===== RESET ===== */
 * {
- margin: 0;
- padding: 0;
- box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 /* ===== BASE ===== */
 body {
- background: #0a1520;
- color: white;
- font-family: 'Segoe UI', sans-serif;
- height: 100vh;
- overflow: hidden;
+  background: #0a1520;
+  color: white;
+  font-family: 'Segoe UI', sans-serif;
+  height: 100vh;
+  overflow: hidden;
 }
 
 /* ===== CABEÇALHO ===== */
 .header {
- height: 60px;
- background: rgba(13, 27, 42, 0.9);
- border-bottom: 2px solid #d4af37;
- display: flex;
- justify-content: space-between;
- align-items: center;
- padding: 0 20px;
- position: fixed;
- top: 0;
- left: 0;
- right: 0;
- z-index: 100;
+  height: 60px;
+  background: rgba(13, 27, 42, 0.9);
+  border-bottom: 2px solid #d4af37;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
 }
 
 .tournament-info {
- font-size: 1.1em;
- color: #d4af37;
- font-weight: bold;
+  font-size: 1.1em;
+  color: #d4af37;
+  font-weight: bold;
 }
 
 .game-stats {
- display: flex;
- gap: 20px;
+  display: flex;
+  gap: 20px;
 }
 
 .stat {
- background: rgba(212, 175, 55, 0.15);
- padding: 6px 12px;
- border-radius: 12px;
- border: 1px solid rgba(212, 175, 55, 0.3);
- font-weight: bold;
+  background: rgba(212, 175, 55, 0.15);
+  padding: 6px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  font-weight: bold;
 }
 
 /* ===== MESA ===== */
 .table-container {
- position: absolute;
- top: 45%;
- left: 50%;
- transform: translate(-50%, -50%);
- width: 70%;
- height: 55%;
- z-index: 1;
+  position: absolute;
+  top: 45%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 70%;
+  height: 55%;
+  z-index: 1;
 }
 
 /* MESA FORMATO SALSICHA */
 .poker-table {
- width: 100%;
- height: 100%;
- background: #0a5c36;
- border: 15px solid #8B4513;
- border-radius: 50% / 40%; /* Formato salsicha */
- box-shadow:
-  inset 0 0 40px rgba(0, 0, 0, 0.6),
-  0 0 30px rgba(0, 0, 0, 0.7);
- position: relative;
+  width: 100%;
+  height: 100%;
+  background: #0a5c36;
+  border: 15px solid #8B4513;
+  border-radius: 50% / 40%; /* Formato salsicha */
+  box-shadow:
+    inset 0 0 40px rgba(0, 0, 0, 0.6),
+    0 0 30px rgba(0, 0, 0, 0.7);
+  position: relative;
 }
 
 /* ÁREA CENTRAL DA MESA */
 .table-center {
- position: absolute;
- top: 50%;
- left: 50%;
- transform: translate(-50%, -50%);
- width: 40%;
- height: 40%;
- display: flex;
- flex-direction: column;
- align-items: center;
- justify-content: center;
- gap: 15px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 40%;
+  height: 40%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
 }
 
 /* CARTAS COMUNITÁRIAS */
 .community-cards {
- display: flex;
- gap: 8px;
+  display: flex;
+  gap: 8px;
 }
 
 .card-placeholder {
- width: 50px;
- height: 70px;
- background: white;
- border-radius: 5px;
- border: 2px solid #333;
- display: flex;
- align-items: center;
- justify-content: center;
- font-weight: bold;
- font-size: 1.2em;
- box-shadow: 0 2px 5px rgba(0,0,0,0.3);
- color: #2c3e50;
+  width: 50px;
+  height: 70px;
+  background: white;
+  border-radius: 5px;
+  border: 2px solid #333;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 1.2em;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+  color: #2c3e50;
 }
 
 /* POT */
 .pot {
- color: #d4af37;
- font-size: 1.4em;
- font-weight: bold;
+  color: #d4af37;
+  font-size: 1.4em;
+  font-weight: bold;
 }
 
 /* ===== AVATARS ===== */
 .avatar-container {
- position: absolute;
- display: flex;
- flex-direction: column;
- align-items: center;
- z-index: 20; /* ⬅️ MAIOR que controls */
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 20;
 }
 
 /* AVATAR CIRCULAR */
 .avatar {
- width: 70px;
- height: 70px;
- border-radius: 50%;
- background: linear-gradient(135deg, #415a77, #1b263b);
- border: 3px solid #d4af37;
- display: flex;
- align-items: center;
- justify-content: center;
- color: white;
- font-size: 1.4em;
- margin-bottom: 5px;
- box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
- position: relative;
- overflow: hidden;
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #415a77, #1b263b);
+  border: 3px solid #d4af37;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1.4em;
+  margin-bottom: 5px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+  position: relative;
+  overflow: hidden;
 }
 
 .avatar img {
- width: 100%;
- height: 100%;
- object-fit: cover;
- border-radius: 50%;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
 }
 
 /* CARTAS DO JOGADOR (AO LADO DO AVATAR - SÓ POSIÇÃO 1) */
 .player-cards {
- position: absolute;
- left: 85px; /* Ao lado direito do avatar */
- top: 50%;
- transform: translateY(-50%);
- display: flex;
- gap: 5px;
- z-index: 25; /* ⬅️ MAIOR que avatar */
+  position: absolute;
+  left: 85px; /* Ao lado direito do avatar */
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  gap: 5px;
+  z-index: 25;
 }
 
 .player-card {
- width: 40px;
- height: 56px;
- background: white;
- border-radius: 4px;
- border: 2px solid #000;
- display: flex;
- align-items: center;
- justify-content: center;
- font-weight: bold;
- font-size: 1em;
- color: #000;
- box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  width: 40px;
+  height: 56px;
+  background: white;
+  border-radius: 4px;
+  border: 2px solid #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 1em;
+  color: #000;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
 }
 
 /* CHIPS DO JOGADOR */
 .player-chips {
- background: rgba(0, 0, 0, 0.7);
- color: #ffd700;
- padding: 4px 8px;
- border-radius: 10px;
- font-size: 0.9em;
- font-weight: bold;
- margin-top: 5px;
- min-width: 80px;
- text-align: center;
+  background: rgba(0, 0, 0, 0.7);
+  color: #ffd700;
+  padding: 4px 8px;
+  border-radius: 10px;
+  font-size: 0.9em;
+  font-weight: bold;
+  margin-top: 5px;
+  min-width: 80px;
+  text-align: center;
 }
 
 /* JOGADOR ATUAL (vez) */
 .current-turn .avatar {
- border-color: #00ff00;
- box-shadow: 0 0 15px rgba(0, 255, 0, 0.5);
+  border-color: #00ff00;
+  box-shadow: 0 0 15px rgba(0, 255, 0, 0.5);
 }
 
 /* APOSTA DO JOGADOR */
 .player-bet {
- position: absolute;
- top: -15px;
- background: rgba(212, 175, 55, 0.9);
- color: #000;
- padding: 3px 8px;
- border-radius: 10px;
- font-weight: bold;
- font-size: 0.8em;
- white-space: nowrap;
+  position: absolute;
+  top: -15px;
+  background: rgba(212, 175, 55, 0.9);
+  color: #000;
+  padding: 3px 8px;
+  border-radius: 10px;
+  font-weight: bold;
+  font-size: 0.8em;
+  white-space: nowrap;
 }
 
 /* FOLDED/INATIVO */
 .player-folded .avatar {
- opacity: 0.5;
- border-color: #666;
+  opacity: 0.5;
+  border-color: #666;
 }
 
 /* INFO DO JOGADOR (SÓ APARECE PARA VOCÊ) */
 .player-info {
- background: rgba(13, 27, 42, 0.95);
- padding: 8px 12px;
- border-radius: 8px;
- border: 1px solid rgba(212, 175, 55, 0.3);
- text-align: center;
- min-width: 100px;
- font-size: 0.9em;
- display: none;
+  background: rgba(13, 27, 42, 0.95);
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  text-align: center;
+  min-width: 100px;
+  font-size: 0.9em;
+  display: none;
 }
 
-/* ===== POSICIONAMENTO DOS AVATARS ===== */
+/* ===== POSICIONAMENTO DOS AVATARS AJUSTADO ===== */
 
-/* POSIÇÃO 1: TOPO CENTRO (VOCÊ) */
+/* POSIÇÃO 1: TOPO CENTRO (VOCÊ) - ajustado para mais pra cima */
 .pos-1 {
- top: -16.5%; /* MAIS PRA CIMA */
- left: 50%;
- transform: translateX(-50%);
+  top: -25%;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
-/* POSIÇÃO 2: DIREITA SUPERIOR - FORA DA MESA */
+/* POSIÇÃO 2: DIREITA SUPERIOR - MAIS AFASTADO VERTICALMENTE */
 .pos-2 {
- top: 16.5%; /* MAIS PRA CIMA */
- right: 3%; /* MAIS PRA DIREITA (fora da mesa) */
+  top: 8%;
+  right: 3%;
+  transform: none; /* Removido transform que estava centralizando */
 }
 
-/* POSIÇÃO 3: DIREITA INFERIOR - FORA DA MESA */
+/* POSIÇÃO 3: DIREITA INFERIOR - MAIS AFASTADO VERTICALMENTE */
 .pos-3 {
- bottom: 16.5%; /* MAIS PRA BAIXO */
- right: 3%; /* MAIS PRA DIREITA (fora da mesa) */
+  bottom: 8%;
+  right: 3%;
+  transform: none; /* Removido transform que estava centralizando */
 }
 
-/* POSIÇÃO 4: BAIXO CENTRO - TOTALMENTE VISÍVEL */
+/* POSIÇÃO 4: BAIXO CENTRO - TOTALMENTE VISÍVEL E AFASTADO */
 .pos-4 {
- bottom: -16.5%; /* MAIS PRA BAIXO */
- left: 50%;
- transform: translateX(-50%);
+  bottom: -25%;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
-/* POSIÇÃO 5: ESQUERDA INFERIOR - FORA DA MESA */
+/* POSIÇÃO 5: ESQUERDA INFERIOR - MAIS AFASTADO VERTICALMENTE */
 .pos-5 {
- bottom: 16.5%; /* MAIS PRA BAIXO */
- left: 3%; /* MAIS PRA ESQUERDA (fora da mesa) */
+  bottom: 8%;
+  left: 3%;
+  transform: none; /* Removido transform que estava centralizando */
 }
 
-/* POSIÇÃO 6: ESQUERDA SUPERIOR - FORA DA MESA */
+/* POSIÇÃO 6: ESQUERDA SUPERIOR - MAIS AFASTADO VERTICALMENTE */
 .pos-6 {
- top: 16.5%; /* MAIS PRA CIMA */
- left: 3%; /* MAIS PRA ESQUERDA (fora da mesa) */
+  top: 8%;
+  left: 3%;
+  transform: none; /* Removido transform que estava centralizando */
 }
 
 /* AVATAR DO JOGADOR (VOCÊ) */
 .player-you .avatar {
- border-color: #3498db;
- box-shadow: 0 0 15px rgba(52, 152, 219, 0.5);
+  border-color: #3498db;
+  box-shadow: 0 0 15px rgba(52, 152, 219, 0.5);
 }
 
 .player-you .player-info {
- display: block;
+  display: block;
 }
 
 /* ===== CONTROLES ===== */
 .controls {
- position: fixed;
- bottom: 2%; /* LÁ EM BAIXO DA TELA */
- left: 50%;
- transform: translateX(-50%);
- background: rgba(13, 27, 42, 0.95);
- padding: 8px 12px; /* ALTURA REDUZIDA */
- border-radius: 12px;
- border: 2px solid #d4af37;
- display: flex;
- flex-direction: column;
- align-items: center;
- gap: 8px; /* GAP REDUZIDO */
- z-index: 10; /* ⬅️ MENOR que avatares (20) */
- min-width: 400px;
- box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
- max-height: 120px; /* ALTURA MÁXIMA REDUZIDA */
+  position: fixed;
+  bottom: 5%; /* AUMENTADO: controles bem embaixo da tela */
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(13, 27, 42, 0.95);
+  padding: 12px 20px;
+  border-radius: 12px;
+  border: 2px solid #d4af37;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  z-index: 10;
+  min-width: 450px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+  max-height: 130px;
 }
 
 /* BOTÕES DE AÇÃO - SEM CARTAS DENTRO */
 .action-buttons {
- display: flex;
- gap: 8px;
+  display: flex;
+  gap: 8px;
 }
 
 .action-btn {
- padding: 10px 18px;
- border: none;
- border-radius: 8px;
- font-weight: bold;
- cursor: pointer;
- min-width: 80px;
- font-size: 0.9em;
- transition: all 0.3s;
+  padding: 10px 18px;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  min-width: 80px;
+  font-size: 0.9em;
+  transition: all 0.3s;
 }
 
 .btn-fold { background: #e74c3c; color: white; }
@@ -353,188 +357,189 @@ body {
 .btn-allin { background: #e67e22; color: white; }
 
 .action-btn:hover {
- transform: translateY(-2px);
- box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
 }
 
 .action-btn:disabled {
- opacity: 0.5;
- cursor: not-allowed;
- transform: none;
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
 }
 
 /* CONTROLE DE APOSTA */
 .bet-controls {
- display: flex;
- gap: 10px;
- align-items: center;
- margin-top: 5px; /* REDUZIDO */
- display: none;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-top: 5px;
+  display: none;
 }
 
 .bet-slider {
- flex: 1;
- height: 6px; /* REDUZIDO */
- background: rgba(255,255,255,0.1);
- border-radius: 3px;
- outline: none;
+  flex: 1;
+  height: 6px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 3px;
+  outline: none;
 }
 
 .bet-amount {
- background: rgba(212, 175, 55, 0.2);
- padding: 5px 10px; /* REDUZIDO */
- border-radius: 8px;
- font-weight: bold;
- color: #ffd700;
- min-width: 60px; /* REDUZIDO */
- text-align: center;
- font-size: 0.85em;
+  background: rgba(212, 175, 55, 0.2);
+  padding: 5px 10px;
+  border-radius: 8px;
+  font-weight: bold;
+  color: #ffd700;
+  min-width: 60px;
+  text-align: center;
+  font-size: 0.85em;
 }
 
 /* TIMER DE AÇÃO */
 .action-timer {
- width: 100%;
- height: 4px; /* REDUZIDO */
- background: rgba(255,255,255,0.1);
- border-radius: 2px;
- margin-top: 5px; /* REDUZIDO */
- overflow: hidden;
- display: none;
+  width: 100%;
+  height: 4px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 2px;
+  margin-top: 5px;
+  overflow: hidden;
+  display: none;
 }
 
 .timer-bar {
- height: 100%;
- background: linear-gradient(90deg, #2ecc71, #e67e22, #e74c3c);
- width: 100%;
- transition: width 1s linear;
+  height: 100%;
+  background: linear-gradient(90deg, #2ecc71, #e67e22, #e74c3c);
+  width: 100%;
+  transition: width 1s linear;
 }
 
 /* MENSAGEM DE STATUS */
 .status-message {
- position: fixed;
- top: 70px;
- left: 50%;
- transform: translateX(-50%);
- background: rgba(0,0,0,0.8);
- padding: 10px 20px;
- border-radius: 20px;
- border: 1px solid #d4af37;
- z-index: 1000;
- font-weight: bold;
- display: none;
+  position: fixed;
+  top: 70px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0,0,0,0.8);
+  padding: 10px 20px;
+  border-radius: 20px;
+  border: 1px solid #d4af37;
+  z-index: 1000;
+  font-weight: bold;
+  display: none;
 }
 
 /* ===== RESPONSIVIDADE ===== */
 @media (max-width: 768px) {
- .table-container {
-  width: 85%;
-  height: 50%;
-  top: 44%;
- }
+  .table-container {
+    width: 85%;
+    height: 50%;
+    top: 44%;
+  }
 
- .avatar {
-  width: 50px;
-  height: 50px;
-  font-size: 1.2em;
- }
+  .avatar {
+    width: 50px;
+    height: 50px;
+    font-size: 1.2em;
+  }
 
- .player-cards {
-  left: 60px;
- }
+  .player-cards {
+    left: 60px;
+  }
 
- .player-card {
-  width: 30px;
-  height: 42px;
-  font-size: 0.9em;
- }
+  .player-card {
+    width: 30px;
+    height: 42px;
+    font-size: 0.9em;
+  }
 
- /* POSIÇÕES MOBILE */
- .pos-1 { top: -18%; }
- .pos-2 { top: 14%; right: 2%; }
- .pos-6 { top: 14%; left: 2%; }
- .pos-3 { bottom: 14%; right: 2%; }
- .pos-5 { bottom: 14%; left: 2%; }
- .pos-4 { bottom: -18%; }
+  /* POSIÇÕES MOBILE - AJUSTADAS */
+  .pos-1 { top: -28%; }
+  .pos-2 { top: 6%; right: 2%; }
+  .pos-6 { top: 6%; left: 2%; }
+  .pos-3 { bottom: 6%; right: 2%; }
+  .pos-5 { bottom: 6%; left: 2%; }
+  .pos-4 { bottom: -28%; }
 
- .controls {
-  min-width: 90%;
-  padding: 6px 10px;
-  bottom: 1%;
-  max-height: 110px;
- }
+  .controls {
+    min-width: 90%;
+    padding: 10px 15px;
+    bottom: 4%;
+    max-height: 120px;
+  }
 
- .action-btn {
-  padding: 8px 12px;
-  min-width: 70px;
-  font-size: 0.85em;
- }
+  .action-btn {
+    padding: 8px 12px;
+    min-width: 70px;
+    font-size: 0.85em;
+  }
 
- .bet-amount {
-  padding: 4px 8px;
-  min-width: 50px;
-  font-size: 0.8em;
- }
+  .bet-amount {
+    padding: 4px 8px;
+    min-width: 50px;
+    font-size: 0.8em;
+  }
 }
 
 @media (max-width: 480px) {
- .header {
-  padding: 0 10px;
- }
+  .header {
+    padding: 0 10px;
+  }
 
- .game-stats {
-  gap: 10px;
- }
+  .game-stats {
+    gap: 10px;
+  }
 
- .stat {
-  padding: 4px 8px;
-  font-size: 0.9em;
- }
+  .stat {
+    padding: 4px 8px;
+    font-size: 0.9em;
+  }
 
- .avatar {
-  width: 40px;
-  height: 40px;
-  font-size: 1em;
- }
+  .avatar {
+    width: 40px;
+    height: 40px;
+    font-size: 1em;
+  }
 
- .player-cards {
-  left: 50px;
- }
+  .player-cards {
+    left: 50px;
+  }
 
- .player-card {
-  width: 25px;
-  height: 35px;
-  font-size: 0.8em;
- }
+  .player-card {
+    width: 25px;
+    height: 35px;
+    font-size: 0.8em;
+  }
 
- .table-container {
-  top: 43%;
- }
+  .table-container {
+    top: 43%;
+  }
 
- /* POSIÇÕES MOBILE PEQUENO */
- .pos-1 { top: -20%; }
- .pos-2 { top: 12%; right: 1.5%; }
- .pos-6 { top: 12%; left: 1.5%; }
- .pos-3 { bottom: 12%; right: 1.5%; }
- .pos-5 { bottom: 12%; left: 1.5%; }
- .pos-4 { bottom: -20%; }
+  /* POSIÇÕES MOBILE PEQUENO - AJUSTADAS */
+  .pos-1 { top: -30%; }
+  .pos-2 { top: 5%; right: 1.5%; }
+  .pos-6 { top: 5%; left: 1.5%; }
+  .pos-3 { bottom: 5%; right: 1.5%; }
+  .pos-5 { bottom: 5%; left: 1.5%; }
+  .pos-4 { bottom: -30%; }
 
- .controls {
-  bottom: 0.5%;
-  padding: 5px 8px;
-  max-height: 100px;
- }
+  .controls {
+    bottom: 3%;
+    padding: 8px 12px;
+    max-height: 110px;
+    min-width: 95%;
+  }
 
- .action-btn {
-  padding: 6px 10px;
-  min-width: 60px;
-  font-size: 0.8em;
- }
+  .action-btn {
+    padding: 6px 10px;
+    min-width: 60px;
+    font-size: 0.8em;
+  }
 
- .bet-amount {
-  padding: 3px 6px;
-  min-width: 40px;
-  font-size: 0.75em;
- }
+  .bet-amount {
+    padding: 3px 6px;
+    min-width: 40px;
+    font-size: 0.75em;
+  }
 }
 </style>
 </head>
