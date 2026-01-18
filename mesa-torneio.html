@@ -56,10 +56,10 @@ body {
   font-weight: bold;
 }
 
-/* ===== MESA ===== */
+/* ===== MESA - MESMO TAMANHO ===== */
 .table-container {
   position: absolute;
-  top: 50%;
+  top: 48%; /* SUBIU 2% - libera espaço em baixo */
   left: 50%;
   transform: translate(-50%, -50%);
   width: 70%;
@@ -153,44 +153,44 @@ body {
   display: none;
 }
 
-/* ===== POSICIONAMENTO AJUSTADO DOS AVATARS ===== */
+/* ===== POSICIONAMENTO - AJUSTES SUTIS ===== */
 
-/* POSIÇÃO 1: TOPO (VOCÊ) - MAIS PARA CIMA */
+/* POSIÇÃO 1: TOPO (VOCÊ) - POUCO MAIS PRA CIMA */
 .pos-1 {
-  top: 2%; /* SUBIU 3% */
+  top: 1.5%; /* Mais 0.5% pra cima */
   left: 50%;
   transform: translateX(-50%);
 }
 
-/* POSIÇÃO 2: DIREITA SUPERIOR - DIAGONAL PRA FORA */
+/* POSIÇÃO 2: DIREITA SUPERIOR - POUCO MAIS FORA */
 .pos-2 {
-  top: 17%; /* SUBIU 3% */
-  right: 2%; /* MAIS pra direita (3% mais) */
+  top: 16.5%; /* Mais 0.5% pra cima */
+  right: 1.5%; /* Mais 0.5% pra fora */
 }
 
-/* POSIÇÃO 3: DIREITA INFERIOR - DIAGONAL PRA FORA */
+/* POSIÇÃO 3: DIREITA INFERIOR - POUCO MAIS FORA */
 .pos-3 {
-  bottom: 17%; /* DESCEU 3% */
-  right: 2%; /* MAIS pra direita (3% mais) */
+  bottom: 16.5%; /* Mais 0.5% pra baixo */
+  right: 1.5%; /* Mais 0.5% pra fora */
 }
 
-/* POSIÇÃO 4: BAIXO CENTRO - MAIS PARA BAIXO */
+/* POSIÇÃO 4: BAIXO CENTRO - POUCO MAIS PRA BAIXO */
 .pos-4 {
-  bottom: 2%; /* DESCEU 3% */
+  bottom: 1.5%; /* Mais 0.5% pra baixo */
   left: 50%;
   transform: translateX(-50%);
 }
 
-/* POSIÇÃO 5: ESQUERDA INFERIOR - DIAGONAL PRA FORA */
+/* POSIÇÃO 5: ESQUERDA INFERIOR - POUCO MAIS FORA */
 .pos-5 {
-  bottom: 17%; /* DESCEU 3% */
-  left: 2%; /* MAIS pra esquerda (3% mais) */
+  bottom: 16.5%; /* Mais 0.5% pra baixo */
+  left: 1.5%; /* Mais 0.5% pra fora */
 }
 
-/* POSIÇÃO 6: ESQUERDA SUPERIOR - DIAGONAL PRA FORA */
+/* POSIÇÃO 6: ESQUERDA SUPERIOR - POUCO MAIS FORA */
 .pos-6 {
-  top: 17%; /* SUBIU 3% */
-  left: 2%; /* MAIS pra esquerda (3% mais) */
+  top: 16.5%; /* Mais 0.5% pra cima */
+  left: 1.5%; /* Mais 0.5% pra fora */
 }
 
 /* AVATAR DO JOGADOR (VOCÊ) */
@@ -203,22 +203,22 @@ body {
   display: block;
 }
 
-/* ===== CONTROLES ===== */
+/* ===== CONTROLES - MAIS PRA BAIIXO ===== */
 .controls {
   position: fixed;
-  bottom: 15px; /* MAIS para cima (5px) */
+  bottom: 10px; /* DESCEU 5px - pra não ficar em cima */
   left: 50%;
   transform: translateX(-50%);
   background: rgba(13, 27, 42, 0.95);
-  padding: 12px 15px; /* Reduzido um pouco */
+  padding: 15px;
   border-radius: 12px;
   border: 2px solid #d4af37;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px; /* Reduzido */
+  gap: 12px;
   z-index: 100;
-  min-width: 380px; /* Reduzido */
+  min-width: 400px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
 }
 
@@ -229,32 +229,31 @@ body {
 }
 
 .your-card {
-  width: 48px; /* Reduzido */
-  height: 67px; /* Reduzido */
+  width: 50px;
+  height: 70px;
   background: white;
   border-radius: 6px;
   border: 2px solid #000;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.2em; /* Reduzido */
+  font-size: 1.3em;
   font-weight: bold;
 }
 
 /* BOTÕES DE AÇÃO */
 .action-buttons {
   display: flex;
-  gap: 6px; /* Reduzido */
+  gap: 8px;
 }
 
 .action-btn {
-  padding: 9px 18px; /* Reduzido */
+  padding: 10px 20px;
   border: none;
   border-radius: 8px;
   font-weight: bold;
   cursor: pointer;
-  min-width: 75px; /* Reduzido */
-  font-size: 0.9em; /* Reduzido */
+  min-width: 80px;
 }
 
 .btn-fold { background: #e74c3c; color: white; }
@@ -268,6 +267,7 @@ body {
   .table-container {
     width: 85%;
     height: 50%;
+    top: 47%; /* Ajuste proporcional */
   }
   
   .avatar {
@@ -276,29 +276,29 @@ body {
     font-size: 1.2em;
   }
   
-  /* Ajustes mobile */
+  /* Ajustes mobile sutis */
   .pos-1 { top: 1%; }
   .pos-4 { bottom: 1%; }
-  .pos-2, .pos-6 { top: 15%; }
-  .pos-3, .pos-5 { bottom: 15%; }
+  .pos-2, .pos-6 { top: 14.5%; }
+  .pos-3, .pos-5 { bottom: 14.5%; }
   .pos-2, .pos-3 { right: 1%; }
   .pos-5, .pos-6 { left: 1%; }
   
   .controls {
     min-width: 90%;
-    padding: 10px;
-    bottom: 10px;
+    padding: 12px;
+    bottom: 8px; /* Ajuste proporcional */
   }
   
   .action-btn {
-    padding: 8px 14px;
-    min-width: 65px;
-    font-size: 0.85em;
+    padding: 8px 15px;
+    min-width: 70px;
+    font-size: 0.9em;
   }
   
   .your-card {
-    width: 42px;
-    height: 59px;
+    width: 40px;
+    height: 56px;
     font-size: 1.1em;
   }
 }
@@ -318,24 +318,26 @@ body {
   }
   
   .avatar {
-    width: 42px;
-    height: 42px;
-    font-size: 1.1em;
+    width: 40px;
+    height: 40px;
+    font-size: 1em;
   }
   
   .pos-1 { top: 0.5%; }
   .pos-4 { bottom: 0.5%; }
-  .pos-2, .pos-6 { top: 13%; }
-  .pos-3, .pos-5 { bottom: 13%; }
+  .pos-2, .pos-6 { top: 12.5%; }
+  .pos-3, .pos-5 { bottom: 12.5%; }
+  .pos-2, .pos-3 { right: 0.5%; }
+  .pos-5, .pos-6 { left: 0.5%; }
   
-  .your-card {
-    width: 38px;
-    height: 53px;
-    font-size: 1em;
+  .controls {
+    bottom: 6px;
   }
   
-  .action-buttons {
-    gap: 4px;
+  .your-card {
+    width: 40px;
+    height: 56px;
+    font-size: 1.1em;
   }
   
   .action-btn {
