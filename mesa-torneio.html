@@ -620,595 +620,549 @@ body {
     </div>
   </div>
 </div>
-
+<script>
  <!-- SCRIPT PRINCIPAL -->
- <script>
-  // =============================================
-  // VARIÁVEIS GLOBAIS
-  // =============================================
-  let tournamentId = null;
-  let tournamentData = null;
-  let currentUser = null;
-  let userData = null;
-  let pokerGame = null;
-  let realtimeListener = null;
-  let actionTimerInterval = null;
-  let timeLeft = 30;
-  let myPlayerPosition = -1;
-  let gameStarted = false;
+// =============================================
+// VARIÁVEIS GLOBAIS
+// =============================================
+let tournamentId = null;
+let tournamentData = null;
+let currentUser = null;
+let userData = null;
+let pokerGame = null;
+let realtimeListener = null;
+let actionTimerInterval = null;
+let timeLeft = 30;
+let myPlayerPosition = -1;
+let gameStarted = false;
+let dealerPosition = 0;
 
-  // Mapeamento das posições na mesa (0-5)
-  const positionMap = [1, 2, 6, 3, 5, 4]; // Ordem das posições visuais
+// Mapeamento das posições na mesa (0-5)
+const positionMap = [1, 2, 6, 3, 5, 4];
 
-  // =============================================
-  // INICIALIZAÇÃO
-  // =============================================
-  document.addEventListener('DOMContentLoaded', function() {
+// =============================================
+// INICIALIZAÇÃO
+// =============================================
+document.addEventListener('DOMContentLoaded', function() {
    console.log('🎮 Mesa de torneio carregada');
    
-   // 1. Obter ID do torneio da URL
    const urlParams = new URLSearchParams(window.location.search);
    tournamentId = urlParams.get('tournamentId');
    
    if (!tournamentId) {
-    alert('Torneio não especificado! Redirecionando...');
-    window.location.href = 'torneios.html';
-    return;
+      alert('Torneio não especificado! Redirecionando...');
+      window.location.href = 'torneios.html';
+      return;
    }
    
    console.log(`🎯 Torneio ID: ${tournamentId}`);
    
-   // 2. Verificar autenticação
    auth.onAuthStateChanged(async (user) => {
-    if (!user) {
-     console.log('👤 Usuário não autenticado');
-     window.location.href = 'login.html';
-     return;
-    }
-    
-    currentUser = user;
-    console.log(`✅ Usuário autenticado: ${user.uid}`);
-    
-    // 3. Carregar dados do usuário
-    await loadUserData();
-    
-    // 4. Carregar dados do torneio
-    await loadTournamentData();
-    
-    // 5. Verificar se usuário está no torneio
-    if (!isUserInTournament()) {
-     showNotification('❌ Você não está inscrito neste torneio', 'error');
-     setTimeout(() => {
-      window.location.href = 'torneios.html';
-     }, 3000);
-     return;
-    }
-    
-    // 6. Inicializar interface com dados REAIS
-    initializeInterface();
-    
-    // 7. Configurar listener em tempo real
-    setupRealtimeListener();
-    
-    // 8. Verificar se pode iniciar jogo
-    checkIfGameCanStart();
+      if (!user) {
+         console.log('👤 Usuário não autenticado');
+         window.location.href = 'login.html';
+         return;
+      }
+      
+      currentUser = user;
+      console.log(`✅ Usuário autenticado: ${user.uid}`);
+      
+      await loadUserData();
+      await loadTournamentData();
+      
+      if (!isUserInTournament()) {
+         showNotification('❌ Você não está inscrito neste torneio', 'error');
+         setTimeout(() => {
+            window.location.href = 'torneios.html';
+         }, 3000);
+         return;
+      }
+      
+      initializeInterface();
+      setupRealtimeListener();
+      checkIfGameCanStart();
    });
    
-   // Configurar controles
    setupControls();
-  });
+});
 
-  // =============================================
-  // FUNÇÕES PRINCIPAIS
-  // =============================================
-  
-  // 1. Carregar dados do usuário
-  async function loadUserData() {
+// =============================================
+// FUNÇÕES PRINCIPAIS
+// =============================================
+
+async function loadUserData() {
    try {
-    const userDoc = await db.collection('users').doc(currentUser.uid).get();
-    if (userDoc.exists) {
-     userData = userDoc.data();
-     console.log('📊 Usuário:', userData.nickname || userData.nome);
-    }
+      const userDoc = await db.collection('users').doc(currentUser.uid).get();
+      if (userDoc.exists) {
+         userData = userDoc.data();
+         console.log('📊 Usuário:', userData.nickname || userData.nome);
+      }
    } catch (error) {
-    console.error('❌ Erro ao carregar dados do usuário:', error);
+      console.error('❌ Erro ao carregar dados do usuário:', error);
    }
-  }
-  
-  // 2. Carregar dados do torneio
-  async function loadTournamentData() {
+}
+
+async function loadTournamentData() {
    try {
-    const tournamentDoc = await db.collection('tournaments').doc(tournamentId).get();
-    if (!tournamentDoc.exists) {
-     throw new Error('Torneio não encontrado');
-    }
-    
-    tournamentData = tournamentDoc.data();
-    tournamentData.id = tournamentId;
-    
-    console.log('🎲 Torneio:', tournamentData.name);
-    console.log('👥 Jogadores:', tournamentData.players?.length || 0);
-    
-    // Atualizar header
-    document.getElementById('tournamentName').textContent = tournamentData.name;
-    document.getElementById('playersCount').textContent = 
-     `${tournamentData.players?.length || 1}/${tournamentData.maxPlayers || 6}`;
-     
+      const tournamentDoc = await db.collection('tournaments').doc(tournamentId).get();
+      if (!tournamentDoc.exists) {
+         throw new Error('Torneio não encontrado');
+      }
+      
+      tournamentData = tournamentDoc.data();
+      tournamentData.id = tournamentId;
+      
+      console.log('🎲 Torneio:', tournamentData.name);
+      console.log('👥 Jogadores:', tournamentData.players?.length || 0);
+      
+      document.getElementById('tournamentName').textContent = tournamentData.name;
+      document.getElementById('playersCount').textContent = 
+         `${tournamentData.players?.length || 1}/${tournamentData.maxPlayers || 6}`;
+         
    } catch (error) {
-    console.error('❌ Erro ao carregar torneio:', error);
-    showNotification('Erro ao carregar torneio', 'error');
+      console.error('❌ Erro ao carregar torneio:', error);
+      showNotification('Erro ao carregar torneio', 'error');
    }
-  }
-  
-  // 3. Verificar se usuário está no torneio
-  function isUserInTournament() {
+}
+
+function isUserInTournament() {
    if (!tournamentData.players) return false;
    return tournamentData.players.some(p => p.userId === currentUser.uid);
-  }
-  
-  // 4. Inicializar interface com dados REAIS
-  function initializeInterface() {
-   console.log('🎨 Inicializando interface com dados reais...');
+}
+
+function initializeInterface() {
+   console.log('🎨 Inicializando interface...');
    
-   // Limpar avatares
    for (let i = 1; i <= 6; i++) {
-    document.getElementById(`avatar${i}`).innerHTML = '?';
-    document.getElementById(`chips${i}`).innerHTML = '-<br>0';
-    // Esconder cartas dos jogadores (só mostrarem quando tiverem cartas)
-    const playerCards = document.getElementById(`playerPos${i}`)?.querySelector('.player-cards');
-    if (playerCards) {
-     playerCards.style.display = 'none';
-    }
+      document.getElementById(`avatar${i}`).innerHTML = '?';
+      document.getElementById(`chips${i}`).innerHTML = '-<br>0';
+      const playerCards = document.getElementById(`playerPos${i}`)?.querySelector('.player-cards');
+      if (playerCards) playerCards.style.display = 'none';
    }
    
-   // Preencher com jogadores REAIS
    const players = tournamentData.players || [];
    
    players.forEach((player, index) => {
-    if (index < 6) { // Máximo 6 jogadores
-     const pos = positionMap[index]; // Mapear para posição visual
-     const avatarElement = document.getElementById(`avatar${pos}`);
-     const chipsElement = document.getElementById(`chips${pos}`);
-     const container = document.getElementById(`playerPos${pos}`);
-     
-     // Verificar se é o usuário atual
-     const isMe = player.userId === currentUser.uid;
-     if (isMe) {
-      myPlayerPosition = index;
-      console.log(`🎮 Você está na posição: ${index + 1} (visual: ${pos})`);
-     }
-     
-     // Avatar
-     if (player.avatarUrl) {
-      avatarElement.innerHTML = `<img src="${player.avatarUrl}" alt="${player.nickname}">`;
-     } else {
-      // Primeira letra do nome
-      const initial = (player.nickname || player.playerName || '?').charAt(0).toUpperCase();
-      avatarElement.textContent = initial;
-     }
-     
-     // Adicionar classe "player-you" se for o usuário
-     if (isMe) {
-      container.classList.add('player-you');
-      // Mostrar cartas do jogador (se tiver)
-      const myCards = container.querySelector('.player-cards');
-      if (myCards) {
-       myCards.style.display = 'flex';
+      if (index < 6) {
+         const pos = positionMap[index];
+         const avatarElement = document.getElementById(`avatar${pos}`);
+         const chipsElement = document.getElementById(`chips${pos}`);
+         const container = document.getElementById(`playerPos${pos}`);
+         
+         const isMe = player.userId === currentUser.uid;
+         if (isMe) {
+            myPlayerPosition = index;
+            console.log(`🎮 Você está na posição: ${index + 1} (visual: ${pos})`);
+         }
+         
+         if (player.avatarUrl) {
+            avatarElement.innerHTML = `<img src="${player.avatarUrl}" alt="${player.nickname}">`;
+         } else {
+            const initial = (player.nickname || player.playerName || '?').charAt(0).toUpperCase();
+            avatarElement.textContent = initial;
+         }
+         
+         if (isMe) {
+            container.classList.add('player-you');
+            const myCards = container.querySelector('.player-cards');
+            if (myCards) myCards.style.display = 'flex';
+         }
+         
+         const chips = player.chips || tournamentData.startingStack || 1500;
+         chipsElement.innerHTML = `${player.nickname || 'Jogador'}<br>${chips}`;
       }
-     } else {
-      container.classList.remove('player-you');
-     }
-     
-     // Chips
-     const chips = player.chips || tournamentData.startingStack || 1500;
-     chipsElement.innerHTML = `${player.nickname || 'Jogador'}<br>${chips}`;
-     
-    } else {
-     console.warn(`⚠️ Mais de 6 jogadores, ignorando jogador ${index + 1}`);
-    }
    });
    
-   // Atualizar minhas cartas (se já tiver)
    updateMyCards();
-  }
-  
-  // 5. Configurar listener em tempo real
-  function setupRealtimeListener() {
+}
+
+function setupRealtimeListener() {
    console.log('👂 Configurando listener em tempo real...');
    
    realtimeListener = db.collection('tournaments').doc(tournamentId)
-    .onSnapshot((doc) => {
-     if (doc.exists) {
-      const newData = doc.data();
-      
-      // Verificar se houve mudanças importantes
-      const playersChanged = JSON.stringify(newData.players) !== JSON.stringify(tournamentData?.players);
-      const communityChanged = JSON.stringify(newData.communityCards) !== JSON.stringify(tournamentData?.communityCards);
-      const potChanged = newData.pot !== tournamentData?.pot;
-      const turnChanged = newData.currentPlayerTurn !== tournamentData?.currentPlayerTurn;
-      
-      if (playersChanged || communityChanged || potChanged || turnChanged) {
-       tournamentData = newData;
-       
-       // Atualizar interface
-       updateInterface();
-      }
-     }
-    }, (error) => {
-     console.error('❌ Erro no listener:', error);
-    });
-  }
-  
-  // 6. Atualizar interface completa
-  function updateInterface() {
-   // Atualizar contador de jogadores
+      .onSnapshot((doc) => {
+         if (doc.exists) {
+            const newData = doc.data();
+            
+            const playersChanged = JSON.stringify(newData.players) !== JSON.stringify(tournamentData?.players);
+            const communityChanged = JSON.stringify(newData.communityCards) !== JSON.stringify(tournamentData?.communityCards);
+            const potChanged = newData.pot !== tournamentData?.pot;
+            const turnChanged = newData.currentPlayerTurn !== tournamentData?.currentPlayerTurn;
+            
+            if (playersChanged || communityChanged || potChanged || turnChanged) {
+               tournamentData = newData;
+               updateInterface();
+            }
+         }
+      }, (error) => {
+         console.error('❌ Erro no listener:', error);
+      });
+}
+
+function updateInterface() {
    document.getElementById('playersCount').textContent = 
-    `${tournamentData.players?.length || 1}/${tournamentData.maxPlayers || 6}`;
+      `${tournamentData.players?.length || 1}/${tournamentData.maxPlayers || 6}`;
    
-   // Atualizar avatares e chips
    const players = tournamentData.players || [];
    
    players.forEach((player, index) => {
-    if (index < 6) {
-     const pos = positionMap[index];
-     const chipsElement = document.getElementById(`chips${pos}`);
-     const avatarElement = document.getElementById(`avatar${pos}`);
-     const container = document.getElementById(`playerPos${pos}`);
-     
-     // Atualizar chips
-     const chips = player.chips || tournamentData.startingStack || 1500;
-     const name = player.nickname || player.playerName || 'Jogador';
-     chipsElement.innerHTML = `${name}<br>${chips}`;
-     
-     // Destacar jogador atual
-     if (tournamentData.currentPlayerTurn === player.userId) {
-      avatarElement.classList.add('current-turn');
-     } else {
-      avatarElement.classList.remove('current-turn');
-     }
-     
-     // Marcar se foldou
-     if (player.isActive === false) {
-      avatarElement.classList.add('player-folded');
-     } else {
-      avatarElement.classList.remove('player-folded');
-     }
-     
-     // Mostrar cartas do jogador (se for você e tiver cartas)
-     const isMe = player.userId === currentUser.uid;
-     if (isMe && player.cards && player.cards.length > 0) {
-      const myCards = container.querySelector('.player-cards');
-      if (myCards) {
-       myCards.style.display = 'flex';
+      if (index < 6) {
+         const pos = positionMap[index];
+         const chipsElement = document.getElementById(`chips${pos}`);
+         const avatarElement = document.getElementById(`avatar${pos}`);
+         const container = document.getElementById(`playerPos${pos}`);
+         
+         const chips = player.chips || tournamentData.startingStack || 1500;
+         const name = player.nickname || player.playerName || 'Jogador';
+         chipsElement.innerHTML = `${name}<br>${chips}`;
+         
+         if (tournamentData.currentPlayerTurn === player.userId) {
+            avatarElement.classList.add('current-turn');
+         } else {
+            avatarElement.classList.remove('current-turn');
+         }
+         
+         if (player.isActive === false) {
+            avatarElement.classList.add('player-folded');
+         } else {
+            avatarElement.classList.remove('player-folded');
+         }
+         
+         const isMe = player.userId === currentUser.uid;
+         if (isMe && player.cards && player.cards.length > 0) {
+            const myCards = container.querySelector('.player-cards');
+            if (myCards) myCards.style.display = 'flex';
+         }
       }
-     }
-    }
    });
    
-   // Atualizar cartas comunitárias
    updateCommunityCards();
-   
-   // Atualizar pot
    updatePot();
-   
-   // Atualizar minhas cartas
    updateMyCards();
-   
-   // Verificar se é minha vez
    checkMyTurn();
-  }
-  
-  // 7. Atualizar cartas comunitárias
-  function updateCommunityCards() {
+}
+
+function updateCommunityCards() {
    const communityCards = tournamentData.communityCards || [];
    const container = document.getElementById('communityCards');
    const cards = container.querySelectorAll('.card-placeholder');
    
    cards.forEach((cardEl, index) => {
-    if (communityCards[index]) {
-     const card = communityCards[index];
-     let displayText = '?';
-     let color = '#2c3e50';
-     
-     if (typeof card === 'string') {
-      displayText = card;
-      color = (card.includes('♥') || card.includes('♦')) ? '#e74c3c' : '#2c3e50';
-     } else if (card.suit && card.rank) {
-      // Usar Poker Engine para formatar
-      if (window.PokerEngine && window.PokerEngine.PokerCard) {
-       const cardObj = new window.PokerEngine.PokerCard(card.suit, card.rank);
-       displayText = cardObj.toString();
-       color = cardObj.color === 'red' ? '#e74c3c' : '#2c3e50';
+      if (communityCards[index]) {
+         const card = communityCards[index];
+         let displayText = '?';
+         let color = '#2c3e50';
+         
+         if (typeof card === 'string') {
+            displayText = card;
+            color = (card.includes('♥') || card.includes('♦')) ? '#e74c3c' : '#2c3e50';
+         }
+         
+         cardEl.textContent = displayText;
+         cardEl.style.color = color;
+         cardEl.style.background = 'white';
       } else {
-       displayText = `${card.rank}${getSuitSymbol(card.suit)}`;
-       color = (card.suit === 'hearts' || card.suit === 'diamonds') ? '#e74c3c' : '#2c3e50';
+         cardEl.textContent = '';
+         cardEl.style.background = 'rgba(255,255,255,0.1)';
       }
-     }
-     
-     cardEl.textContent = displayText;
-     cardEl.style.color = color;
-     cardEl.style.background = 'white';
-    } else {
-     cardEl.textContent = '';
-     cardEl.style.background = 'rgba(255,255,255,0.1)';
-    }
    });
-  }
-  
-  // 8. Atualizar pot
-  function updatePot() {
+}
+
+function updatePot() {
    const pot = tournamentData.pot || 0;
    document.getElementById('pot').textContent = `Pote: ${pot}`;
    document.getElementById('potAmount').textContent = pot;
-  }
-  
-  // 9. Atualizar minhas cartas
-  function updateMyCards() {
+}
+
+function updateMyCards() {
    if (!tournamentData.players || !currentUser) return;
    
    const me = tournamentData.players.find(p => p.userId === currentUser.uid);
-   if (!me || !me.cards) {
-    // Esconder minhas cartas se não tiver
-    const myCardsContainer = document.querySelector('#playerPos1 .player-cards');
-    if (myCardsContainer) {
-     myCardsContainer.style.display = 'none';
-    }
-    return;
+   if (!me || !me.cards || me.cards.length < 2) {
+      const myCardsContainer = document.querySelector('#playerPos1 .player-cards');
+      if (myCardsContainer) myCardsContainer.style.display = 'none';
+      return;
    }
    
    const cards = me.cards;
-   if (cards.length >= 2) {
-    // Atualizar cartas ao lado do avatar
-    const card1Element = document.getElementById('playerCard1');
-    const card2Element = document.getElementById('playerCard2');
-    
-    if (card1Element && card2Element) {
-     card1Element.textContent = formatCard(cards[0]);
-     card2Element.textContent = formatCard(cards[1]);
-     
-     // Colorir cartas
-     card1Element.style.color = getCardColor(cards[0]);
-     card2Element.style.color = getCardColor(cards[1]);
-     
-     // Mostrar cartas
-     const myCardsContainer = document.querySelector('#playerPos1 .player-cards');
-     if (myCardsContainer) {
-      myCardsContainer.style.display = 'flex';
-     }
-    }
+   const card1Element = document.getElementById('playerCard1');
+   const card2Element = document.getElementById('playerCard2');
+   
+   if (card1Element && card2Element) {
+      card1Element.textContent = formatCard(cards[0]);
+      card2Element.textContent = formatCard(cards[1]);
+      
+      card1Element.style.color = getCardColor(cards[0]);
+      card2Element.style.color = getCardColor(cards[1]);
+      
+      const myCardsContainer = document.querySelector('#playerPos1 .player-cards');
+      if (myCardsContainer) myCardsContainer.style.display = 'flex';
    }
-  }
-  
-  // 10. Verificar se é minha vez
-  function checkMyTurn() {
+}
+
+function checkMyTurn() {
    if (!tournamentData.currentPlayerTurn) return;
    
    const isMyTurn = tournamentData.currentPlayerTurn === currentUser.uid;
    
    if (isMyTurn) {
-    enablePlayerControls();
-    startActionTimer();
-    showNotification('✅ SUA VEZ! Faça sua jogada', 'turn');
+      enablePlayerControls();
+      startActionTimer();
+      showNotification('✅ SUA VEZ! Faça sua jogada', 'turn');
    } else {
-    disablePlayerControls();
-    stopActionTimer();
-    
-    // Mostrar quem está jogando
-    const currentPlayer = tournamentData.players?.find(p => p.userId === tournamentData.currentPlayerTurn);
-    if (currentPlayer) {
-     showNotification(`${currentPlayer.nickname} está jogando...`, 'info');
-    }
+      disablePlayerControls();
+      stopActionTimer();
+      
+      const currentPlayer = tournamentData.players?.find(p => p.userId === tournamentData.currentPlayerTurn);
+      if (currentPlayer) {
+         showNotification(`${currentPlayer.nickname} está jogando...`, 'info');
+      }
    }
-  }
-  
-  // 11. Verificar se pode iniciar jogo
-  function checkIfGameCanStart() {
+}
+
+// =============================================
+// FUNÇÕES DO JOGO - CORRIGIDAS
+// =============================================
+
+function checkIfGameCanStart() {
    const playersCount = tournamentData.players?.length || 0;
-   const maxPlayers = tournamentData.maxPlayers || 6;
+   
+   console.log(`👥 Jogadores na mesa: ${playersCount}`);
    
    if (playersCount >= 2 && !gameStarted) {
-    // Iniciar Poker Engine se tiver 2+ jogadores
-    initializePokerEngine();
+      console.log('✅ Condições para iniciar jogo atendidas!');
+      showNotification('🎮 Iniciando jogo...', 'info');
+      
+      setTimeout(async () => {
+         await initializePokerEngine();
+      }, 3000);
    } else if (playersCount < 2) {
-    showNotification('⏳ Aguardando mais jogadores... (mínimo 2)', 'info');
+      showNotification('⏳ Aguardando mais jogadores... (mínimo 2)', 'info');
    }
-  }
-  
-  // 12. Inicializar Poker Engine
-  function initializePokerEngine() {
-   if (gameStarted) return;
+}
+
+async function initializePokerEngine() {
+   if (gameStarted) {
+      console.log('⚠️ Jogo já iniciado');
+      return;
+   }
    
    console.log('🎴 Inicializando Poker Engine...');
    
+   const players = tournamentData.players || [];
+   
+   if (players.length < 2) {
+      console.log('❌ Não há jogadores suficientes');
+      return;
+   }
+   
    if (!window.PokerEngine || !window.PokerEngine.PokerGameEngine) {
-    console.error('❌ Poker Engine não carregado!');
-    showNotification('Erro: Poker Engine não encontrado', 'error');
-    return;
+      console.error('❌ Poker Engine não carregado!');
+      showNotification('Erro: Poker Engine não encontrado', 'error');
+      return;
    }
-   
-   // Preparar jogadores para o engine
-   const players = tournamentData.players.map((player, index) => ({
-    userId: player.userId,
-    nickname: player.nickname || player.playerName || `Jogador ${index + 1}`,
-    chips: player.chips || tournamentData.startingStack || 1500,
-    position: index,
-    isActive: true,
-    avatarUrl: player.avatarUrl || ''
-   }));
-   
-   // Criar instância do jogo
-   try {
-    pokerGame = new window.PokerEngine.PokerGameEngine(tournamentId);
-    pokerGame.initialize(players);
-    
-    gameStarted = true;
-    console.log('✅ Poker Engine inicializado com sucesso');
-    showNotification('🎮 Jogo iniciado! Aguardando primeira mão...', 'success');
-    
-    // Iniciar primeira mão após 3 segundos
-    setTimeout(() => {
-     startNewHand();
-    }, 3000);
-    
-   } catch (error) {
-    console.error('❌ Erro ao inicializar Poker Engine:', error);
-    showNotification('Erro ao iniciar jogo: ' + error.message, 'error');
-   }
-  }
-  
-  // 13. Iniciar nova mão
-  async function startNewHand() {
-   if (!pokerGame || !gameStarted) return;
    
    try {
-    console.log('🃏 Iniciando nova mão...');
-    showNotification('Nova mão iniciada!', 'info');
-    
-    const handResult = await pokerGame.startHand();
-    
-    // Atualizar interface com dados do engine
-    const gameInfo = pokerGame.getGameInfo();
-    
-    // Atualizar dados no Firestore
-    await updateGameStateInFirestore(gameInfo);
-    
+      const enginePlayers = players.map((player, index) => ({
+         userId: player.userId,
+         nickname: player.nickname || player.playerName || `Jogador ${index + 1}`,
+         chips: player.chips || tournamentData.startingStack || 1500,
+         position: index,
+         isActive: true,
+         avatarUrl: player.avatarUrl || ''
+      }));
+      
+      pokerGame = new window.PokerEngine.PokerGameEngine(tournamentId);
+      const gameState = pokerGame.initialize(enginePlayers);
+      
+      gameStarted = true;
+      dealerPosition = gameState.dealerPosition || 0;
+      
+      console.log('✅ Poker Engine inicializado com sucesso');
+      showNotification('🎮 Jogo iniciado! Preparando primeira mão...', 'success');
+      
+      setTimeout(async () => {
+         await startNewHand();
+      }, 2000);
+      
    } catch (error) {
-    console.error('❌ Erro ao iniciar mão:', error);
-    showNotification('Erro: ' + error.message, 'error');
+      console.error('❌ Erro ao inicializar Poker Engine:', error);
+      showNotification('Erro ao iniciar jogo: ' + error.message, 'error');
    }
-  }
-  
-  // =============================================
-  // CONTROLES DO JOGADOR
-  // =============================================
-  
-  function setupControls() {
-   // Configurar slider de aposta
+}
+
+async function startNewHand() {
+   if (!pokerGame || !gameStarted) {
+      console.log('⚠️ Poker Engine não inicializado ainda');
+      return;
+   }
+   
+   try {
+      console.log('🃏 Iniciando nova mão...');
+      showNotification('Nova mão iniciada! Distribuindo cartas...', 'info');
+      
+      const handResult = await pokerGame.startHand();
+      const gameInfo = pokerGame.getGameInfo();
+      
+      console.log('📊 Game Info:', gameInfo);
+      
+      const me = gameInfo.players.find(p => p.userId === currentUser.uid);
+      if (me && me.cards && me.cards.length >= 2) {
+         const card1Element = document.getElementById('playerCard1');
+         const card2Element = document.getElementById('playerCard2');
+         
+         if (card1Element && card2Element) {
+            card1Element.textContent = me.cards[0];
+            card2Element.textContent = me.cards[1];
+            
+            card1Element.style.color = getCardColor(me.cards[0]);
+            card2Element.style.color = getCardColor(me.cards[1]);
+            
+            const myCardsContainer = document.querySelector('#playerPos1 .player-cards');
+            if (myCardsContainer) myCardsContainer.style.display = 'flex';
+         }
+      }
+      
+      await updateGameStateInFirestore(gameInfo);
+      
+      setTimeout(() => {
+         updateInterface();
+         checkMyTurn();
+      }, 1000);
+      
+   } catch (error) {
+      console.error('❌ Erro ao iniciar mão:', error);
+      showNotification('Erro: ' + error.message, 'error');
+   }
+}
+
+// =============================================
+// CONTROLES DO JOGADOR
+// =============================================
+
+function setupControls() {
    const slider = document.getElementById('betSlider');
    if (slider) {
-    slider.addEventListener('input', updateBetAmount);
+      slider.addEventListener('input', updateBetAmount);
    }
-  }
-  
-  async function playerAction(action) {
+}
+
+async function playerAction(action) {
    if (!isMyTurn()) {
-    showNotification('Não é sua vez!', 'error');
-    return;
+      showNotification('Não é sua vez!', 'error');
+      return;
    }
    
    console.log(`🎮 Ação do jogador: ${action}`);
    
    try {
-    let amount = 0;
-    
-    // Para raise, usar valor do slider
-    if (action === 'raise') {
-     amount = parseInt(document.getElementById('betAmount').textContent);
-     if (amount <= 0) {
-      showNotification('Escolha um valor para raise', 'error');
-      return;
-     }
-    }
-    
-    // Se tiver Poker Engine, usar ele
-    if (pokerGame && gameStarted) {
-     const result = await pokerGame.playerAction(currentUser.uid, action, amount);
-     
-     if (result.success) {
-      showNotification(`Você ${action}${amount > 0 ? ' ' + amount : ''}`, 'success');
+      let amount = 0;
       
-      // Atualizar interface
-      updateInterface();
+      if (action === 'raise') {
+         amount = parseInt(document.getElementById('betAmount').textContent);
+         if (amount <= 0) {
+            showNotification('Escolha um valor para raise', 'error');
+            return;
+         }
+      }
       
-      // Desabilitar controles temporariamente
-      disablePlayerControls();
-      hideRaiseControls();
+      if (pokerGame && gameStarted) {
+         const result = await pokerGame.playerAction(currentUser.uid, action, amount);
+         
+         if (result.success) {
+            showNotification(`Você ${action}${amount > 0 ? ' ' + amount : ''}`, 'success');
+            
+            const gameState = pokerGame.getGameInfo();
+            await updateGameStateInFirestore(gameState);
+            
+            updateInterface();
+            disablePlayerControls();
+            hideRaiseControls();
+            
+            if (result.gameState) {
+               tournamentData = {
+                  ...tournamentData,
+                  players: result.gameState.players,
+                  pot: result.gameState.pot,
+                  currentPlayerTurn: result.gameState.currentPlayerTurn,
+                  communityCards: result.gameState.communityCards
+               };
+            }
+         } else {
+            showNotification(`Erro: ${result.error}`, 'error');
+         }
+      } else {
+         await updatePlayerActionInFirestore(action, amount);
+      }
       
-      // Atualizar Firestore
-      await updateGameStateInFirestore(result.gameState);
-      
-     } else {
-      showNotification(`Erro: ${result.error}`, 'error');
-     }
-    } else {
-     // Fallback: atualizar diretamente no Firestore
-     await updatePlayerActionInFirestore(action, amount);
-    }
-    
    } catch (error) {
-    console.error('❌ Erro na ação:', error);
-    showNotification('Erro: ' + error.message, 'error');
+      console.error('❌ Erro na ação:', error);
+      showNotification('Erro: ' + error.message, 'error');
    }
-  }
-  
-  function showRaiseControls() {
+}
+
+function showRaiseControls() {
    if (!isMyTurn()) return;
    
-   // Obter máximo que pode apostar
    const me = tournamentData.players?.find(p => p.userId === currentUser.uid);
    if (!me) return;
    
    const maxBet = me.chips || 0;
    const minBet = tournamentData.currentBet || 100;
    
-   // Configurar slider
    const slider = document.getElementById('betSlider');
    slider.min = minBet;
    slider.max = maxBet;
    slider.value = minBet;
    
-   // Mostrar controles
    document.getElementById('raiseControls').style.display = 'flex';
    document.getElementById('actionButtons').style.display = 'none';
    
-   // Atualizar valor
    updateBetAmount();
-  }
-  
-  function hideRaiseControls() {
+}
+
+function hideRaiseControls() {
    document.getElementById('raiseControls').style.display = 'none';
    document.getElementById('actionButtons').style.display = 'flex';
-  }
-  
-  function updateBetAmount() {
+}
+
+function updateBetAmount() {
    const slider = document.getElementById('betSlider');
    const amount = parseInt(slider.value);
    document.getElementById('betAmount').textContent = amount;
-  }
-  
-  function confirmRaise() {
+}
+
+function confirmRaise() {
    playerAction('raise');
-  }
-  
-  function isMyTurn() {
+}
+
+function isMyTurn() {
    return tournamentData.currentPlayerTurn === currentUser.uid;
-  }
-  
-  function enablePlayerControls() {
+}
+
+function enablePlayerControls() {
    const buttons = document.querySelectorAll('.action-btn');
    buttons.forEach(btn => {
-    btn.disabled = false;
+      btn.disabled = false;
    });
    
-   // Mostrar timer
    document.getElementById('actionTimerContainer').style.display = 'block';
-  }
-  
-  function disablePlayerControls() {
+}
+
+function disablePlayerControls() {
    const buttons = document.querySelectorAll('.action-btn');
    buttons.forEach(btn => {
-    btn.disabled = true;
+      btn.disabled = true;
    });
    
-   // Esconder timer
    document.getElementById('actionTimerContainer').style.display = 'none';
-  }
-  
-  // =============================================
-  // TIMER DE AÇÃO
-  // =============================================
-  
-  function startActionTimer() {
+}
+
+// =============================================
+// TIMER DE AÇÃO
+// =============================================
+
+function startActionTimer() {
    timeLeft = 30;
    const timerBar = document.getElementById('actionTimerBar');
    timerBar.style.width = '100%';
@@ -1217,177 +1171,159 @@ body {
    stopActionTimer();
    
    actionTimerInterval = setInterval(() => {
-    timeLeft--;
-    const percentage = (timeLeft / 30) * 100;
-    timerBar.style.width = percentage + '%';
-    
-    // Mudar cor conforme o tempo
-    if (timeLeft <= 10) {
-     timerBar.style.background = '#e74c3c';
-    } else if (timeLeft <= 20) {
-     timerBar.style.background = '#e67e22';
-    }
-    
-    if (timeLeft <= 0) {
-     // Tempo esgotado - fold automático
-     playerAction('fold');
-     stopActionTimer();
-    }
+      timeLeft--;
+      const percentage = (timeLeft / 30) * 100;
+      timerBar.style.width = percentage + '%';
+      
+      if (timeLeft <= 10) {
+         timerBar.style.background = '#e74c3c';
+      } else if (timeLeft <= 20) {
+         timerBar.style.background = '#e67e22';
+      }
+      
+      if (timeLeft <= 0) {
+         playerAction('fold');
+         stopActionTimer();
+      }
    }, 1000);
-  }
-  
-  function stopActionTimer() {
+}
+
+function stopActionTimer() {
    if (actionTimerInterval) {
-    clearInterval(actionTimerInterval);
-    actionTimerInterval = null;
+      clearInterval(actionTimerInterval);
+      actionTimerInterval = null;
    }
-  }
-  
-  // =============================================
-  // FUNÇÕES AUXILIARES
-  // =============================================
-  
-  // Formatar carta para exibição
-  function formatCard(card) {
+}
+
+// =============================================
+// FUNÇÕES AUXILIARES
+// =============================================
+
+function formatCard(card) {
    if (!card) return '?';
    
    if (typeof card === 'string') {
-    return card;
+      return card;
    }
    
    if (card.rank && card.suit) {
-    const rank = card.rank;
-    const suitSymbol = getSuitSymbol(card.suit);
-    return rank + suitSymbol;
+      const suitSymbol = getSuitSymbol(card.suit);
+      return card.rank + suitSymbol;
    }
    
    return '?';
-  }
-  
-  // Obter cor da carta
-  function getCardColor(card) {
+}
+
+function getCardColor(card) {
    if (typeof card === 'string') {
-    return (card.includes('♥') || card.includes('♦')) ? '#e74c3c' : '#2c3e50';
+      return (card.includes('♥') || card.includes('♦')) ? '#e74c3c' : '#2c3e50';
    }
    
    if (card.suit) {
-    return (card.suit === 'hearts' || card.suit === 'diamonds') ? '#e74c3c' : '#2c3e50';
+      return (card.suit === 'hearts' || card.suit === 'diamonds') ? '#e74c3c' : '#2c3e50';
    }
    
    return '#2c3e50';
-  }
-  
-  // Obter símbolo do naipe
-  function getSuitSymbol(suit) {
+}
+
+function getSuitSymbol(suit) {
    switch(suit) {
-    case 'hearts': return '♥';
-    case 'diamonds': return '♦';
-    case 'clubs': return '♣';
-    case 'spades': return '♠';
-    default: return '?';
+      case 'hearts': return '♥';
+      case 'diamonds': return '♦';
+      case 'clubs': return '♣';
+      case 'spades': return '♠';
+      default: return '?';
    }
-  }
-  
-  // Atualizar estado do jogo no Firestore
-  async function updateGameStateInFirestore(gameState) {
+}
+
+async function updateGameStateInFirestore(gameState) {
    try {
-    // Preparar jogadores para Firestore
-    const firestorePlayers = gameState.players.map(player => ({
-     userId: player.userId,
-     nickname: player.nickname,
-     chips: player.chips,
-     isActive: player.isActive,
-     bet: player.bet || 0,
-     lastAction: player.lastAction,
-     cards: player.cards || [],
-     avatarUrl: player.avatarUrl || ''
-    }));
-    
-    await db.collection('tournaments').doc(tournamentId).update({
-     players: firestorePlayers,
-     communityCards: gameState.communityCards || [],
-     pot: gameState.pot || 0,
-     currentPlayerTurn: gameState.currentPlayerTurn,
-     currentRound: gameState.round || 'preflop',
-     updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-    });
-    
-    console.log('✅ Firestore atualizado com estado do jogo');
-    
+      const firestorePlayers = gameState.players.map(player => ({
+         userId: player.userId,
+         nickname: player.nickname,
+         chips: player.chips,
+         isActive: player.isActive,
+         bet: player.bet || 0,
+         lastAction: player.lastAction,
+         cards: player.cards || [],
+         avatarUrl: player.avatarUrl || ''
+      }));
+      
+      await db.collection('tournaments').doc(tournamentId).update({
+         players: firestorePlayers,
+         communityCards: gameState.communityCards || [],
+         pot: gameState.pot || 0,
+         currentPlayerTurn: gameState.currentPlayerTurn,
+         currentRound: gameState.round || 'preflop',
+         dealerPosition: gameState.dealerPosition || 0,
+         updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      
+      console.log('✅ Firestore atualizado com estado do jogo');
+      
    } catch (error) {
-    console.error('❌ Erro ao atualizar Firestore:', error);
+      console.error('❌ Erro ao atualizar Firestore:', error);
    }
-  }
-  
-  // Atualizar ação do jogador no Firestore (fallback)
-  async function updatePlayerActionInFirestore(action, amount) {
+}
+
+async function updatePlayerActionInFirestore(action, amount) {
    try {
-    const playerIndex = tournamentData.players.findIndex(p => p.userId === currentUser.uid);
-    if (playerIndex === -1) return;
-    
-    const updates = {
-     [`players.${playerIndex}.lastAction`]: action,
-     updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-    };
-    
-    // Atualizar chips se for aposta
-    if (['bet', 'raise', 'call', 'allin'].includes(action) && amount > 0) {
-     const currentChips = tournamentData.players[playerIndex].chips || 1500;
-     updates[`players.${playerIndex}.chips`] = currentChips - amount;
-     updates.pot = firebase.firestore.FieldValue.increment(amount);
-    }
-    
-    // Se fold, marcar como inativo
-    if (action === 'fold') {
-     updates[`players.${playerIndex}.isActive`] = false;
-    }
-    
-    await db.collection('tournaments').doc(tournamentId).update(updates);
-    
-    showNotification(`Você ${action}${amount > 0 ? ' ' + amount : ''}`, 'success');
-    
+      const playerIndex = tournamentData.players.findIndex(p => p.userId === currentUser.uid);
+      if (playerIndex === -1) return;
+      
+      const updates = {
+         [`players.${playerIndex}.lastAction`]: action,
+         updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      };
+      
+      if (['bet', 'raise', 'call', 'allin'].includes(action) && amount > 0) {
+         const currentChips = tournamentData.players[playerIndex].chips || 1500;
+         updates[`players.${playerIndex}.chips`] = currentChips - amount;
+         updates.pot = firebase.firestore.FieldValue.increment(amount);
+      }
+      
+      if (action === 'fold') {
+         updates[`players.${playerIndex}.isActive`] = false;
+      }
+      
+      await db.collection('tournaments').doc(tournamentId).update(updates);
+      
+      showNotification(`Você ${action}${amount > 0 ? ' ' + amount : ''}`, 'success');
+      
    } catch (error) {
-    console.error('❌ Erro ao atualizar ação:', error);
-    showNotification('Erro ao processar ação', 'error');
+      console.error('❌ Erro ao atualizar ação:', error);
+      showNotification('Erro ao processar ação', 'error');
    }
-  }
-  
-  // Mostrar notificação
-  function showNotification(message, type = 'info') {
+}
+
+function showNotification(message, type = 'info') {
    const messageEl = document.getElementById('statusMessage');
    messageEl.textContent = message;
    messageEl.style.display = 'block';
    
-   // Cor baseada no tipo
    if (type === 'error') {
-    messageEl.style.background = 'rgba(231, 76, 60, 0.9)';
+      messageEl.style.background = 'rgba(231, 76, 60, 0.9)';
    } else if (type === 'success') {
-    messageEl.style.background = 'rgba(46, 204, 113, 0.9)';
+      messageEl.style.background = 'rgba(46, 204, 113, 0.9)';
    } else if (type === 'turn') {
-    messageEl.style.background = 'rgba(52, 152, 219, 0.9)';
+      messageEl.style.background = 'rgba(52, 152, 219, 0.9)';
    } else {
-    messageEl.style.background = 'rgba(0,0,0,0.8)';
+      messageEl.style.background = 'rgba(0,0,0,0.8)';
    }
    
-   // Esconder após 3 segundos (exceto para turnos)
    if (type !== 'turn') {
-    setTimeout(() => {
-     messageEl.style.display = 'none';
-    }, 3000);
+      setTimeout(() => {
+         messageEl.style.display = 'none';
+      }, 3000);
    }
-  }
-  
-  // =============================================
-  // LIMPEZA
-  // =============================================
-  window.addEventListener('beforeunload', () => {
-   if (realtimeListener) {
-    realtimeListener();
-   }
+}
+
+window.addEventListener('beforeunload', () => {
+   if (realtimeListener) realtimeListener();
    stopActionTimer();
-  });
-  
-  console.log('✅ Mesa de torneio pronta!');
- </script>
+});
+
+console.log('✅ Mesa de torneio pronta!');
+</script>
 </body>
 </html>
