@@ -103,7 +103,7 @@ body {
     inset 0 0 40px rgba(0, 0, 0, 0.6),
     0 0 30px rgba(0, 0, 0, 0.7);
   position: relative;
-  overflow: visible; /* ← Evita clipping acidental */
+  overflow: visible;
 }
 
 .table-center {
@@ -254,7 +254,7 @@ body {
   display: none;
 }
 
-/* ===== POSIÇÕES DOS AVATARES - AJUSTADAS (ESPAÇADAS E PREVISÍVEIS) ===== */
+/* ===== POSIÇÕES DOS AVATARES - RELATIVAS AO VIEWPORT ===== */
 .pos-1 {
   top: 80px;
   left: 50%;
@@ -264,13 +264,11 @@ body {
 .pos-2 {
   top: 120px;
   right: 10%;
-  transform: none;
 }
 
 .pos-3 {
   bottom: 140px;
   right: 10%;
-  transform: none;
 }
 
 .pos-4 {
@@ -282,13 +280,11 @@ body {
 .pos-5 {
   bottom: 140px;
   left: 10%;
-  transform: none;
 }
 
 .pos-6 {
   top: 120px;
   left: 10%;
-  transform: none;
 }
 
 /* JOGADOR ATUAL (VOCÊ) */
@@ -301,7 +297,7 @@ body {
   display: block;
 }
 
-/* ===== CONTROLES - FORA DA MESA, ABAIXO E CENTRALIZADO ===== */
+/* ===== CONTROLES - FIXOS NA PARTE INFERIOR ===== */
 .controls-container {
   position: fixed;
   bottom: 20px;
@@ -309,7 +305,7 @@ body {
   right: 0;
   display: flex;
   justify-content: center;
-  z-index: 1000; /* Garante que fique acima de tudo */
+  z-index: 1000;
 }
 
 .controls {
@@ -463,7 +459,6 @@ body {
     font-size: 0.9em;
   }
 
-  /* POSIÇÕES MOBILE - AJUSTADAS */
   .pos-1 { top: 75px; }
   .pos-2 { top: 100px; right: 8%; }
   .pos-6 { top: 100px; left: 8%; }
@@ -532,46 +527,44 @@ body {
 </style>
 </head>
 <body>
- <!-- CABEÇALHO -->
- <div class="header">
+<!-- CABEÇALHO -->
+<div class="header">
   <div class="tournament-info" id="tournamentName">Torneio</div>
   <div class="game-stats">
-   <div class="stat" id="blinds">100/200</div>
-   <div class="stat" id="pot">Pote: 0</div>
-   <div class="stat" id="playersCount">1/6</div>
+    <div class="stat" id="blinds">100/200</div>
+    <div class="stat" id="pot">Pote: 0</div>
+    <div class="stat" id="playersCount">1/6</div>
   </div>
- </div>
+</div>
 
- <!-- MENSAGEM DE STATUS -->
- <div class="status-message" id="statusMessage"></div>
+<!-- MENSAGEM DE STATUS -->
+<div class="status-message" id="statusMessage"></div>
 
- <!-- CONTAINER DA MESA -->
- <div class="table-container">
-  <!-- MESA -->
+<!-- CONTAINER DA MESA (SÓ A MESA MESMO) -->
+<div class="table-container">
   <div class="poker-table">
-   <!-- ÁREA CENTRAL -->
-   <div class="table-center">
-    <div class="community-cards" id="communityCards">
-     <div class="card-placeholder"></div>
-     <div class="card-placeholder"></div>
-     <div class="card-placeholder"></div>
-     <div class="card-placeholder"></div>
-     <div class="card-placeholder"></div>
+    <!-- ÁREA CENTRAL -->
+    <div class="table-center">
+      <div class="community-cards" id="communityCards">
+        <div class="card-placeholder"></div>
+        <div class="card-placeholder"></div>
+        <div class="card-placeholder"></div>
+        <div class="card-placeholder"></div>
+        <div class="card-placeholder"></div>
+      </div>
+      <div class="pot" id="potAmount">0</div>
     </div>
-    <div class="pot" id="potAmount">0</div>
-   </div>
   </div>
-  
-  <!-- OS 6 AVATARS NAS POSIÇÕES CORRETAS -->
+</div>
+
+<!-- AVATARES (FORA da .table-container, posicionados no BODY) -->
 <div class="avatar-container pos-1" id="playerPos1">
   <div class="avatar" id="avatar1">?</div>
-  
   <!-- CARTAS AO LADO DO SEU AVATAR (POSIÇÃO 1) -->
   <div class="player-cards">
     <div class="player-card" id="playerCard1">?</div>
     <div class="player-card" id="playerCard2">?</div>
   </div>
-  
   <div class="player-chips" id="chips1">-<br>0</div>
 </div>
 
@@ -600,32 +593,32 @@ body {
   <div class="player-chips" id="chips4">-<br>0</div>
 </div>
 
- <!-- CONTROLES (FORA DA MESA) -->
- <div class="controls-container">
+<!-- CONTROLES (FORA da .table-container, posicionados no BODY) -->
+<div class="controls-container">
   <div class="controls" id="playerControls">
-   <!-- BOTÕES DE AÇÃO -->
-   <div class="action-buttons" id="actionButtons">
-    <button class="action-btn btn-fold" onclick="playerAction('fold')">Fold</button>
-    <button class="action-btn btn-check" onclick="playerAction('check')">Check</button>
-    <button class="action-btn btn-call" onclick="playerAction('call')">Call</button>
-    <button class="action-btn btn-raise" onclick="showRaiseControls()">Raise</button>
-    <button class="action-btn btn-allin" onclick="playerAction('allin')">All-in</button>
-   </div>
-   
-   <!-- CONTROLE DE APOSTA -->
-   <div class="bet-controls" id="raiseControls">
-    <input type="range" min="0" max="100" value="0" class="bet-slider" id="betSlider" oninput="updateBetAmount()">
-    <div class="bet-amount" id="betAmount">0</div>
-    <button class="action-btn btn-raise" onclick="confirmRaise()">Confirmar</button>
-    <button class="action-btn btn-fold" onclick="hideRaiseControls()">Cancelar</button>
-   </div>
-   
-   <!-- TIMER DE AÇÃO -->
-   <div class="action-timer" id="actionTimerContainer">
-    <div class="timer-bar" id="actionTimerBar"></div>
-   </div>
+    <!-- BOTÕES DE AÇÃO -->
+    <div class="action-buttons" id="actionButtons">
+      <button class="action-btn btn-fold" onclick="playerAction('fold')">Fold</button>
+      <button class="action-btn btn-check" onclick="playerAction('check')">Check</button>
+      <button class="action-btn btn-call" onclick="playerAction('call')">Call</button>
+      <button class="action-btn btn-raise" onclick="showRaiseControls()">Raise</button>
+      <button class="action-btn btn-allin" onclick="playerAction('allin')">All-in</button>
+    </div>
+
+    <!-- CONTROLE DE APOSTA -->
+    <div class="bet-controls" id="raiseControls">
+      <input type="range" min="0" max="100" value="0" class="bet-slider" id="betSlider" oninput="updateBetAmount()">
+      <div class="bet-amount" id="betAmount">0</div>
+      <button class="action-btn btn-raise" onclick="confirmRaise()">Confirmar</button>
+      <button class="action-btn btn-fold" onclick="hideRaiseControls()">Cancelar</button>
+    </div>
+
+    <!-- TIMER DE AÇÃO -->
+    <div class="action-timer" id="actionTimerContainer">
+      <div class="timer-bar" id="actionTimerBar"></div>
+    </div>
   </div>
- </div>
+</div>
 
  <!-- SCRIPT PRINCIPAL -->
  <script>
