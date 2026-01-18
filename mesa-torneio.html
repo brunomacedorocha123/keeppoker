@@ -82,14 +82,14 @@ body {
   font-weight: bold;
 }
 
-/* ===== MESA (MENOR E MAIS PARA CIMA) ===== */
+/* ===== MESA (TAMANHO ORIGINAL) ===== */
 .table-container {
   position: absolute;
-  top: 35%; /* Mesa mais para cima */
+  top: 45%; /* MANTIDO COMO ANTES */
   left: 50%;
   transform: translate(-50%, -50%);
   width: 70%;
-  height: 35%; /* Mesa menor */
+  height: 45%; /* MANTIDO COMO ANTES */
   z-index: 1;
 }
 
@@ -260,36 +260,36 @@ body {
 
 /* POSIÇÃO 2: DIREITA SUPERIOR - MAIS ESPAÇADO VERTICALMENTE */
 .pos-2 {
-  top: 20%;
-  right: 50px;
+  top: 25%; /* Mais espaçado da posição 1 */
+  right: 3%;
   transform: translateY(0);
 }
 
 /* POSIÇÃO 3: DIREITA INFERIOR - MAIS ESPAÇADO VERTICALMENTE */
 .pos-3 {
-  bottom: 40%;
-  right: 50px;
+  bottom: 35%; /* Mais para cima, longe da posição 4 */
+  right: 3%;
   transform: translateY(0);
 }
 
-/* POSIÇÃO 4: BAIXO (JOGADOR ATUAL) */
+/* POSIÇÃO 4: BAIXO (JOGADOR ATUAL) - ACIMA DOS CONTROLES */
 .pos-4 {
-  bottom: 200px; /* Acima dos controles */
+  bottom: 180px; /* Acima dos controles */
   left: 50%;
   transform: translateX(-50%);
 }
 
 /* POSIÇÃO 5: ESQUERDA INFERIOR - MAIS ESPAÇADO VERTICALMENTE */
 .pos-5 {
-  bottom: 40%;
-  left: 50px;
+  bottom: 35%; /* Alinhado com posição 3 */
+  left: 3%;
   transform: translateY(0);
 }
 
 /* POSIÇÃO 6: ESQUERDA SUPERIOR - MAIS ESPAÇADO VERTICALMENTE */
 .pos-6 {
-  top: 20%;
-  left: 50px;
+  top: 25%; /* Alinhado com posição 2 */
+  left: 3%;
   transform: translateY(0);
 }
 
@@ -325,6 +325,7 @@ body {
   gap: 12px;
   min-width: 500px;
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
+  max-height: 140px; /* Mantido como original */
 }
 
 /* BOTÕES DE AÇÃO */
@@ -429,8 +430,8 @@ body {
 @media (max-width: 768px) {
   .table-container {
     width: 85%;
-    height: 30%;
-    top: 30%;
+    height: 40%; /* MANTIDO COMO ORIGINAL */
+    top: 40%; /* MANTIDO COMO ORIGINAL */
   }
 
   .avatar {
@@ -451,16 +452,17 @@ body {
 
   /* POSIÇÕES MOBILE - MAIS ESPAÇADAS */
   .pos-1 { top: 65px; }
-  .pos-2 { top: 20%; right: 20px; }
-  .pos-6 { top: 20%; left: 20px; }
-  .pos-3 { bottom: 40%; right: 20px; }
-  .pos-5 { bottom: 40%; left: 20px; }
-  .pos-4 { bottom: 180px; }
+  .pos-2 { top: 22%; right: 2%; }
+  .pos-6 { top: 22%; left: 2%; }
+  .pos-3 { bottom: 32%; right: 2%; } /* Ajustado para não colidir */
+  .pos-5 { bottom: 32%; left: 2%; } /* Ajustado para não colidir */
+  .pos-4 { bottom: 160px; } /* Acima dos controles mobile */
 
   .controls {
     min-width: 90%;
     padding: 12px 18px;
     bottom: 10px;
+    max-height: 130px; /* Mantido como original */
   }
 
   .action-btn {
@@ -489,11 +491,11 @@ body {
 
   /* POSIÇÕES MOBILE PEQUENO */
   .pos-1 { top: 65px; }
-  .pos-2 { top: 22%; right: 15px; }
-  .pos-6 { top: 22%; left: 15px; }
-  .pos-3 { bottom: 42%; right: 15px; }
-  .pos-5 { bottom: 42%; left: 15px; }
-  .pos-4 { bottom: 160px; }
+  .pos-2 { top: 24%; right: 1.5%; }
+  .pos-6 { top: 24%; left: 1.5%; }
+  .pos-3 { bottom: 34%; right: 1.5%; }
+  .pos-5 { bottom: 34%; left: 1.5%; }
+  .pos-4 { bottom: 150px; }
 
   .controls {
     min-width: 95%;
