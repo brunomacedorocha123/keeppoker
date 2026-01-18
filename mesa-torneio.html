@@ -107,7 +107,7 @@ body {
 
 .table-center {
   position: absolute;
-  top: 52%; /* Centralizado verticalmente */
+  top: 52%;
   left: 50%;
   transform: translate(-50%, -50%);
   width: 45%;
@@ -254,47 +254,47 @@ body {
   display: none;
 }
 
-/* ===== POSICIONAMENTO DOS AVATARS (REAJUSTADO - BEM ESPAÇADOS) ===== */
+/* ===== POSICIONAMENTO DOS AVATARS (REVISADO - MUITO MAIS ESPAÇADOS) ===== */
 
 /* POSIÇÃO 1: TOPO - MAIS PARA CIMA */
 .pos-1 {
-  top: 55px;
+  top: 50px;
   left: 50%;
   transform: translateX(-50%);
 }
 
-/* POSIÇÃO 2: DIREITA SUPERIOR - MAIS PARA CIMA E DIREITA */
+/* POSIÇÃO 2: DIREITA SUPERIOR - MUITO MAIS PARA CIMA E DIREITA */
 .pos-2 {
-  top: 8%;
-  right: 6%;
+  top: 5%;
+  right: 8%;
   transform: translateY(0);
 }
 
-/* POSIÇÃO 3: DIREITA INFERIOR - MAIS PARA BAIXO E DIREITA */
+/* POSIÇÃO 3: DIREITA INFERIOR - MUITO MAIS PARA BAIXO E DIREITA */
 .pos-3 {
-  bottom: 22%;
-  right: 6%;
+  bottom: 15%;
+  right: 8%;
   transform: translateY(0);
 }
 
-/* POSIÇÃO 4: BAIXO - MAIS PARA CIMA (LONGE DOS CONTROLES) */
+/* POSIÇÃO 4: BAIXO - BEM MAIS PARA CIMA (LONGE DOS CONTROLES) */
 .pos-4 {
-  bottom: 160px;
+  bottom: 180px;
   left: 50%;
   transform: translateX(-50%);
 }
 
-/* POSIÇÃO 5: ESQUERDA INFERIOR - MAIS PARA BAIXO E ESQUERDA */
+/* POSIÇÃO 5: ESQUERDA INFERIOR - MUITO MAIS PARA BAIXO E ESQUERDA */
 .pos-5 {
-  bottom: 22%;
-  left: 6%;
+  bottom: 15%;
+  left: 8%;
   transform: translateY(0);
 }
 
-/* POSIÇÃO 6: ESQUERDA SUPERIOR - MAIS PARA CIMA E ESQUERDA */
+/* POSIÇÃO 6: ESQUERDA SUPERIOR - MUITO MAIS PARA CIMA E ESQUERDA */
 .pos-6 {
-  top: 8%;
-  left: 6%;
+  top: 5%;
+  left: 8%;
   transform: translateY(0);
 }
 
@@ -308,15 +308,15 @@ body {
   display: block;
 }
 
-/* ===== CONTROLES (REAJUSTADO) ===== */
+/* ===== CONTROLES (FORA DA MESA - CORRIGIDO) ===== */
 .controls-container {
   position: fixed;
-  bottom: 20px;
+  bottom: 30px;
   left: 0;
   right: 0;
   display: flex;
   justify-content: center;
-  z-index: 30;
+  z-index: 50; /* MAIOR que a mesa */
 }
 
 .controls {
@@ -328,7 +328,7 @@ body {
   flex-direction: column;
   align-items: center;
   gap: 12px;
-  width: 500px; /* Mais largo */
+  width: 500px;
   height: auto;
   min-height: 130px;
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.7);
@@ -476,12 +476,12 @@ body {
   }
 
   /* POSIÇÕES MOBILE - AINDA BEM ESPAÇADAS */
-  .pos-1 { top: 50px; }
-  .pos-2 { top: 7%; right: 4%; }
-  .pos-6 { top: 7%; left: 4%; }
-  .pos-3 { bottom: 20%; right: 4%; }
-  .pos-5 { bottom: 20%; left: 4%; }
-  .pos-4 { bottom: 150px; }
+  .pos-1 { top: 45px; }
+  .pos-2 { top: 4%; right: 5%; }
+  .pos-6 { top: 4%; left: 5%; }
+  .pos-3 { bottom: 18%; right: 5%; }
+  .pos-5 { bottom: 18%; left: 5%; }
+  .pos-4 { bottom: 170px; }
 
   .controls {
     width: 92%;
@@ -516,12 +516,12 @@ body {
   }
 
   /* POSIÇÕES MOBILE PEQUENO - AINDA ESPAÇADAS */
-  .pos-1 { top: 50px; }
-  .pos-2 { top: 8%; right: 3%; }
-  .pos-6 { top: 8%; left: 3%; }
-  .pos-3 { bottom: 22%; right: 3%; }
-  .pos-5 { bottom: 22%; left: 3%; }
-  .pos-4 { bottom: 140px; }
+  .pos-1 { top: 45px; }
+  .pos-2 { top: 5%; right: 4%; }
+  .pos-6 { top: 5%; left: 4%; }
+  .pos-3 { bottom: 20%; right: 4%; }
+  .pos-5 { bottom: 20%; left: 4%; }
+  .pos-4 { bottom: 160px; }
 
   .controls {
     width: 96%;
