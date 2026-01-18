@@ -621,8 +621,7 @@ body {
   </div>
 </div>
 <script>
- <!-- SCRIPT PRINCIPAL -->
-// =============================================
+ // =============================================
 // VARIÁVEIS GLOBAIS
 // =============================================
 let tournamentId = null;
@@ -637,15 +636,12 @@ let myPlayerPosition = -1;
 let gameStarted = false;
 let dealerPosition = 0;
 
-// Mapeamento das posições na mesa (0-5)
 const positionMap = [1, 2, 6, 3, 5, 4];
 
 // =============================================
 // INICIALIZAÇÃO
 // =============================================
 document.addEventListener('DOMContentLoaded', function() {
-   console.log('🎮 Mesa de torneio carregada');
-   
    const urlParams = new URLSearchParams(window.location.search);
    tournamentId = urlParams.get('tournamentId');
    
@@ -655,17 +651,13 @@ document.addEventListener('DOMContentLoaded', function() {
       return;
    }
    
-   console.log(`🎯 Torneio ID: ${tournamentId}`);
-   
    auth.onAuthStateChanged(async (user) => {
       if (!user) {
-         console.log('👤 Usuário não autenticado');
          window.location.href = 'login.html';
          return;
       }
       
       currentUser = user;
-      console.log(`✅ Usuário autenticado: ${user.uid}`);
       
       await loadUserData();
       await loadTournamentData();
@@ -686,19 +678,14 @@ document.addEventListener('DOMContentLoaded', function() {
    setupControls();
 });
 
-// =============================================
-// FUNÇÕES PRINCIPAIS
-// =============================================
-
 async function loadUserData() {
    try {
       const userDoc = await db.collection('users').doc(currentUser.uid).get();
       if (userDoc.exists) {
          userData = userDoc.data();
-         console.log('📊 Usuário:', userData.nickname || userData.nome);
       }
    } catch (error) {
-      console.error('❌ Erro ao carregar dados do usuário:', error);
+      console.error('Erro ao carregar dados do usuário:', error);
    }
 }
 
@@ -712,15 +699,12 @@ async function loadTournamentData() {
       tournamentData = tournamentDoc.data();
       tournamentData.id = tournamentId;
       
-      console.log('🎲 Torneio:', tournamentData.name);
-      console.log('👥 Jogadores:', tournamentData.players?.length || 0);
-      
       document.getElementById('tournamentName').textContent = tournamentData.name;
       document.getElementById('playersCount').textContent = 
          `${tournamentData.players?.length || 1}/${tournamentData.maxPlayers || 6}`;
          
    } catch (error) {
-      console.error('❌ Erro ao carregar torneio:', error);
+      console.error('Erro ao carregar torneio:', error);
       showNotification('Erro ao carregar torneio', 'error');
    }
 }
@@ -731,8 +715,6 @@ function isUserInTournament() {
 }
 
 function initializeInterface() {
-   console.log('🎨 Inicializando interface...');
-   
    for (let i = 1; i <= 6; i++) {
       document.getElementById(`avatar${i}`).innerHTML = '?';
       document.getElementById(`chips${i}`).innerHTML = '-<br>0';
@@ -752,7 +734,6 @@ function initializeInterface() {
          const isMe = player.userId === currentUser.uid;
          if (isMe) {
             myPlayerPosition = index;
-            console.log(`🎮 Você está na posição: ${index + 1} (visual: ${pos})`);
          }
          
          if (player.avatarUrl) {
@@ -772,13 +753,9 @@ function initializeInterface() {
          chipsElement.innerHTML = `${player.nickname || 'Jogador'}<br>${chips}`;
       }
    });
-   
-   updateMyCards();
 }
 
 function setupRealtimeListener() {
-   console.log('👂 Configurando listener em tempo real...');
-   
    realtimeListener = db.collection('tournaments').doc(tournamentId)
       .onSnapshot((doc) => {
          if (doc.exists) {
@@ -794,8 +771,6 @@ function setupRealtimeListener() {
                updateInterface();
             }
          }
-      }, (error) => {
-         console.error('❌ Erro no listener:', error);
       });
 }
 
@@ -912,52 +887,31 @@ function checkMyTurn() {
    } else {
       disablePlayerControls();
       stopActionTimer();
-      
-      const currentPlayer = tournamentData.players?.find(p => p.userId === tournamentData.currentPlayerTurn);
-      if (currentPlayer) {
-         showNotification(`${currentPlayer.nickname} está jogando...`, 'info');
-      }
    }
 }
-
-// =============================================
-// FUNÇÕES DO JOGO - CORRIGIDAS
-// =============================================
 
 function checkIfGameCanStart() {
    const playersCount = tournamentData.players?.length || 0;
    
-   console.log(`👥 Jogadores na mesa: ${playersCount}`);
-   
    if (playersCount >= 2 && !gameStarted) {
-      console.log('✅ Condições para iniciar jogo atendidas!');
       showNotification('🎮 Iniciando jogo...', 'info');
       
       setTimeout(async () => {
          await initializePokerEngine();
-      }, 3000);
+      }, 2000);
    } else if (playersCount < 2) {
       showNotification('⏳ Aguardando mais jogadores... (mínimo 2)', 'info');
    }
 }
 
 async function initializePokerEngine() {
-   if (gameStarted) {
-      console.log('⚠️ Jogo já iniciado');
-      return;
-   }
-   
-   console.log('🎴 Inicializando Poker Engine...');
+   if (gameStarted) return;
    
    const players = tournamentData.players || [];
    
-   if (players.length < 2) {
-      console.log('❌ Não há jogadores suficientes');
-      return;
-   }
+   if (players.length < 2) return;
    
    if (!window.PokerEngine || !window.PokerEngine.PokerGameEngine) {
-      console.error('❌ Poker Engine não carregado!');
       showNotification('Erro: Poker Engine não encontrado', 'error');
       return;
    }
@@ -978,33 +932,25 @@ async function initializePokerEngine() {
       gameStarted = true;
       dealerPosition = gameState.dealerPosition || 0;
       
-      console.log('✅ Poker Engine inicializado com sucesso');
       showNotification('🎮 Jogo iniciado! Preparando primeira mão...', 'success');
       
       setTimeout(async () => {
          await startNewHand();
-      }, 2000);
+      }, 1000);
       
    } catch (error) {
-      console.error('❌ Erro ao inicializar Poker Engine:', error);
       showNotification('Erro ao iniciar jogo: ' + error.message, 'error');
    }
 }
 
 async function startNewHand() {
-   if (!pokerGame || !gameStarted) {
-      console.log('⚠️ Poker Engine não inicializado ainda');
-      return;
-   }
+   if (!pokerGame || !gameStarted) return;
    
    try {
-      console.log('🃏 Iniciando nova mão...');
       showNotification('Nova mão iniciada! Distribuindo cartas...', 'info');
       
       const handResult = await pokerGame.startHand();
       const gameInfo = pokerGame.getGameInfo();
-      
-      console.log('📊 Game Info:', gameInfo);
       
       const me = gameInfo.players.find(p => p.userId === currentUser.uid);
       if (me && me.cards && me.cards.length >= 2) {
@@ -1028,17 +974,12 @@ async function startNewHand() {
       setTimeout(() => {
          updateInterface();
          checkMyTurn();
-      }, 1000);
+      }, 500);
       
    } catch (error) {
-      console.error('❌ Erro ao iniciar mão:', error);
       showNotification('Erro: ' + error.message, 'error');
    }
 }
-
-// =============================================
-// CONTROLES DO JOGADOR
-// =============================================
 
 function setupControls() {
    const slider = document.getElementById('betSlider');
@@ -1052,8 +993,6 @@ async function playerAction(action) {
       showNotification('Não é sua vez!', 'error');
       return;
    }
-   
-   console.log(`🎮 Ação do jogador: ${action}`);
    
    try {
       let amount = 0;
@@ -1096,7 +1035,6 @@ async function playerAction(action) {
       }
       
    } catch (error) {
-      console.error('❌ Erro na ação:', error);
       showNotification('Erro: ' + error.message, 'error');
    }
 }
@@ -1158,10 +1096,6 @@ function disablePlayerControls() {
    document.getElementById('actionTimerContainer').style.display = 'none';
 }
 
-// =============================================
-// TIMER DE AÇÃO
-// =============================================
-
 function startActionTimer() {
    timeLeft = 30;
    const timerBar = document.getElementById('actionTimerBar');
@@ -1194,10 +1128,6 @@ function stopActionTimer() {
       actionTimerInterval = null;
    }
 }
-
-// =============================================
-// FUNÇÕES AUXILIARES
-// =============================================
 
 function formatCard(card) {
    if (!card) return '?';
@@ -1259,10 +1189,8 @@ async function updateGameStateInFirestore(gameState) {
          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
       });
       
-      console.log('✅ Firestore atualizado com estado do jogo');
-      
    } catch (error) {
-      console.error('❌ Erro ao atualizar Firestore:', error);
+      console.error('Erro ao atualizar Firestore:', error);
    }
 }
 
@@ -1291,7 +1219,6 @@ async function updatePlayerActionInFirestore(action, amount) {
       showNotification(`Você ${action}${amount > 0 ? ' ' + amount : ''}`, 'success');
       
    } catch (error) {
-      console.error('❌ Erro ao atualizar ação:', error);
       showNotification('Erro ao processar ação', 'error');
    }
 }
@@ -1322,8 +1249,6 @@ window.addEventListener('beforeunload', () => {
    if (realtimeListener) realtimeListener();
    stopActionTimer();
 });
-
-console.log('✅ Mesa de torneio pronta!');
 </script>
 </body>
 </html>
