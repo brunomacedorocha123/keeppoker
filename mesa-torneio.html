@@ -183,7 +183,7 @@ body {
  border-radius: 50%;
 }
 
-/* CARTAS DO JOGADOR (AO LADO DO AVATAR) */
+/* CARTAS DO JOGADOR (AO LADO DO AVATAR - SÓ POSIÇÃO 1) */
 .player-cards {
  position: absolute;
  left: 85px; /* Ao lado direito do avatar */
@@ -261,42 +261,42 @@ body {
 
 /* ===== POSICIONAMENTO DOS AVATARS ===== */
 
-/* POSIÇÃO 1: TOPO (VOCÊ) - MAIS PRA CIMA */
+/* POSIÇÃO 1: TOPO CENTRO (VOCÊ) */
 .pos-1 {
- top: -10%; /* SUBIU MAIS */
+ top: -15%; /* MAIS PRA CIMA */
  left: 50%;
  transform: translateX(-50%);
 }
 
-/* POSIÇÃO 2: DIREITA SUPERIOR - MAIS AFASTADO */
+/* POSIÇÃO 2: DIREITA SUPERIOR - FORA DA MESA */
 .pos-2 {
- top: 15%; /* AJUSTADO */
- right: 5%; /* MAIS AFASTADO */
+ top: 10%; /* MAIS PRA CIMA */
+ right: 2%; /* MAIS PRA DIREITA (fora da mesa) */
 }
 
-/* POSIÇÃO 3: DIREITA INFERIOR - MAIS AFASTADO */
+/* POSIÇÃO 3: DIREITA INFERIOR - FORA DA MESA */
 .pos-3 {
- bottom: 15%; /* AJUSTADO */
- right: 5%; /* MAIS AFASTADO */
+ bottom: 10%; /* MAIS PRA BAIXO */
+ right: 2%; /* MAIS PRA DIREITA (fora da mesa) */
 }
 
-/* POSIÇÃO 4: BAIXO CENTRO - MAIS PRA BAIXO */
+/* POSIÇÃO 4: BAIXO CENTRO - TOTALMENTE VISÍVEL */
 .pos-4 {
- bottom: -8%; /* DESCEU MAIS */
+ bottom: -15%; /* MAIS PRA BAIXO */
  left: 50%;
  transform: translateX(-50%);
 }
 
-/* POSIÇÃO 5: ESQUERDA INFERIOR - MAIS AFASTADO */
+/* POSIÇÃO 5: ESQUERDA INFERIOR - FORA DA MESA */
 .pos-5 {
- bottom: 15%; /* AJUSTADO */
- left: 5%; /* MAIS AFASTADO */
+ bottom: 10%; /* MAIS PRA BAIXO */
+ left: 2%; /* MAIS PRA ESQUERDA (fora da mesa) */
 }
 
-/* POSIÇÃO 6: ESQUERDA SUPERIOR - MAIS AFASTADO */
+/* POSIÇÃO 6: ESQUERDA SUPERIOR - FORA DA MESA */
 .pos-6 {
- top: 15%; /* AJUSTADO */
- left: 5%; /* MAIS AFASTADO */
+ top: 10%; /* MAIS PRA CIMA */
+ left: 2%; /* MAIS PRA ESQUERDA (fora da mesa) */
 }
 
 /* AVATAR DO JOGADOR (VOCÊ) */
@@ -312,33 +312,31 @@ body {
 /* ===== CONTROLES ===== */
 .controls {
  position: fixed;
- bottom: 10px;
+ bottom: 2%; /* LÁ EM BAIXO (2% da margem) */
  left: 50%;
  transform: translateX(-50%);
  background: rgba(13, 27, 42, 0.95);
- padding: 12px 15px; /* REDUZIDO PADDING (menor altura) */
+ padding: 8px 12px; /* ALTURA REDUZIDA */
  border-radius: 12px;
  border: 2px solid #d4af37;
  display: flex;
  flex-direction: column;
  align-items: center;
- gap: 10px; /* REDUZIDO GAP */
+ gap: 8px; /* GAP REDUZIDO */
  z-index: 100;
  min-width: 400px;
  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
- max-height: 140px; /* ALTURA MÁXIMA REDUZIDA */
+ max-height: 120px; /* ALTURA MÁXIMA REDUZIDA */
 }
 
-/* SUAS CARTAS (FORA DA MESA) - REMOVIDAS (agora ficam ao lado do avatar) */
-
-/* BOTÕES DE AÇÃO */
+/* BOTÕES DE AÇÃO - SEM CARTAS DENTRO */
 .action-buttons {
  display: flex;
  gap: 8px;
 }
 
 .action-btn {
- padding: 10px 18px; /* BOTÕES MANTÊM TAMANHO */
+ padding: 10px 18px;
  border: none;
  border-radius: 8px;
  font-weight: bold;
@@ -370,36 +368,36 @@ body {
  display: flex;
  gap: 10px;
  align-items: center;
- margin-top: 8px; /* REDUZIDO */
+ margin-top: 5px; /* REDUZIDO */
  display: none;
 }
 
 .bet-slider {
  flex: 1;
- height: 8px;
+ height: 6px; /* REDUZIDO */
  background: rgba(255,255,255,0.1);
- border-radius: 4px;
+ border-radius: 3px;
  outline: none;
 }
 
 .bet-amount {
  background: rgba(212, 175, 55, 0.2);
- padding: 6px 12px; /* REDUZIDO */
+ padding: 5px 10px; /* REDUZIDO */
  border-radius: 8px;
  font-weight: bold;
  color: #ffd700;
- min-width: 70px; /* REDUZIDO */
+ min-width: 60px; /* REDUZIDO */
  text-align: center;
- font-size: 0.9em;
+ font-size: 0.85em;
 }
 
 /* TIMER DE AÇÃO */
 .action-timer {
  width: 100%;
- height: 5px; /* REDUZIDO */
+ height: 4px; /* REDUZIDO */
  background: rgba(255,255,255,0.1);
- border-radius: 3px;
- margin-top: 8px; /* REDUZIDO */
+ border-radius: 2px;
+ margin-top: 5px; /* REDUZIDO */
  overflow: hidden;
  display: none;
 }
@@ -451,29 +449,29 @@ body {
  }
 
  /* POSIÇÕES MOBILE */
- .pos-1 { top: -12%; }
- .pos-2 { top: 12%; right: 3%; }
- .pos-6 { top: 12%; left: 3%; }
- .pos-3 { bottom: 12%; right: 3%; }
- .pos-5 { bottom: 12%; left: 3%; }
- .pos-4 { bottom: -10%; }
+ .pos-1 { top: -18%; }
+ .pos-2 { top: 8%; right: 1%; }
+ .pos-6 { top: 8%; left: 1%; }
+ .pos-3 { bottom: 8%; right: 1%; }
+ .pos-5 { bottom: 8%; left: 1%; }
+ .pos-4 { bottom: -18%; }
 
  .controls {
   min-width: 90%;
-  padding: 10px 12px;
-  bottom: 8px;
-  max-height: 130px;
+  padding: 6px 10px;
+  bottom: 1%;
+  max-height: 110px;
  }
 
  .action-btn {
-  padding: 8px 15px;
+  padding: 8px 12px;
   min-width: 70px;
-  font-size: 0.9em;
+  font-size: 0.85em;
  }
 
  .bet-amount {
-  padding: 5px 10px;
-  min-width: 60px;
+  padding: 4px 8px;
+  min-width: 50px;
   font-size: 0.8em;
  }
 }
@@ -513,29 +511,29 @@ body {
  }
 
  /* POSIÇÕES MOBILE PEQUENO */
- .pos-1 { top: -15%; }
- .pos-2 { top: 10%; right: 2%; }
- .pos-6 { top: 10%; left: 2%; }
- .pos-3 { bottom: 10%; right: 2%; }
- .pos-5 { bottom: 10%; left: 2%; }
- .pos-4 { bottom: -12%; }
+ .pos-1 { top: -20%; }
+ .pos-2 { top: 6%; right: 0.5%; }
+ .pos-6 { top: 6%; left: 0.5%; }
+ .pos-3 { bottom: 6%; right: 0.5%; }
+ .pos-5 { bottom: 6%; left: 0.5%; }
+ .pos-4 { bottom: -20%; }
 
  .controls {
-  bottom: 6px;
-  padding: 8px 10px;
-  max-height: 120px;
+  bottom: 0.5%;
+  padding: 5px 8px;
+  max-height: 100px;
  }
 
  .action-btn {
-  padding: 7px 12px;
+  padding: 6px 10px;
   min-width: 60px;
   font-size: 0.8em;
  }
 
  .bet-amount {
-  padding: 4px 8px;
-  min-width: 50px;
-  font-size: 0.7em;
+  padding: 3px 6px;
+  min-width: 40px;
+  font-size: 0.75em;
  }
 }
 </style>
@@ -773,6 +771,11 @@ body {
    for (let i = 1; i <= 6; i++) {
     document.getElementById(`avatar${i}`).innerHTML = '?';
     document.getElementById(`chips${i}`).innerHTML = '-<br>0';
+    // Esconder cartas dos jogadores (só mostrarem quando tiverem cartas)
+    const playerCards = document.getElementById(`playerPos${i}`)?.querySelector('.player-cards');
+    if (playerCards) {
+     playerCards.style.display = 'none';
+    }
    }
    
    // Preencher com jogadores REAIS
@@ -783,6 +786,7 @@ body {
      const pos = positionMap[index]; // Mapear para posição visual
      const avatarElement = document.getElementById(`avatar${pos}`);
      const chipsElement = document.getElementById(`chips${pos}`);
+     const container = document.getElementById(`playerPos${pos}`);
      
      // Verificar se é o usuário atual
      const isMe = player.userId === currentUser.uid;
@@ -801,9 +805,13 @@ body {
      }
      
      // Adicionar classe "player-you" se for o usuário
-     const container = document.getElementById(`playerPos${pos}`);
      if (isMe) {
       container.classList.add('player-you');
+      // Mostrar cartas do jogador (se tiver)
+      const myCards = container.querySelector('.player-cards');
+      if (myCards) {
+       myCards.style.display = 'flex';
+      }
      } else {
       container.classList.remove('player-you');
      }
@@ -812,7 +820,6 @@ body {
      const chips = player.chips || tournamentData.startingStack || 1500;
      chipsElement.innerHTML = `${player.nickname || 'Jogador'}<br>${chips}`;
      
-     // Posição vazia se não houver jogador
     } else {
      console.warn(`⚠️ Mais de 6 jogadores, ignorando jogador ${index + 1}`);
     }
@@ -835,8 +842,9 @@ body {
       const playersChanged = JSON.stringify(newData.players) !== JSON.stringify(tournamentData?.players);
       const communityChanged = JSON.stringify(newData.communityCards) !== JSON.stringify(tournamentData?.communityCards);
       const potChanged = newData.pot !== tournamentData?.pot;
+      const turnChanged = newData.currentPlayerTurn !== tournamentData?.currentPlayerTurn;
       
-      if (playersChanged || communityChanged || potChanged) {
+      if (playersChanged || communityChanged || potChanged || turnChanged) {
        tournamentData = newData;
        
        // Atualizar interface
@@ -861,24 +869,35 @@ body {
     if (index < 6) {
      const pos = positionMap[index];
      const chipsElement = document.getElementById(`chips${pos}`);
+     const avatarElement = document.getElementById(`avatar${pos}`);
+     const container = document.getElementById(`playerPos${pos}`);
      
      // Atualizar chips
      const chips = player.chips || tournamentData.startingStack || 1500;
      const name = player.nickname || player.playerName || 'Jogador';
      chipsElement.innerHTML = `${name}<br>${chips}`;
      
-     // Destacar jogador atual (se houver informação)
+     // Destacar jogador atual
      if (tournamentData.currentPlayerTurn === player.userId) {
-      document.getElementById(`avatar${pos}`).classList.add('current-turn');
+      avatarElement.classList.add('current-turn');
      } else {
-      document.getElementById(`avatar${pos}`).classList.remove('current-turn');
+      avatarElement.classList.remove('current-turn');
      }
      
      // Marcar se foldou
      if (player.isActive === false) {
-      document.getElementById(`avatar${pos}`).classList.add('player-folded');
+      avatarElement.classList.add('player-folded');
      } else {
-      document.getElementById(`avatar${pos}`).classList.remove('player-folded');
+      avatarElement.classList.remove('player-folded');
+     }
+     
+     // Mostrar cartas do jogador (se for você e tiver cartas)
+     const isMe = player.userId === currentUser.uid;
+     if (isMe && player.cards && player.cards.length > 0) {
+      const myCards = container.querySelector('.player-cards');
+      if (myCards) {
+       myCards.style.display = 'flex';
+      }
      }
     }
    });
@@ -945,16 +964,43 @@ body {
    if (!tournamentData.players || !currentUser) return;
    
    const me = tournamentData.players.find(p => p.userId === currentUser.uid);
-   if (!me || !me.cards) return;
+   if (!me || !me.cards) {
+    // Esconder minhas cartas se não tiver
+    const myCardsContainer = document.querySelector('#playerPos1 .player-cards');
+    if (myCardsContainer) {
+     myCardsContainer.style.display = 'none';
+    }
+    return;
+   }
    
    const cards = me.cards;
    if (cards.length >= 2) {
-    document.getElementById('card1').textContent = formatCard(cards[0]);
-    document.getElementById('card2').textContent = formatCard(cards[1]);
+    // Atualizar cartas ao lado do avatar
+    const card1Element = document.getElementById('playerCard1');
+    const card2Element = document.getElementById('playerCard2');
     
-    // Colorir cartas
-    document.getElementById('card1').style.color = getCardColor(cards[0]);
-    document.getElementById('card2').style.color = getCardColor(cards[1]);
+    if (card1Element && card2Element) {
+     card1Element.textContent = formatCard(cards[0]);
+     card2Element.textContent = formatCard(cards[1]);
+     
+     // Colorir cartas
+     card1Element.style.color = getCardColor(cards[0]);
+     card2Element.style.color = getCardColor(cards[1]);
+     
+     // Mostrar cartas
+     const myCardsContainer = document.querySelector('#playerPos1 .player-cards');
+     if (myCardsContainer) {
+      myCardsContainer.style.display = 'flex';
+     }
+    }
+    
+    // Remover cartas antigas (se ainda existirem)
+    const oldCard1 = document.getElementById('card1');
+    const oldCard2 = document.getElementById('card2');
+    if (oldCard1 && oldCard2) {
+     oldCard1.style.display = 'none';
+     oldCard2.style.display = 'none';
+    }
    }
   }
   
@@ -1011,7 +1057,8 @@ body {
     nickname: player.nickname || player.playerName || `Jogador ${index + 1}`,
     chips: player.chips || tournamentData.startingStack || 1500,
     position: index,
-    isActive: true
+    isActive: true,
+    avatarUrl: player.avatarUrl || ''
    }));
    
    // Criar instância do jogo
@@ -1042,7 +1089,7 @@ body {
     console.log('🃏 Iniciando nova mão...');
     showNotification('Nova mão iniciada!', 'info');
     
-    await pokerGame.startHand();
+    const handResult = await pokerGame.startHand();
     
     // Atualizar interface com dados do engine
     const gameInfo = pokerGame.getGameInfo();
@@ -1066,6 +1113,13 @@ body {
    if (slider) {
     slider.addEventListener('input', updateBetAmount);
    }
+   
+   // Configurar botões de ação
+   document.getElementById('btnFold').addEventListener('click', () => playerAction('fold'));
+   document.getElementById('btnCheck').addEventListener('click', () => playerAction('check'));
+   document.getElementById('btnCall').addEventListener('click', () => playerAction('call'));
+   document.getElementById('btnRaise').addEventListener('click', showRaiseControls);
+   document.getElementById('btnAllin').addEventListener('click', () => playerAction('allin'));
   }
   
   async function playerAction(action) {
@@ -1269,14 +1323,29 @@ body {
   // Atualizar estado do jogo no Firestore
   async function updateGameStateInFirestore(gameState) {
    try {
+    // Preparar jogadores para Firestore
+    const firestorePlayers = gameState.players.map(player => ({
+     userId: player.userId,
+     nickname: player.nickname,
+     chips: player.chips,
+     isActive: player.isActive,
+     bet: player.bet || 0,
+     lastAction: player.lastAction,
+     cards: player.cards || [],
+     avatarUrl: player.avatarUrl || ''
+    }));
+    
     await db.collection('tournaments').doc(tournamentId).update({
-     players: gameState.players,
-     communityCards: gameState.communityCards,
-     pot: gameState.pot,
+     players: firestorePlayers,
+     communityCards: gameState.communityCards || [],
+     pot: gameState.pot || 0,
      currentPlayerTurn: gameState.currentPlayerTurn,
-     currentRound: gameState.round,
+     currentRound: gameState.round || 'preflop',
      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
     });
+    
+    console.log('✅ Firestore atualizado com estado do jogo');
+    
    } catch (error) {
     console.error('❌ Erro ao atualizar Firestore:', error);
    }
@@ -1352,8 +1421,5 @@ body {
   
   console.log('✅ Mesa de torneio pronta!');
  </script>
- 
- <!-- Font Awesome para ícones -->
- <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
 </body>
 </html>
