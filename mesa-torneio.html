@@ -60,8 +60,8 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 70%; /* Reduzido 15% */
-            height: 55%; /* Reduzido 15% */
+            width: 70%;
+            height: 55%;
             z-index: 1;
         }
         
@@ -71,7 +71,7 @@
             height: 100%;
             background: #0a5c36;
             border: 15px solid #8B4513;
-            border-radius: 50% / 40%; /* Formato salsicha */
+            border-radius: 50% / 40%;
             box-shadow: 
                 inset 0 0 40px rgba(0, 0, 0, 0.6),
                 0 0 30px rgba(0, 0, 0, 0.7);
@@ -148,46 +148,46 @@
             text-align: center;
             min-width: 100px;
             font-size: 0.9em;
-            display: none; /* Inicialmente escondido */
+            display: none;
         }
         
-        /* POSICIONAMENTO DOS 6 AVATARS */
-        /* TOPO */
+        /* POSICIONAMENTO AJUSTADO DOS AVATARS */
+        /* POSIÇÃO 1: TOPO (VOCÊ) - MAIS PARA CIMA */
         .pos-1 {
-            top: 5%;
+            top: 3%; /* Antes 5% - Subiu */
             left: 50%;
             transform: translateX(-50%);
         }
         
-        /* TOPO DIREITA */
+        /* POSIÇÃO 2: DIAGONAL DIREITA SUPERIOR */
         .pos-2 {
-            top: 20%;
-            right: 5%;
+            top: 18%; /* Antes 20% - Subiu um pouco */
+            right: 8%; /* Antes 5% - Mais para a direita */
         }
         
-        /* BAIXO DIREITA */
+        /* POSIÇÃO 3: DIAGONAL DIREITA INFERIOR - MAIS PARA BAIXO */
         .pos-3 {
-            bottom: 20%;
-            right: 5%;
+            bottom: 22%; /* Antes 20% - Desceu */
+            right: 8%; /* Antes 5% - Mais para a direita */
         }
         
-        /* BAIXO CENTRO */
+        /* POSIÇÃO 4: BAIXO CENTRO - MAIS PARA BAIXO */
         .pos-4 {
-            bottom: 5%;
+            bottom: 7%; /* Antes 5% - Desceu */
             left: 50%;
             transform: translateX(-50%);
         }
         
-        /* BAIXO ESQUERDA */
+        /* POSIÇÃO 5: DIAGONAL ESQUERDA INFERIOR */
         .pos-5 {
-            bottom: 20%;
-            left: 5%;
+            bottom: 22%; /* Antes 20% - Desceu */
+            left: 8%; /* Antes 5% - Mais para a esquerda */
         }
         
-        /* TOPO ESQUERDA */
+        /* POSIÇÃO 6: DIAGONAL ESQUERDA SUPERIOR */
         .pos-6 {
-            top: 20%;
-            left: 5%;
+            top: 18%; /* Antes 20% - Subiu um pouco */
+            left: 8%; /* Antes 5% - Mais para a esquerda */
         }
         
         /* AVATAR DO JOGADOR (VOCÊ) */
@@ -197,59 +197,72 @@
         }
         
         .player-you .player-info {
-            display: block; /* Mostra info só para você */
+            display: block;
         }
         
-        /* CONTROLES DO JOGADOR */
+        /* CONTROLES DO JOGADOR - FORA DA MESA */
         .controls {
             position: fixed;
-            bottom: 20px;
+            bottom: 30px; /* Antes 20px - Mais para cima */
             left: 50%;
             transform: translateX(-50%);
             background: rgba(13, 27, 42, 0.95);
-            padding: 15px;
+            padding: 15px 20px;
             border-radius: 12px;
             border: 2px solid #d4af37;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 12px;
+            gap: 15px;
             z-index: 100;
-            min-width: 400px;
+            min-width: 450px;
+            max-width: 80%;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
         }
         
-        /* SUAS CARTAS (FORA DA MESA) */
+        /* SUAS CARTAS */
         .your-cards {
             display: flex;
-            gap: 10px;
+            gap: 15px;
+            margin-bottom: 5px;
         }
         
         .your-card {
-            width: 50px;
-            height: 70px;
+            width: 55px;
+            height: 77px;
             background: white;
             border-radius: 6px;
             border: 2px solid #000;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.3em;
+            font-size: 1.4em;
             font-weight: bold;
+            color: #000;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
         }
+        
+        .your-card.red { color: #c00; }
+        .your-card.black { color: #000; }
         
         /* BOTÕES DE AÇÃO */
         .action-buttons {
             display: flex;
-            gap: 8px;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
         }
         
         .action-btn {
-            padding: 10px 20px;
+            padding: 12px 20px;
             border: none;
             border-radius: 8px;
             font-weight: bold;
             cursor: pointer;
-            min-width: 80px;
+            min-width: 85px;
+            font-size: 0.95em;
+            transition: transform 0.2s;
         }
         
         .btn-fold { background: #e74c3c; color: white; }
@@ -257,6 +270,10 @@
         .btn-call { background: #2ecc71; color: white; }
         .btn-raise { background: #9b59b6; color: white; }
         .btn-allin { background: #e67e22; color: white; }
+        
+        .action-btn:hover {
+            transform: translateY(-2px);
+        }
         
         /* RESPONSIVIDADE */
         @media (max-width: 768px) {
@@ -271,13 +288,25 @@
                 font-size: 1.2em;
             }
             
+            .pos-2, .pos-6 { top: 15%; }
+            .pos-3, .pos-5 { bottom: 18%; }
+            .pos-2, .pos-3 { right: 4%; }
+            .pos-5, .pos-6 { left: 4%; }
+            
             .controls {
                 min-width: 90%;
-                padding: 12px;
+                padding: 12px 15px;
+                bottom: 20px;
+            }
+            
+            .your-card {
+                width: 45px;
+                height: 63px;
+                font-size: 1.2em;
             }
             
             .action-btn {
-                padding: 8px 15px;
+                padding: 10px 15px;
                 min-width: 70px;
                 font-size: 0.9em;
             }
@@ -303,10 +332,30 @@
                 font-size: 1em;
             }
             
+            .pos-1 { top: 2%; }
+            .pos-4 { bottom: 5%; }
+            .pos-2, .pos-6 { top: 12%; }
+            .pos-3, .pos-5 { bottom: 15%; }
+            
+            .controls {
+                padding: 10px;
+                gap: 10px;
+            }
+            
             .your-card {
                 width: 40px;
                 height: 56px;
                 font-size: 1.1em;
+            }
+            
+            .action-buttons {
+                gap: 5px;
+            }
+            
+            .action-btn {
+                padding: 8px 12px;
+                min-width: 60px;
+                font-size: 0.8em;
             }
         }
     </style>
@@ -314,7 +363,7 @@
 <body>
     <!-- CABEÇALHO -->
     <div class="header">
-        <div class="tournament-info">Torneio</div>
+        <div class="tournament-info" id="tournamentName">Torneio</div>
         <div class="game-stats">
             <div class="stat" id="blinds">100/200</div>
             <div class="stat" id="pot">Pote: 0</div>
@@ -327,7 +376,7 @@
         <div class="poker-table">
             <!-- ÁREA CENTRAL -->
             <div class="table-center">
-                <div class="community-cards">
+                <div class="community-cards" id="communityCards">
                     <div class="card-placeholder"></div>
                     <div class="card-placeholder"></div>
                     <div class="card-placeholder"></div>
@@ -339,37 +388,37 @@
         </div>
         
         <!-- AVATARS NAS EXTREMIDADES -->
-        <!-- Posição 1: TOPO (Você - SB) -->
-        <div class="avatar-container pos-1 player-you">
+        <!-- Posição 1: TOPO (Você) -->
+        <div class="avatar-container pos-1 player-you" id="player1">
             <div class="avatar">V</div>
             <div class="player-info">
-                <div>Você (SB)</div>
-                <div>1,500</div>
+                <div>Você</div>
+                <div id="player1Chips">-</div>
             </div>
         </div>
         
         <!-- Posição 2: TOPO DIREITA -->
-        <div class="avatar-container pos-2">
+        <div class="avatar-container pos-2" id="player2">
             <div class="avatar"></div>
         </div>
         
         <!-- Posição 3: BAIXO DIREITA -->
-        <div class="avatar-container pos-3">
+        <div class="avatar-container pos-3" id="player3">
             <div class="avatar"></div>
         </div>
         
         <!-- Posição 4: BAIXO CENTRO -->
-        <div class="avatar-container pos-4">
+        <div class="avatar-container pos-4" id="player4">
             <div class="avatar"></div>
         </div>
         
         <!-- Posição 5: BAIXO ESQUERDA -->
-        <div class="avatar-container pos-5">
+        <div class="avatar-container pos-5" id="player5">
             <div class="avatar"></div>
         </div>
         
         <!-- Posição 6: TOPO ESQUERDA -->
-        <div class="avatar-container pos-6">
+        <div class="avatar-container pos-6" id="player6">
             <div class="avatar"></div>
         </div>
     </div>
@@ -377,37 +426,76 @@
     <!-- CONTROLES (FORA DA MESA) -->
     <div class="controls">
         <!-- SUAS CARTAS -->
-        <div class="your-cards">
-            <div class="your-card">?</div>
-            <div class="your-card">?</div>
+        <div class="your-cards" id="yourCardsContainer">
+            <div class="your-card" id="card1">?</div>
+            <div class="your-card" id="card2">?</div>
         </div>
         
         <!-- BOTÕES DE AÇÃO -->
         <div class="action-buttons">
-            <button class="action-btn btn-fold">Fold</button>
-            <button class="action-btn btn-check">Check</button>
-            <button class="action-btn btn-call">Call</button>
-            <button class="action-btn btn-raise">Raise</button>
-            <button class="action-btn btn-allin">All-in</button>
+            <button class="action-btn btn-fold" id="foldBtn">Fold</button>
+            <button class="action-btn btn-check" id="checkBtn">Check</button>
+            <button class="action-btn btn-call" id="callBtn">Call</button>
+            <button class="action-btn btn-raise" id="raiseBtn">Raise</button>
+            <button class="action-btn btn-allin" id="allinBtn">All-in</button>
         </div>
     </div>
 
     <script>
-        // CONFIGURAÇÃO INICIAL
+        // CONFIGURAÇÃO INICIAL - SEM DADOS FICTÍCIOS
         document.addEventListener('DOMContentLoaded', function() {
             console.log('Mesa carregada - Layout puro');
             
-            // Atualizar displays
-            document.getElementById('blinds').textContent = '100/200';
-            document.getElementById('pot').textContent = 'Pote: 0';
-            document.getElementById('potAmount').textContent = '0';
+            // Inicializar placeholders
+            initializePlaceholders();
             
-            // Configurar avatares vazios (sem dados fictícios)
-            const avatars = document.querySelectorAll('.avatar:empty');
-            avatars.forEach(avatar => {
-                avatar.innerHTML = '?'; // Placeholder
-            });
+            // Configurar botões (sem ação ainda)
+            setupButtons();
         });
+        
+        function initializePlaceholders() {
+            // Apenas placeholders - sem dados fictícios
+            document.getElementById('blinds').textContent = '-/-';
+            document.getElementById('pot').textContent = 'Pote: -';
+            document.getElementById('potAmount').textContent = '-';
+            document.getElementById('player1Chips').textContent = '-';
+            
+            // Placeholders para outros avatares
+            const emptyAvatars = document.querySelectorAll('.avatar:empty');
+            emptyAvatars.forEach(avatar => {
+                avatar.textContent = '';
+            });
+            
+            // Placeholder para suas cartas
+            document.getElementById('card1').textContent = '?';
+            document.getElementById('card2').textContent = '?';
+        }
+        
+        function setupButtons() {
+            // Botões desabilitados até receber dados reais
+            const buttons = document.querySelectorAll('.action-btn');
+            buttons.forEach(btn => {
+                btn.disabled = true;
+                btn.style.opacity = '0.6';
+                btn.style.cursor = 'not-allowed';
+            });
+            
+            // Adicionar tooltip informativo
+            buttons.forEach(btn => {
+                btn.title = 'Aguardando dados do servidor...';
+            });
+        }
+        
+        // Função para atualizar com dados reais (vazia por enquanto)
+        function updateWithRealData(data) {
+            // Esta função será preenchida quando integrar com Firebase
+            console.log('Atualizando com dados reais:', data);
+        }
+        
+        // Função para limpar tudo (reset)
+        function clearAllData() {
+            initializePlaceholders();
+        }
     </script>
 </body>
 </html>
