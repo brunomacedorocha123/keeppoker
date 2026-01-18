@@ -31,14 +31,13 @@
  <script src="poker-engine.js"></script>
  
  <style>
-/* ===== RESET ===== */
+/* ===== RESET E BASE ===== */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
-/* ===== BASE ===== */
 body {
   background: #0a1520;
   color: white;
@@ -85,15 +84,14 @@ body {
 /* ===== MESA ===== */
 .table-container {
   position: absolute;
-  top: 50%;
+  top: 45%; /* Mesa mais para cima */
   left: 50%;
   transform: translate(-50%, -50%);
   width: 70%;
-  height: 50%; /* Reduzido para dar espaço */
+  height: 45%; /* Mesa menor */
   z-index: 1;
 }
 
-/* MESA FORMATO SALSICHA */
 .poker-table {
   width: 100%;
   height: 100%;
@@ -106,7 +104,6 @@ body {
   position: relative;
 }
 
-/* ÁREA CENTRAL DA MESA */
 .table-center {
   position: absolute;
   top: 50%;
@@ -121,7 +118,6 @@ body {
   gap: 15px;
 }
 
-/* CARTAS COMUNITÁRIAS */
 .community-cards {
   display: flex;
   gap: 8px;
@@ -142,7 +138,6 @@ body {
   color: #2c3e50;
 }
 
-/* POT */
 .pot {
   color: #d4af37;
   font-size: 1.4em;
@@ -158,7 +153,6 @@ body {
   z-index: 20;
 }
 
-/* AVATAR CIRCULAR */
 .avatar {
   width: 70px;
   height: 70px;
@@ -183,7 +177,6 @@ body {
   border-radius: 50%;
 }
 
-/* CARTAS DO JOGADOR (AO LADO DO AVATAR - SÓ POSIÇÃO 1) */
 .player-cards {
   position: absolute;
   left: 85px;
@@ -209,7 +202,6 @@ body {
   box-shadow: 0 2px 8px rgba(0,0,0,0.3);
 }
 
-/* CHIPS DO JOGADOR */
 .player-chips {
   background: rgba(0, 0, 0, 0.7);
   color: #ffd700;
@@ -222,13 +214,11 @@ body {
   text-align: center;
 }
 
-/* JOGADOR ATUAL (vez) */
 .current-turn .avatar {
   border-color: #00ff00;
   box-shadow: 0 0 15px rgba(0, 255, 0, 0.5);
 }
 
-/* APOSTA DO JOGADOR */
 .player-bet {
   position: absolute;
   top: -15px;
@@ -241,13 +231,11 @@ body {
   white-space: nowrap;
 }
 
-/* FOLDED/INATIVO */
 .player-folded .avatar {
   opacity: 0.5;
   border-color: #666;
 }
 
-/* INFO DO JOGADOR (SÓ APARECE PARA VOCÊ) */
 .player-info {
   background: rgba(13, 27, 42, 0.95);
   padding: 8px 12px;
@@ -259,47 +247,46 @@ body {
   display: none;
 }
 
-/* ===== POSICIONAMENTO DOS AVATARS AJUSTADO ===== */
+/* ===== POSICIONAMENTO DOS AVATARS ===== */
 
-/* POSIÇÃO 1: TOPO CENTRO (VOCÊ) - BAIXADO PARA NÃO CORTAR NO CABEÇALHO */
+/* POSIÇÃO 1: TOPO - ALTO PRA CARALHO (abaixo do cabeçalho) */
 .pos-1 {
-  top: 15%; /* BASTANTE ABAIXO do cabeçalho */
+  top: 70px; /* 60px cabeçalho + 10px margem */
   left: 50%;
   transform: translateX(-50%);
 }
 
-/* POSIÇÃO 2: DIREITA SUPERIOR */
+/* POSIÇÃO 2: DIREITA SUPERIOR - AFASTADO VERTICALMENTE */
 .pos-2 {
   top: 15%;
   right: 3%;
 }
 
-/* POSIÇÃO 3: DIREITA INFERIOR - BAIXADO UM POUCO */
+/* POSIÇÃO 3: DIREITA INFERIOR - AFASTADO VERTICALMENTE */
 .pos-3 {
-  bottom: 10%; /* UM POUCO MAIS BAIXO */
+  bottom: 25%; /* Mais para cima para não atrapalhar botões */
   right: 3%;
 }
 
-/* POSIÇÃO 4: BAIXO CENTRO - AFASTADO DA GRADE DE BOTÕES */
+/* POSIÇÃO 4: BAIXO - BAIXO PRA CARALHO */
 .pos-4 {
-  bottom: 15%; /* SUBIDO PARA DAR ESPAÇO AOS BOTÕES */
+  bottom: 25%; /* Acima dos botões */
   left: 50%;
   transform: translateX(-50%);
 }
 
-/* POSIÇÃO 5: ESQUERDA INFERIOR - BAIXADO UM POUCO */
+/* POSIÇÃO 5: ESQUERDA INFERIOR - AFASTADO VERTICALMENTE */
 .pos-5 {
-  bottom: 10%; /* UM POUCO MAIS BAIXO */
+  bottom: 25%; /* Mais para cima para não atrapalhar botões */
   left: 3%;
 }
 
-/* POSIÇÃO 6: ESQUERDA SUPERIOR */
+/* POSIÇÃO 6: ESQUERDA SUPERIOR - AFASTADO VERTICALMENTE */
 .pos-6 {
   top: 15%;
   left: 3%;
 }
 
-/* AVATAR DO JOGADOR (VOCÊ) */
 .player-you .avatar {
   border-color: #3498db;
   box-shadow: 0 0 15px rgba(52, 152, 219, 0.5);
@@ -309,11 +296,11 @@ body {
   display: block;
 }
 
-/* ===== CONTROLES ===== */
-/* GRADE COMPLETA DE BOTÕES FORA DA MESA - BEM EMBAIXO! */
+/* ===== CONTROLES (FORA DA MESA) ===== */
+/* AQUI É O QUE IMPORTA: CONTROLES BEM LÁ EMBAIXO FORA DA MESA */
 .controls {
   position: fixed;
-  bottom: 20px; /* BEM EMBAIXO DA TELA, FORA DA MESA */
+  bottom: 10px; /* BEM NO FUNDO DA TELA */
   left: 50%;
   transform: translateX(-50%);
   background: rgba(13, 27, 42, 0.95);
@@ -429,8 +416,8 @@ body {
 @media (max-width: 768px) {
   .table-container {
     width: 85%;
-    height: 45%;
-    top: 48%;
+    height: 40%;
+    top: 40%;
   }
 
   .avatar {
@@ -450,17 +437,17 @@ body {
   }
 
   /* POSIÇÕES MOBILE */
-  .pos-1 { top: 18%; }
-  .pos-2 { top: 18%; right: 2%; }
-  .pos-6 { top: 18%; left: 2%; }
-  .pos-3 { bottom: 12%; right: 2%; }
-  .pos-5 { bottom: 12%; left: 2%; }
-  .pos-4 { bottom: 18%; }
+  .pos-1 { top: 65px; }
+  .pos-2 { top: 15%; right: 2%; }
+  .pos-6 { top: 15%; left: 2%; }
+  .pos-3 { bottom: 30%; right: 2%; }
+  .pos-5 { bottom: 30%; left: 2%; }
+  .pos-4 { bottom: 30%; }
 
   .controls {
     min-width: 90%;
     padding: 12px 18px;
-    bottom: 15px;
+    bottom: 5px;
     max-height: 130px;
   }
 
@@ -469,28 +456,9 @@ body {
     min-width: 75px;
     font-size: 0.9em;
   }
-
-  .bet-amount {
-    padding: 5px 10px;
-    min-width: 60px;
-    font-size: 0.85em;
-  }
 }
 
 @media (max-width: 480px) {
-  .header {
-    padding: 0 10px;
-  }
-
-  .game-stats {
-    gap: 10px;
-  }
-
-  .stat {
-    padding: 4px 8px;
-    font-size: 0.9em;
-  }
-
   .avatar {
     width: 40px;
     height: 40px;
@@ -507,22 +475,17 @@ body {
     font-size: 0.8em;
   }
 
-  .table-container {
-    top: 46%;
-  }
-
   /* POSIÇÕES MOBILE PEQUENO */
-  .pos-1 { top: 20%; }
-  .pos-2 { top: 20%; right: 1.5%; }
-  .pos-6 { top: 20%; left: 1.5%; }
-  .pos-3 { bottom: 14%; right: 1.5%; }
-  .pos-5 { bottom: 14%; left: 1.5%; }
-  .pos-4 { bottom: 20%; }
+  .pos-1 { top: 65px; }
+  .pos-2 { top: 15%; right: 1.5%; }
+  .pos-6 { top: 15%; left: 1.5%; }
+  .pos-3 { bottom: 35%; right: 1.5%; }
+  .pos-5 { bottom: 35%; left: 1.5%; }
+  .pos-4 { bottom: 35%; }
 
   .controls {
-    bottom: 10px;
+    bottom: 3px;
     padding: 10px 14px;
-    max-height: 120px;
     min-width: 95%;
   }
 
@@ -530,12 +493,6 @@ body {
     padding: 8px 12px;
     min-width: 65px;
     font-size: 0.85em;
-  }
-
-  .bet-amount {
-    padding: 4px 8px;
-    min-width: 50px;
-    font-size: 0.8em;
   }
 }
 </style>
