@@ -85,11 +85,11 @@ body {
 /* ===== MESA ===== */
 .table-container {
   position: absolute;
-  top: 45%;
+  top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
   width: 70%;
-  height: 55%;
+  height: 50%; /* Reduzido para dar espaço */
   z-index: 1;
 }
 
@@ -99,7 +99,7 @@ body {
   height: 100%;
   background: #0a5c36;
   border: 15px solid #8B4513;
-  border-radius: 50% / 40%; /* Formato salsicha */
+  border-radius: 50% / 40%;
   box-shadow:
     inset 0 0 40px rgba(0, 0, 0, 0.6),
     0 0 30px rgba(0, 0, 0, 0.7);
@@ -186,7 +186,7 @@ body {
 /* CARTAS DO JOGADOR (AO LADO DO AVATAR - SÓ POSIÇÃO 1) */
 .player-cards {
   position: absolute;
-  left: 85px; /* Ao lado direito do avatar */
+  left: 85px;
   top: 50%;
   transform: translateY(-50%);
   display: flex;
@@ -261,46 +261,42 @@ body {
 
 /* ===== POSICIONAMENTO DOS AVATARS AJUSTADO ===== */
 
-/* POSIÇÃO 1: TOPO CENTRO (VOCÊ) - ajustado para mais pra cima */
+/* POSIÇÃO 1: TOPO CENTRO (VOCÊ) - BAIXADO PARA NÃO CORTAR NO CABEÇALHO */
 .pos-1 {
-  top: -25%;
+  top: 15%; /* BASTANTE ABAIXO do cabeçalho */
   left: 50%;
   transform: translateX(-50%);
 }
 
-/* POSIÇÃO 2: DIREITA SUPERIOR - MAIS AFASTADO VERTICALMENTE */
+/* POSIÇÃO 2: DIREITA SUPERIOR */
 .pos-2 {
-  top: 8%;
+  top: 15%;
   right: 3%;
-  transform: none; /* Removido transform que estava centralizando */
 }
 
-/* POSIÇÃO 3: DIREITA INFERIOR - MAIS AFASTADO VERTICALMENTE */
+/* POSIÇÃO 3: DIREITA INFERIOR - BAIXADO UM POUCO */
 .pos-3 {
-  bottom: 8%;
+  bottom: 10%; /* UM POUCO MAIS BAIXO */
   right: 3%;
-  transform: none; /* Removido transform que estava centralizando */
 }
 
-/* POSIÇÃO 4: BAIXO CENTRO - TOTALMENTE VISÍVEL E AFASTADO */
+/* POSIÇÃO 4: BAIXO CENTRO - AFASTADO DA GRADE DE BOTÕES */
 .pos-4 {
-  bottom: -25%;
+  bottom: 15%; /* SUBIDO PARA DAR ESPAÇO AOS BOTÕES */
   left: 50%;
   transform: translateX(-50%);
 }
 
-/* POSIÇÃO 5: ESQUERDA INFERIOR - MAIS AFASTADO VERTICALMENTE */
+/* POSIÇÃO 5: ESQUERDA INFERIOR - BAIXADO UM POUCO */
 .pos-5 {
-  bottom: 8%;
+  bottom: 10%; /* UM POUCO MAIS BAIXO */
   left: 3%;
-  transform: none; /* Removido transform que estava centralizando */
 }
 
-/* POSIÇÃO 6: ESQUERDA SUPERIOR - MAIS AFASTADO VERTICALMENTE */
+/* POSIÇÃO 6: ESQUERDA SUPERIOR */
 .pos-6 {
-  top: 8%;
+  top: 15%;
   left: 3%;
-  transform: none; /* Removido transform que estava centralizando */
 }
 
 /* AVATAR DO JOGADOR (VOCÊ) */
@@ -314,39 +310,40 @@ body {
 }
 
 /* ===== CONTROLES ===== */
+/* GRADE COMPLETA DE BOTÕES FORA DA MESA - BEM EMBAIXO! */
 .controls {
   position: fixed;
-  bottom: 5%; /* AUMENTADO: controles bem embaixo da tela */
+  bottom: 20px; /* BEM EMBAIXO DA TELA, FORA DA MESA */
   left: 50%;
   transform: translateX(-50%);
   background: rgba(13, 27, 42, 0.95);
-  padding: 12px 20px;
+  padding: 15px 25px;
   border-radius: 12px;
   border: 2px solid #d4af37;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
-  z-index: 10;
-  min-width: 450px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
-  max-height: 130px;
+  gap: 12px;
+  z-index: 30;
+  min-width: 500px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
+  max-height: 140px;
 }
 
-/* BOTÕES DE AÇÃO - SEM CARTAS DENTRO */
+/* BOTÕES DE AÇÃO */
 .action-buttons {
   display: flex;
-  gap: 8px;
+  gap: 10px;
 }
 
 .action-btn {
-  padding: 10px 18px;
+  padding: 12px 22px;
   border: none;
   border-radius: 8px;
   font-weight: bold;
   cursor: pointer;
-  min-width: 80px;
-  font-size: 0.9em;
+  min-width: 90px;
+  font-size: 1em;
   transition: all 0.3s;
 }
 
@@ -370,7 +367,7 @@ body {
 /* CONTROLE DE APOSTA */
 .bet-controls {
   display: flex;
-  gap: 10px;
+  gap: 12px;
   align-items: center;
   margin-top: 5px;
   display: none;
@@ -378,29 +375,29 @@ body {
 
 .bet-slider {
   flex: 1;
-  height: 6px;
+  height: 8px;
   background: rgba(255,255,255,0.1);
-  border-radius: 3px;
+  border-radius: 4px;
   outline: none;
 }
 
 .bet-amount {
   background: rgba(212, 175, 55, 0.2);
-  padding: 5px 10px;
+  padding: 6px 12px;
   border-radius: 8px;
   font-weight: bold;
   color: #ffd700;
-  min-width: 60px;
+  min-width: 70px;
   text-align: center;
-  font-size: 0.85em;
+  font-size: 0.9em;
 }
 
 /* TIMER DE AÇÃO */
 .action-timer {
   width: 100%;
-  height: 4px;
+  height: 6px;
   background: rgba(255,255,255,0.1);
-  border-radius: 2px;
+  border-radius: 3px;
   margin-top: 5px;
   overflow: hidden;
   display: none;
@@ -432,8 +429,8 @@ body {
 @media (max-width: 768px) {
   .table-container {
     width: 85%;
-    height: 50%;
-    top: 44%;
+    height: 45%;
+    top: 48%;
   }
 
   .avatar {
@@ -452,31 +449,31 @@ body {
     font-size: 0.9em;
   }
 
-  /* POSIÇÕES MOBILE - AJUSTADAS */
-  .pos-1 { top: -28%; }
-  .pos-2 { top: 6%; right: 2%; }
-  .pos-6 { top: 6%; left: 2%; }
-  .pos-3 { bottom: 6%; right: 2%; }
-  .pos-5 { bottom: 6%; left: 2%; }
-  .pos-4 { bottom: -28%; }
+  /* POSIÇÕES MOBILE */
+  .pos-1 { top: 18%; }
+  .pos-2 { top: 18%; right: 2%; }
+  .pos-6 { top: 18%; left: 2%; }
+  .pos-3 { bottom: 12%; right: 2%; }
+  .pos-5 { bottom: 12%; left: 2%; }
+  .pos-4 { bottom: 18%; }
 
   .controls {
     min-width: 90%;
-    padding: 10px 15px;
-    bottom: 4%;
-    max-height: 120px;
+    padding: 12px 18px;
+    bottom: 15px;
+    max-height: 130px;
   }
 
   .action-btn {
-    padding: 8px 12px;
-    min-width: 70px;
-    font-size: 0.85em;
+    padding: 10px 16px;
+    min-width: 75px;
+    font-size: 0.9em;
   }
 
   .bet-amount {
-    padding: 4px 8px;
-    min-width: 50px;
-    font-size: 0.8em;
+    padding: 5px 10px;
+    min-width: 60px;
+    font-size: 0.85em;
   }
 }
 
@@ -511,34 +508,34 @@ body {
   }
 
   .table-container {
-    top: 43%;
+    top: 46%;
   }
 
-  /* POSIÇÕES MOBILE PEQUENO - AJUSTADAS */
-  .pos-1 { top: -30%; }
-  .pos-2 { top: 5%; right: 1.5%; }
-  .pos-6 { top: 5%; left: 1.5%; }
-  .pos-3 { bottom: 5%; right: 1.5%; }
-  .pos-5 { bottom: 5%; left: 1.5%; }
-  .pos-4 { bottom: -30%; }
+  /* POSIÇÕES MOBILE PEQUENO */
+  .pos-1 { top: 20%; }
+  .pos-2 { top: 20%; right: 1.5%; }
+  .pos-6 { top: 20%; left: 1.5%; }
+  .pos-3 { bottom: 14%; right: 1.5%; }
+  .pos-5 { bottom: 14%; left: 1.5%; }
+  .pos-4 { bottom: 20%; }
 
   .controls {
-    bottom: 3%;
-    padding: 8px 12px;
-    max-height: 110px;
+    bottom: 10px;
+    padding: 10px 14px;
+    max-height: 120px;
     min-width: 95%;
   }
 
   .action-btn {
-    padding: 6px 10px;
-    min-width: 60px;
-    font-size: 0.8em;
+    padding: 8px 12px;
+    min-width: 65px;
+    font-size: 0.85em;
   }
 
   .bet-amount {
-    padding: 3px 6px;
-    min-width: 40px;
-    font-size: 0.75em;
+    padding: 4px 8px;
+    min-width: 50px;
+    font-size: 0.8em;
   }
 }
 </style>
