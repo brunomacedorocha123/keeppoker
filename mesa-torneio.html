@@ -30,7 +30,7 @@
  <!-- Poker Engine (ARQUIVO SEPARADO) -->
  <script src="poker-engine.js"></script>
  
- <style>
+<style>
 /* ===== RESET E BASE ===== */
 * {
   margin: 0;
@@ -82,14 +82,14 @@ body {
   font-weight: bold;
 }
 
-/* ===== MESA (TAMANHO ORIGINAL) ===== */
+/* ===== MESA (UM POUCO MAIOR) ===== */
 .table-container {
   position: absolute;
-  top: 45%; /* MANTIDO COMO ANTES */
+  top: 43%; /* Um pouco mais para cima */
   left: 50%;
   transform: translate(-50%, -50%);
   width: 70%;
-  height: 45%; /* MANTIDO COMO ANTES */
+  height: 50%; /* Aumentei a altura */
   z-index: 1;
 }
 
@@ -178,10 +178,10 @@ body {
   border-radius: 50%;
 }
 
-/* CARTAS DO JOGADOR - RESTAURADO */
+/* CARTAS DO JOGADOR */
 .player-cards {
   position: absolute;
-  left: 85px; /* Cartas à direita do avatar */
+  left: 85px;
   top: 50%;
   transform: translateY(-50%);
   display: flex;
@@ -249,7 +249,7 @@ body {
   display: none;
 }
 
-/* ===== POSICIONAMENTO DOS AVATARS (CORRIGIDO) ===== */
+/* ===== POSICIONAMENTO DOS AVATARS (MUITO MAIS ESPAÇADOS) ===== */
 
 /* POSIÇÃO 1: TOPO */
 .pos-1 {
@@ -258,37 +258,37 @@ body {
   transform: translateX(-50%);
 }
 
-/* POSIÇÃO 2: DIREITA SUPERIOR - MAIS ESPAÇADO VERTICALMENTE */
+/* POSIÇÃO 2: DIREITA SUPERIOR - BEM ALTO */
 .pos-2 {
-  top: 25%; /* Mais espaçado da posição 1 */
+  top: 15%; /* BEM ALTO, perto do cabeçalho */
   right: 3%;
   transform: translateY(0);
 }
 
-/* POSIÇÃO 3: DIREITA INFERIOR - MAIS ESPAÇADO VERTICALMENTE */
+/* POSIÇÃO 3: DIREITA INFERIOR - BEM BAIXO */
 .pos-3 {
-  bottom: 35%; /* Mais para cima, longe da posição 4 */
+  bottom: 30%; /* BEM BAIXO, perto da posição 4 */
   right: 3%;
   transform: translateY(0);
 }
 
-/* POSIÇÃO 4: BAIXO (JOGADOR ATUAL) - ACIMA DOS CONTROLES */
+/* POSIÇÃO 4: BAIXO (JOGADOR ATUAL) */
 .pos-4 {
-  bottom: 180px; /* Acima dos controles */
+  bottom: 140px; /* Acima dos controles pequenos */
   left: 50%;
   transform: translateX(-50%);
 }
 
-/* POSIÇÃO 5: ESQUERDA INFERIOR - MAIS ESPAÇADO VERTICALMENTE */
+/* POSIÇÃO 5: ESQUERDA INFERIOR - BEM BAIXO */
 .pos-5 {
-  bottom: 35%; /* Alinhado com posição 3 */
+  bottom: 30%; /* BEM BAIXO, alinhado com posição 3 */
   left: 3%;
   transform: translateY(0);
 }
 
-/* POSIÇÃO 6: ESQUERDA SUPERIOR - MAIS ESPAÇADO VERTICALMENTE */
+/* POSIÇÃO 6: ESQUERDA SUPERIOR - BEM ALTO */
 .pos-6 {
-  top: 25%; /* Alinhado com posição 2 */
+  top: 15%; /* BEM ALTO, alinhado com posição 2 */
   left: 3%;
   transform: translateY(0);
 }
@@ -303,10 +303,10 @@ body {
   display: block;
 }
 
-/* ===== CONTROLES (FORA DA MESA) ===== */
+/* ===== CONTROLES (PEQUENOS) ===== */
 .controls-container {
   position: fixed;
-  bottom: 20px;
+  bottom: 15px;
   left: 0;
   right: 0;
   display: flex;
@@ -316,34 +316,35 @@ body {
 
 .controls {
   background: rgba(13, 27, 42, 0.95);
-  padding: 15px 25px;
-  border-radius: 12px;
+  padding: 10px 20px; /* Menor padding */
+  border-radius: 10px;
   border: 2px solid #d4af37;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
-  min-width: 500px;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
-  max-height: 140px; /* Mantido como original */
+  gap: 8px; /* Menor gap */
+  width: 400px; /* Largura fixa menor */
+  height: auto; /* Altura automática */
+  min-height: 110px; /* Altura mínima pequena */
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6);
 }
 
 /* BOTÕES DE AÇÃO */
 .action-buttons {
   display: flex;
-  gap: 10px;
+  gap: 8px; /* Menor gap */
   flex-wrap: wrap;
   justify-content: center;
 }
 
 .action-btn {
-  padding: 12px 22px;
+  padding: 10px 18px; /* Menor padding */
   border: none;
-  border-radius: 8px;
+  border-radius: 6px;
   font-weight: bold;
   cursor: pointer;
-  min-width: 90px;
-  font-size: 1em;
+  min-width: 80px; /* Menor largura */
+  font-size: 0.9em; /* Fonte menor */
   transition: all 0.3s;
 }
 
@@ -367,39 +368,39 @@ body {
 /* CONTROLE DE APOSTA */
 .bet-controls {
   display: flex;
-  gap: 12px;
+  gap: 10px;
   align-items: center;
-  margin-top: 5px;
+  margin-top: 3px;
   width: 100%;
   display: none;
 }
 
 .bet-slider {
   flex: 1;
-  height: 8px;
+  height: 6px; /* Mais fino */
   background: rgba(255,255,255,0.1);
-  border-radius: 4px;
+  border-radius: 3px;
   outline: none;
 }
 
 .bet-amount {
   background: rgba(212, 175, 55, 0.2);
-  padding: 6px 12px;
-  border-radius: 8px;
+  padding: 5px 10px;
+  border-radius: 6px;
   font-weight: bold;
   color: #ffd700;
-  min-width: 70px;
+  min-width: 60px;
   text-align: center;
-  font-size: 0.9em;
+  font-size: 0.85em;
 }
 
 /* TIMER DE AÇÃO */
 .action-timer {
   width: 100%;
-  height: 6px;
+  height: 4px; /* Mais fino */
   background: rgba(255,255,255,0.1);
-  border-radius: 3px;
-  margin-top: 5px;
+  border-radius: 2px;
+  margin-top: 3px;
   overflow: hidden;
   display: none;
 }
@@ -430,8 +431,8 @@ body {
 @media (max-width: 768px) {
   .table-container {
     width: 85%;
-    height: 40%; /* MANTIDO COMO ORIGINAL */
-    top: 40%; /* MANTIDO COMO ORIGINAL */
+    height: 45%; /* Mantido proporcional */
+    top: 40%;
   }
 
   .avatar {
@@ -450,25 +451,24 @@ body {
     font-size: 0.9em;
   }
 
-  /* POSIÇÕES MOBILE - MAIS ESPAÇADAS */
+  /* POSIÇÕES MOBILE - ESPAÇADAS */
   .pos-1 { top: 65px; }
-  .pos-2 { top: 22%; right: 2%; }
-  .pos-6 { top: 22%; left: 2%; }
-  .pos-3 { bottom: 32%; right: 2%; } /* Ajustado para não colidir */
-  .pos-5 { bottom: 32%; left: 2%; } /* Ajustado para não colidir */
-  .pos-4 { bottom: 160px; } /* Acima dos controles mobile */
+  .pos-2 { top: 15%; right: 2%; }
+  .pos-6 { top: 15%; left: 2%; }
+  .pos-3 { bottom: 25%; right: 2%; }
+  .pos-5 { bottom: 25%; left: 2%; }
+  .pos-4 { bottom: 120px; }
 
   .controls {
-    min-width: 90%;
-    padding: 12px 18px;
-    bottom: 10px;
-    max-height: 130px; /* Mantido como original */
+    width: 90%;
+    padding: 8px 15px;
+    min-height: 100px;
   }
 
   .action-btn {
-    padding: 10px 16px;
-    min-width: 75px;
-    font-size: 0.9em;
+    padding: 8px 14px;
+    min-width: 70px;
+    font-size: 0.85em;
   }
 }
 
@@ -491,21 +491,22 @@ body {
 
   /* POSIÇÕES MOBILE PEQUENO */
   .pos-1 { top: 65px; }
-  .pos-2 { top: 24%; right: 1.5%; }
-  .pos-6 { top: 24%; left: 1.5%; }
-  .pos-3 { bottom: 34%; right: 1.5%; }
-  .pos-5 { bottom: 34%; left: 1.5%; }
-  .pos-4 { bottom: 150px; }
+  .pos-2 { top: 16%; right: 1.5%; }
+  .pos-6 { top: 16%; left: 1.5%; }
+  .pos-3 { bottom: 26%; right: 1.5%; }
+  .pos-5 { bottom: 26%; left: 1.5%; }
+  .pos-4 { bottom: 110px; }
 
   .controls {
-    min-width: 95%;
-    padding: 10px 14px;
+    width: 95%;
+    padding: 6px 12px;
+    min-height: 90px;
   }
 
   .action-btn {
-    padding: 8px 12px;
-    min-width: 65px;
-    font-size: 0.85em;
+    padding: 6px 10px;
+    min-width: 60px;
+    font-size: 0.8em;
   }
 }
 </style>
