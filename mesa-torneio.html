@@ -254,37 +254,37 @@ body {
   display: none;
 }
 
-/* ===== POSIÇÕES DOS AVATARES - RELATIVAS AO VIEWPORT ===== */
+/* ===== POSIÇÕES DOS AVATARES - AJUSTADAS PARA FICAR MAIS PRÓXIMOS DA MESA ===== */
 .pos-1 {
-  top: 80px;
+  top: 100px;
   left: 50%;
   transform: translateX(-50%);
 }
 
 .pos-2 {
-  top: 120px;
-  right: 10%;
-}
-
-.pos-3 {
-  bottom: 140px;
-  right: 10%;
-}
-
-.pos-4 {
-  bottom: 100px;
-  left: 50%;
-  transform: translateX(-50%);
-}
-
-.pos-5 {
-  bottom: 140px;
-  left: 10%;
+  top: 180px;
+  right: 22%;
 }
 
 .pos-6 {
-  top: 120px;
-  left: 10%;
+  top: 180px;
+  left: 22%;
+}
+
+.pos-3 {
+  bottom: 180px;
+  right: 22%;
+}
+
+.pos-5 {
+  bottom: 180px;
+  left: 22%;
+}
+
+.pos-4 {
+  bottom: 140px;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
 /* JOGADOR ATUAL (VOCÊ) */
@@ -297,7 +297,7 @@ body {
   display: block;
 }
 
-/* ===== CONTROLES - FIXOS NA PARTE INFERIOR ===== */
+/* ===== CONTROLES - LARGURA AUMENTADA PARA 5 BOTÕES EM LINHA ===== */
 .controls-container {
   position: fixed;
   bottom: 20px;
@@ -317,7 +317,7 @@ body {
   flex-direction: column;
   align-items: center;
   gap: 12px;
-  width: 500px;
+  width: 620px; /* ← aumentado para caber 5 botões */
   min-height: 130px;
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.7);
 }
@@ -325,22 +325,22 @@ body {
 .action-buttons {
   display: flex;
   gap: 12px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap; /* ← evita quebra */
   justify-content: center;
   width: 100%;
 }
 
 .action-btn {
-  padding: 12px 20px;
+  padding: 12px 16px;
   border: none;
   border-radius: 8px;
   font-weight: bold;
   cursor: pointer;
-  min-width: 90px;
+  min-width: 100px;
   font-size: 1em;
   transition: all 0.3s;
   flex: 1;
-  max-width: 95px;
+  max-width: 110px; /* ← ajustado para encaixar */
 }
 
 .btn-fold { background: #e74c3c; color: white; }
@@ -460,11 +460,11 @@ body {
   }
 
   .pos-1 { top: 75px; }
-  .pos-2 { top: 100px; right: 8%; }
-  .pos-6 { top: 100px; left: 8%; }
-  .pos-3 { bottom: 150px; right: 8%; }
-  .pos-5 { bottom: 150px; left: 8%; }
-  .pos-4 { bottom: 110px; }
+  .pos-2 { top: 140px; right: 18%; }
+  .pos-6 { top: 140px; left: 18%; }
+  .pos-3 { bottom: 160px; right: 18%; }
+  .pos-5 { bottom: 160px; left: 18%; }
+  .pos-4 { bottom: 120px; }
 
   .controls {
     width: 92%;
@@ -473,10 +473,10 @@ body {
   }
 
   .action-btn {
-    padding: 10px 16px;
-    min-width: 80px;
+    padding: 10px 14px;
+    min-width: 75px;
     font-size: 0.9em;
-    max-width: 85px;
+    max-width: 80px;
   }
 }
 
@@ -499,11 +499,11 @@ body {
   }
 
   .pos-1 { top: 70px; }
-  .pos-2 { top: 90px; right: 6%; }
-  .pos-6 { top: 90px; left: 6%; }
-  .pos-3 { bottom: 140px; right: 6%; }
-  .pos-5 { bottom: 140px; left: 6%; }
-  .pos-4 { bottom: 100px; }
+  .pos-2 { top: 120px; right: 15%; }
+  .pos-6 { top: 120px; left: 15%; }
+  .pos-3 { bottom: 150px; right: 15%; }
+  .pos-5 { bottom: 150px; left: 15%; }
+  .pos-4 { bottom: 110px; }
 
   .controls {
     width: 96%;
@@ -512,10 +512,10 @@ body {
   }
 
   .action-btn {
-    padding: 8px 14px;
-    min-width: 70px;
+    padding: 8px 12px;
+    min-width: 65px;
     font-size: 0.85em;
-    max-width: 75px;
+    max-width: 70px;
   }
 
   .bet-controls {
