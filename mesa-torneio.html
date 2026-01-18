@@ -4,109 +4,86 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mesa de Torneio | KeepPoker</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Segoe UI', sans-serif;
-        }
-        
-        :root {
-            --fundo: #0a1520;
-            --mesa-verde: #0a5c36;
-            --mesa-marrom: #8B4513;
-            --dourado: #d4af37;
-            --texto: #ffffff;
-            --vermelho: #e74c3c;
-            --verde: #2ecc71;
-            --azul: #3498db;
-            --roxo: #9b59b6;
-            --laranja: #e67e22;
         }
         
         body {
-            background: var(--fundo);
-            color: var(--texto);
-            min-height: 100vh;
+            background: #0a1520;
+            color: white;
+            font-family: 'Segoe UI', sans-serif;
+            height: 100vh;
             overflow: hidden;
         }
         
-        /* CONTAINER PRINCIPAL - SEM HEADER FIXO EMBAIXO */
-        .game-container {
-            width: 100vw;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            position: relative;
-        }
-        
         /* CABEÇALHO MINIMALISTA */
-        .game-header {
+        .header {
+            height: 60px;
             background: rgba(13, 27, 42, 0.9);
-            padding: 10px 20px;
-            border-bottom: 2px solid var(--dourado);
+            border-bottom: 2px solid #d4af37;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            height: 60px;
-            flex-shrink: 0;
-            backdrop-filter: blur(10px);
+            padding: 0 20px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
         }
         
-        .tournament-name {
-            font-size: 1.2em;
+        .tournament-info {
+            font-size: 1.1em;
+            color: #d4af37;
             font-weight: bold;
-            color: var(--dourado);
         }
         
-        .game-info {
+        .game-stats {
             display: flex;
             gap: 20px;
         }
         
-        .info-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .pot-display {
+        .stat {
             background: rgba(212, 175, 55, 0.15);
-            padding: 6px 15px;
-            border-radius: 15px;
-            border: 1px solid var(--dourado);
+            padding: 6px 12px;
+            border-radius: 12px;
+            border: 1px solid rgba(212, 175, 55, 0.3);
             font-weight: bold;
-            color: var(--dourado);
         }
         
-        /* MESA DE POKER - FORMATO "SALSICHA" REAL */
-        .poker-table {
+        /* MESA REDUZIDA 15% */
+        .table-container {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 85%;
-            height: 65%;
-            background: var(--mesa-verde);
-            border: 20px solid var(--mesa-marrom);
-            box-shadow: 
-                inset 0 0 50px rgba(0, 0, 0, 0.7),
-                0 0 40px rgba(0, 0, 0, 0.8);
-            
-            /* FORMATO SALSICHA: Oval com laterais retas */
-            border-radius: 50% / 30%;
-            
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+            width: 70%; /* Reduzido 15% */
+            height: 55%; /* Reduzido 15% */
             z-index: 1;
+        }
+        
+        /* MESA FORMATO SALSICHA */
+        .poker-table {
+            width: 100%;
+            height: 100%;
+            background: #0a5c36;
+            border: 15px solid #8B4513;
+            border-radius: 50% / 40%; /* Formato salsicha */
+            box-shadow: 
+                inset 0 0 40px rgba(0, 0, 0, 0.6),
+                0 0 30px rgba(0, 0, 0, 0.7);
+            position: relative;
         }
         
         /* ÁREA CENTRAL DA MESA */
         .table-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
             width: 40%;
             height: 40%;
             display: flex;
@@ -116,12 +93,138 @@
             gap: 15px;
         }
         
+        /* CARTAS COMUNITÁRIAS */
         .community-cards {
             display: flex;
             gap: 8px;
         }
         
-        .card {
+        .card-placeholder {
+            width: 40px;
+            height: 56px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            border: 2px dashed rgba(255, 255, 255, 0.2);
+        }
+        
+        /* POT */
+        .pot {
+            color: #d4af37;
+            font-size: 1.4em;
+            font-weight: bold;
+        }
+        
+        /* AVATARS NAS EXTREMIDADES */
+        .avatar-container {
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 10;
+        }
+        
+        /* AVATAR CIRCULAR */
+        .avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #415a77, #1b263b);
+            border: 3px solid #d4af37;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.4em;
+            margin-bottom: 5px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+        }
+        
+        /* INFO DO JOGADOR (SÓ APARECE PARA VOCÊ) */
+        .player-info {
+            background: rgba(13, 27, 42, 0.95);
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            text-align: center;
+            min-width: 100px;
+            font-size: 0.9em;
+            display: none; /* Inicialmente escondido */
+        }
+        
+        /* POSICIONAMENTO DOS 6 AVATARS */
+        /* TOPO */
+        .pos-1 {
+            top: 5%;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        
+        /* TOPO DIREITA */
+        .pos-2 {
+            top: 20%;
+            right: 5%;
+        }
+        
+        /* BAIXO DIREITA */
+        .pos-3 {
+            bottom: 20%;
+            right: 5%;
+        }
+        
+        /* BAIXO CENTRO */
+        .pos-4 {
+            bottom: 5%;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        
+        /* BAIXO ESQUERDA */
+        .pos-5 {
+            bottom: 20%;
+            left: 5%;
+        }
+        
+        /* TOPO ESQUERDA */
+        .pos-6 {
+            top: 20%;
+            left: 5%;
+        }
+        
+        /* AVATAR DO JOGADOR (VOCÊ) */
+        .player-you .avatar {
+            border-color: #3498db;
+            box-shadow: 0 0 15px rgba(52, 152, 219, 0.5);
+        }
+        
+        .player-you .player-info {
+            display: block; /* Mostra info só para você */
+        }
+        
+        /* CONTROLES DO JOGADOR */
+        .controls {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(13, 27, 42, 0.95);
+            padding: 15px;
+            border-radius: 12px;
+            border: 2px solid #d4af37;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            z-index: 100;
+            min-width: 400px;
+        }
+        
+        /* SUAS CARTAS (FORA DA MESA) */
+        .your-cards {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .your-card {
             width: 50px;
             height: 70px;
             background: white;
@@ -130,654 +233,181 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.5em;
+            font-size: 1.3em;
             font-weight: bold;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
         }
         
-        .card.red { color: #c00; }
-        .card.black { color: #000; }
-        
-        .current-pot {
-            font-size: 1.8em;
-            color: var(--dourado);
-            font-weight: bold;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
-        }
-        
-        /* JOGADORES - POSICIONADOS NA BORDA EXTERNA */
-        .player {
-            position: absolute;
-            width: 140px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            z-index: 10;
-            
-            /* INFO DO JOGADOR FORA DA MESA */
-            transform: translateY(-100%);
-        }
-        
-        /* AVATAR NA BORDA DA MESA */
-        .player-avatar {
-            width: 70px;
-            height: 70px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            border: 4px solid var(--dourado);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.8em;
-            color: white;
-            margin-bottom: 10px;
-            box-shadow: 0 6px 15px rgba(0,0,0,0.4);
-        }
-        
-        /* INFO DO JOGADOR (FORA DA MESA, ABAIXO DO AVATAR) */
-        .player-info {
-            background: rgba(13, 27, 42, 0.95);
-            padding: 10px;
-            border-radius: 10px;
-            border: 2px solid rgba(212, 175, 55, 0.4);
-            text-align: center;
-            min-width: 120px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.4);
-            backdrop-filter: blur(5px);
-            
-            /* POSICIONADO ABAIXO DO AVATAR, FORA DA MESA */
-            margin-top: 5px;
-        }
-        
-        .player-name {
-            font-weight: bold;
-            color: white;
-            font-size: 0.9em;
-            margin-bottom: 5px;
-            white-space: nowrap;
-        }
-        
-        .player-stack {
-            color: var(--dourado);
-            font-weight: bold;
-            font-size: 1.1em;
-        }
-        
-        .player-bet {
-            background: rgba(212, 175, 55, 0.2);
-            padding: 3px 8px;
-            border-radius: 8px;
-            font-size: 0.9em;
-            margin-top: 5px;
-            border: 1px solid rgba(212, 175, 55, 0.3);
-        }
-        
-        .player-cards {
-            display: flex;
-            gap: 5px;
-            margin-top: 8px;
-            justify-content: center;
-        }
-        
-        /* POSICIONAMENTO DOS 6 JOGADORES (NA BORDA EXTERNA) */
-        .player-1 { top: 5%; left: 50%; transform: translateX(-50%); }     /* TOPO */
-        .player-2 { top: 30%; right: 3%; }                                 /* DIREITA ALTA */
-        .player-3 { bottom: 30%; right: 3%; }                              /* DIREITA BAIXA */
-        .player-4 { bottom: 5%; left: 50%; transform: translateX(-50%); }  /* BAIXO */
-        .player-5 { bottom: 30%; left: 3%; }                               /* ESQUERDA BAIXA */
-        .player-6 { top: 30%; left: 3%; }                                  /* ESQUERDA ALTA */
-        
-        /* ESTADOS DOS JOGADORES */
-        .player-active .player-avatar {
-            border-color: #00ff00;
-            box-shadow: 0 0 20px rgba(0, 255, 0, 0.7);
-            animation: pulse 1.5s infinite;
-        }
-        
-        .player-you .player-avatar {
-            border-color: #3498db;
-            box-shadow: 0 0 20px rgba(52, 152, 219, 0.7);
-        }
-        
-        .player-folded .player-avatar {
-            opacity: 0.5;
-            filter: grayscale(0.8);
-        }
-        
-        @keyframes pulse {
-            0%, 100% { box-shadow: 0 0 20px rgba(0, 255, 0, 0.7); }
-            50% { box-shadow: 0 0 30px rgba(0, 255, 0, 1); }
-        }
-        
-        /* CONTROLES - FLUTUANTES, NÃO FIXOS */
-        .player-controls {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(13, 27, 42, 0.9);
-            padding: 15px 20px;
-            border-radius: 15px;
-            border: 2px solid var(--dourado);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 12px;
-            z-index: 100;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.5);
-            backdrop-filter: blur(10px);
-            min-width: 500px;
-        }
-        
-        .your-cards {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 10px;
-        }
-        
+        /* BOTÕES DE AÇÃO */
         .action-buttons {
             display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-        
-        .action-btn {
-            padding: 12px 24px;
-            border: none;
-            border-radius: 10px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.2s;
-            min-width: 90px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
             gap: 8px;
         }
         
-        .btn-fold { background: var(--vermelho); color: white; }
-        .btn-check { background: var(--azul); color: white; }
-        .btn-call { background: var(--verde); color: white; }
-        .btn-raise { background: var(--roxo); color: white; }
-        .btn-allin { background: var(--laranja); color: white; }
-        
-        .action-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-        }
-        
-        .action-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-        
-        /* MODAL DE APOSTA */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.8);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .modal-content {
-            background: #1a2639;
-            padding: 30px;
-            border-radius: 15px;
-            border: 3px solid var(--dourado);
-            max-width: 400px;
-            width: 90%;
-        }
-        
-        .modal-title {
-            color: var(--dourado);
-            font-size: 1.5em;
-            margin-bottom: 20px;
-            text-align: center;
-        }
-        
-        .bet-slider {
-            width: 100%;
-            margin: 20px 0;
-        }
-        
-        .bet-amount {
-            font-size: 2em;
-            text-align: center;
-            color: var(--dourado);
-            font-weight: bold;
-            margin: 15px 0;
-        }
-        
-        .modal-actions {
-            display: flex;
-            gap: 10px;
-            margin-top: 20px;
-        }
-        
-        .btn-modal {
-            flex: 1;
-            padding: 12px;
+        .action-btn {
+            padding: 10px 20px;
             border: none;
             border-radius: 8px;
             font-weight: bold;
             cursor: pointer;
+            min-width: 80px;
         }
         
-        .btn-confirm {
-            background: var(--verde);
-            color: white;
-        }
-        
-        .btn-cancel {
-            background: var(--vermelho);
-            color: white;
-        }
-        
-        /* NOTIFICAÇÕES */
-        .notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: var(--verde);
-            color: white;
-            padding: 15px 20px;
-            border-radius: 10px;
-            font-weight: bold;
-            z-index: 1000;
-            display: none;
-            animation: slideIn 0.3s;
-        }
-        
-        @keyframes slideIn {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-        
-        /* MENU FLUTUANTE DE ESTATÍSTICAS */
-        .stats-btn {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: rgba(212, 175, 55, 0.2);
-            border: 2px solid var(--dourado);
-            color: var(--dourado);
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5em;
-            cursor: pointer;
-            z-index: 100;
-            backdrop-filter: blur(5px);
-        }
+        .btn-fold { background: #e74c3c; color: white; }
+        .btn-check { background: #3498db; color: white; }
+        .btn-call { background: #2ecc71; color: white; }
+        .btn-raise { background: #9b59b6; color: white; }
+        .btn-allin { background: #e67e22; color: white; }
         
         /* RESPONSIVIDADE */
         @media (max-width: 768px) {
-            .poker-table {
-                width: 95%;
-                height: 60%;
-                border-width: 15px;
+            .table-container {
+                width: 85%;
+                height: 50%;
             }
             
-            .player {
-                width: 110px;
-            }
-            
-            .player-avatar {
+            .avatar {
                 width: 50px;
                 height: 50px;
-                font-size: 1.4em;
+                font-size: 1.2em;
             }
             
-            .player-info {
-                min-width: 90px;
-                padding: 8px;
-                font-size: 0.9em;
-            }
-            
-            .player-2, .player-3 { right: 1%; }
-            .player-5, .player-6 { left: 1%; }
-            
-            .player-controls {
+            .controls {
                 min-width: 90%;
                 padding: 12px;
-                bottom: 10px;
             }
             
             .action-btn {
-                padding: 10px 15px;
+                padding: 8px 15px;
                 min-width: 70px;
                 font-size: 0.9em;
             }
         }
         
         @media (max-width: 480px) {
-            .player {
-                width: 90px;
+            .header {
+                padding: 0 10px;
             }
             
-            .player-avatar {
+            .game-stats {
+                gap: 10px;
+            }
+            
+            .stat {
+                padding: 4px 8px;
+                font-size: 0.9em;
+            }
+            
+            .avatar {
                 width: 40px;
                 height: 40px;
-                font-size: 1.2em;
+                font-size: 1em;
             }
             
-            .player-info {
-                min-width: 80px;
-                padding: 6px;
-                font-size: 0.8em;
-            }
-            
-            .action-buttons {
-                gap: 5px;
-            }
-            
-            .action-btn {
-                padding: 8px 12px;
-                min-width: 60px;
-                font-size: 0.8em;
+            .your-card {
+                width: 40px;
+                height: 56px;
+                font-size: 1.1em;
             }
         }
     </style>
 </head>
 <body>
-    <!-- NOTIFICAÇÃO -->
-    <div id="notification" class="notification"></div>
-    
-    <!-- BOTÃO DE ESTATÍSTICAS -->
-    <div class="stats-btn" onclick="toggleStats()">
-        <i class="fas fa-chart-bar"></i>
+    <!-- CABEÇALHO -->
+    <div class="header">
+        <div class="tournament-info">Torneio</div>
+        <div class="game-stats">
+            <div class="stat" id="blinds">100/200</div>
+            <div class="stat" id="pot">Pote: 0</div>
+        </div>
     </div>
     
-    <!-- CONTAINER DO JOGO -->
-    <div class="game-container">
-        <!-- CABEÇALHO MINIMALISTA -->
-        <div class="game-header">
-            <div class="tournament-name" id="tournamentName">Torneio #001</div>
-            <div class="game-info">
-                <div class="info-item">
-                    <span>Blinds:</span>
-                    <span class="pot-display" id="blindsDisplay">100/200</span>
-                </div>
-                <div class="info-item">
-                    <span>Pote:</span>
-                    <span class="pot-display" id="potDisplay">R$ 0</span>
-                </div>
-            </div>
-        </div>
-        
-        <!-- MESA DE POKER (FORMATO SALSICHA) -->
+    <!-- CONTAINER DA MESA -->
+    <div class="table-container">
+        <!-- MESA -->
         <div class="poker-table">
             <!-- ÁREA CENTRAL -->
             <div class="table-center">
-                <div class="community-cards" id="communityCards">
-                    <!-- Cartas comunitárias serão inseridas aqui -->
+                <div class="community-cards">
+                    <div class="card-placeholder"></div>
+                    <div class="card-placeholder"></div>
+                    <div class="card-placeholder"></div>
+                    <div class="card-placeholder"></div>
+                    <div class="card-placeholder"></div>
                 </div>
-                <div class="current-pot" id="currentPot">Pote: R$ 0</div>
+                <div class="pot" id="potAmount">0</div>
             </div>
-            
-            <!-- JOGADORES (SERÃO INSERIDOS DINAMICAMENTE) -->
         </div>
         
-        <!-- CONTROLES DO JOGADOR (FLUTUANTES) -->
-        <div class="player-controls">
-            <div class="your-cards" id="yourCards">
-                <!-- Cartas do jogador serão inseridas aqui -->
+        <!-- AVATARS NAS EXTREMIDADES -->
+        <!-- Posição 1: TOPO (Você - SB) -->
+        <div class="avatar-container pos-1 player-you">
+            <div class="avatar">V</div>
+            <div class="player-info">
+                <div>Você (SB)</div>
+                <div>1,500</div>
             </div>
-            
-            <div class="action-buttons">
-                <button class="action-btn btn-fold" onclick="playerAction('fold')">
-                    <i class="fas fa-times"></i> Fold
-                </button>
-                <button class="action-btn btn-check" onclick="playerAction('check')" id="checkBtn">
-                    <i class="fas fa-check"></i> Check
-                </button>
-                <button class="action-btn btn-call" onclick="playerAction('call')" id="callBtn">
-                    <i class="fas fa-phone"></i> Call <span id="callAmount">0</span>
-                </button>
-                <button class="action-btn btn-raise" onclick="openBetModal()">
-                    <i class="fas fa-arrow-up"></i> Raise
-                </button>
-                <button class="action-btn btn-allin" onclick="playerAction('allin')">
-                    <i class="fas fa-fire"></i> All-in
-                </button>
-            </div>
+        </div>
+        
+        <!-- Posição 2: TOPO DIREITA -->
+        <div class="avatar-container pos-2">
+            <div class="avatar"></div>
+        </div>
+        
+        <!-- Posição 3: BAIXO DIREITA -->
+        <div class="avatar-container pos-3">
+            <div class="avatar"></div>
+        </div>
+        
+        <!-- Posição 4: BAIXO CENTRO -->
+        <div class="avatar-container pos-4">
+            <div class="avatar"></div>
+        </div>
+        
+        <!-- Posição 5: BAIXO ESQUERDA -->
+        <div class="avatar-container pos-5">
+            <div class="avatar"></div>
+        </div>
+        
+        <!-- Posição 6: TOPO ESQUERDA -->
+        <div class="avatar-container pos-6">
+            <div class="avatar"></div>
         </div>
     </div>
     
-    <!-- MODAL DE APOSTA -->
-    <div id="betModal" class="modal">
-        <div class="modal-content">
-            <h3 class="modal-title">Aumentar Aposta</h3>
-            <input type="range" min="200" max="5000" value="400" class="bet-slider" id="betSlider" oninput="updateBetValue()">
-            <div class="bet-amount" id="betAmountValue">400</div>
-            <div class="modal-actions">
-                <button class="btn-modal btn-cancel" onclick="closeBetModal()">Cancelar</button>
-                <button class="btn-modal btn-confirm" onclick="confirmBet()">Apostar</button>
-            </div>
+    <!-- CONTROLES (FORA DA MESA) -->
+    <div class="controls">
+        <!-- SUAS CARTAS -->
+        <div class="your-cards">
+            <div class="your-card">?</div>
+            <div class="your-card">?</div>
+        </div>
+        
+        <!-- BOTÕES DE AÇÃO -->
+        <div class="action-buttons">
+            <button class="action-btn btn-fold">Fold</button>
+            <button class="action-btn btn-check">Check</button>
+            <button class="action-btn btn-call">Call</button>
+            <button class="action-btn btn-raise">Raise</button>
+            <button class="action-btn btn-allin">All-in</button>
         </div>
     </div>
-    
-    <!-- SCRIPT PRINCIPAL -->
+
     <script>
-        // DADOS DE EXEMPLO (REAIS DO FIREBASE SERÃO IMPLEMENTADOS)
-        const tournamentData = {
-            id: 'tournament-001',
-            name: 'Torneio KeepPoker #001',
-            blinds: '100/200',
-            players: [
-                { id: 'p1', name: 'Você', chips: 1500, isYou: true, cards: ['A♥', 'K♠'], bet: 0 },
-                { id: 'p2', name: 'Maria', chips: 1450, isYou: false, cards: ['??', '??'], bet: 100 },
-                { id: 'p3', name: 'Carlos', chips: 1600, isYou: false, cards: ['??', '??'], bet: 200 },
-                { id: 'p4', name: 'Ana', chips: 1380, isYou: false, cards: ['??', '??'], bet: 0 },
-                { id: 'p5', name: 'Pedro', chips: 1520, isYou: false, cards: ['??', '??'], bet: 0 },
-                { id: 'p6', name: 'Luiza', chips: 1420, isYou: false, cards: ['??', '??'], bet: 0 }
-            ],
-            communityCards: ['A♠', 'K♥', 'Q♦', '10♣', 'J♠'],
-            pot: 450,
-            currentBet: 200,
-            dealerPosition: 0,
-            currentPlayer: 0
-        };
-        
-        // INICIALIZAR JOGO
-        function initializeGame() {
-            updateTournamentInfo();
-            renderPlayers();
-            renderCommunityCards();
-            renderYourCards();
-            updateActionButtons();
-        }
-        
-        function updateTournamentInfo() {
-            document.getElementById('tournamentName').textContent = tournamentData.name;
-            document.getElementById('blindsDisplay').textContent = tournamentData.blinds;
-            document.getElementById('potDisplay').textContent = `R$ ${tournamentData.pot}`;
-            document.getElementById('currentPot').textContent = `Pote: R$ ${tournamentData.pot}`;
-        }
-        
-        function renderPlayers() {
-            const table = document.querySelector('.poker-table');
+        // CONFIGURAÇÃO INICIAL
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Mesa carregada - Layout puro');
             
-            // Limpar jogadores antigos
-            document.querySelectorAll('.player-dynamic').forEach(p => p.remove());
+            // Atualizar displays
+            document.getElementById('blinds').textContent = '100/200';
+            document.getElementById('pot').textContent = 'Pote: 0';
+            document.getElementById('potAmount').textContent = '0';
             
-            // Renderizar cada jogador
-            tournamentData.players.forEach((player, index) => {
-                const playerElement = document.createElement('div');
-                playerElement.className = `player player-${index + 1} player-dynamic`;
-                if (player.isYou) playerElement.classList.add('player-you');
-                if (index === tournamentData.currentPlayer) playerElement.classList.add('player-active');
-                if (player.folded) playerElement.classList.add('player-folded');
-                
-                const isDealer = index === tournamentData.dealerPosition;
-                const showCards = player.isYou; // Só mostra cartas do jogador atual
-                
-                playerElement.innerHTML = `
-                    <div class="player-avatar">
-                        ${player.name.charAt(0)}
-                        ${isDealer ? '<div class="dealer-marker">D</div>' : ''}
-                    </div>
-                    <div class="player-info">
-                        <div class="player-name">${player.name} ${player.isYou ? '(Você)' : ''}</div>
-                        <div class="player-stack">${player.chips.toLocaleString()}</div>
-                        ${player.bet > 0 ? `<div class="player-bet">Aposta: ${player.bet}</div>` : ''}
-                        ${showCards ? `
-                            <div class="player-cards">
-                                <div class="card ${player.cards[0].includes('♥') || player.cards[0].includes('♦') ? 'red' : 'black'}">
-                                    ${player.cards[0]}
-                                </div>
-                                <div class="card ${player.cards[1].includes('♥') || player.cards[1].includes('♦') ? 'red' : 'black'}">
-                                    ${player.cards[1]}
-                                </div>
-                            </div>
-                        ` : ''}
-                    </div>
-                `;
-                
-                table.appendChild(playerElement);
+            // Configurar avatares vazios (sem dados fictícios)
+            const avatars = document.querySelectorAll('.avatar:empty');
+            avatars.forEach(avatar => {
+                avatar.innerHTML = '?'; // Placeholder
             });
-        }
-        
-        function renderCommunityCards() {
-            const container = document.getElementById('communityCards');
-            container.innerHTML = '';
-            
-            tournamentData.communityCards.forEach(card => {
-                const cardElement = document.createElement('div');
-                cardElement.className = `card ${card.includes('♥') || card.includes('♦') ? 'red' : 'black'}`;
-                cardElement.textContent = card;
-                container.appendChild(cardElement);
-            });
-        }
-        
-        function renderYourCards() {
-            const container = document.getElementById('yourCards');
-            container.innerHTML = '';
-            
-            const you = tournamentData.players.find(p => p.isYou);
-            if (you) {
-                you.cards.forEach(card => {
-                    const cardElement = document.createElement('div');
-                    cardElement.className = `card ${card.includes('♥') || card.includes('♦') ? 'red' : 'black'}`;
-                    cardElement.textContent = card;
-                    container.appendChild(cardElement);
-                });
-            }
-        }
-        
-        function updateActionButtons() {
-            const you = tournamentData.players.find(p => p.isYou);
-            const isYourTurn = tournamentData.players[tournamentData.currentPlayer]?.isYou;
-            
-            // Atualizar botão Call
-            document.getElementById('callAmount').textContent = ` ${tournamentData.currentBet}`;
-            
-            // Habilitar/desabilitar botões
-            document.getElementById('checkBtn').disabled = !isYourTurn || tournamentData.currentBet > 0;
-            document.getElementById('callBtn').disabled = !isYourTurn || tournamentData.currentBet === 0;
-            
-            // Esconder controles se não for sua vez
-            const controls = document.querySelector('.player-controls');
-            controls.style.opacity = isYourTurn ? '1' : '0.5';
-        }
-        
-        // AÇÕES DO JOGADOR
-        function playerAction(action) {
-            const notification = document.getElementById('notification');
-            
-            switch(action) {
-                case 'fold':
-                    notification.textContent = '📄 Fold realizado';
-                    break;
-                case 'check':
-                    notification.textContent = '✓ Check realizado';
-                    break;
-                case 'call':
-                    notification.textContent = `📞 Call de ${tournamentData.currentBet} fichas`;
-                    break;
-                case 'allin':
-                    const you = tournamentData.players.find(p => p.isYou);
-                    notification.textContent = `🔥 ALL-IN! ${you.chips} fichas`;
-                    break;
-            }
-            
-            notification.style.display = 'block';
-            setTimeout(() => {
-                notification.style.display = 'none';
-            }, 2000);
-            
-            // Simular mudança de turno
-            tournamentData.currentPlayer = (tournamentData.currentPlayer + 1) % tournamentData.players.length;
-            updateActionButtons();
-            
-            // Atualizar jogador ativo
-            document.querySelectorAll('.player-active').forEach(p => p.classList.remove('player-active'));
-            document.querySelector(`.player-${tournamentData.currentPlayer + 1}`)?.classList.add('player-active');
-        }
-        
-        // MODAL DE APOSTA
-        function openBetModal() {
-            const isYourTurn = tournamentData.players[tournamentData.currentPlayer]?.isYou;
-            if (!isYourTurn) return;
-            
-            document.getElementById('betModal').style.display = 'flex';
-        }
-        
-        function closeBetModal() {
-            document.getElementById('betModal').style.display = 'none';
-        }
-        
-        function updateBetValue() {
-            const slider = document.getElementById('betSlider');
-            const display = document.getElementById('betAmountValue');
-            display.textContent = slider.value;
-        }
-        
-        function confirmBet() {
-            const betAmount = parseInt(document.getElementById('betSlider').value);
-            const notification = document.getElementById('notification');
-            
-            notification.textContent = `📈 Raise para ${betAmount} fichas`;
-            notification.style.display = 'block';
-            
-            setTimeout(() => {
-                notification.style.display = 'none';
-            }, 2000);
-            
-            closeBetModal();
-            
-            // Atualizar dados
-            tournamentData.currentBet = betAmount;
-            tournamentData.currentPlayer = (tournamentData.currentPlayer + 1) % tournamentData.players.length;
-            updateActionButtons();
-        }
-        
-        // ESTATÍSTICAS
-        function toggleStats() {
-            alert('🎯 Estatísticas da Mesa:\n\n' +
-                  `Jogadores: ${tournamentData.players.length}/6\n` +
-                  `Pote: R$ ${tournamentData.pot}\n` +
-                  `Aposta atual: ${tournamentData.currentBet}\n` +
-                  `Blinds: ${tournamentData.blinds}\n` +
-                  `Dealer: Posição ${tournamentData.dealerPosition + 1}\n` +
-                  `Vez de: ${tournamentData.players[tournamentData.currentPlayer]?.name}`);
-        }
-        
-        // INICIALIZAR AO CARREGAR
-        document.addEventListener('DOMContentLoaded', initializeGame);
-        
-        // CONFIGURAR SLIDER
-        updateBetValue();
+        });
     </script>
 </body>
 </html>
