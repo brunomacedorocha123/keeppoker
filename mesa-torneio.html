@@ -27,7 +27,7 @@
    const db = firebase.firestore();
  </script>
  
- <!-- Poker Engine (ARQUIVO SEPARADO) -->
+ <!-- Poker Engine -->
  <script src="poker-engine.js"></script>
  
 <style>
@@ -149,7 +149,7 @@ body {
   margin-top: 5px;
 }
 
-/* ===== AVATARS ===== */
+/* ===== AVATARES ===== */
 .avatar-container {
   position: absolute;
   display: flex;
@@ -254,38 +254,37 @@ body {
   display: none;
 }
 
-/* ===== POSIÇÕES DOS AVATARES - AJUSTE FINAL VISUAL ===== */
+/* ===== POSIÇÕES DESKTOP (mantidas) ===== */
 .pos-1 {
   top: 100px;
   left: 50%;
   transform: translateX(-50%);
 }
 
-/* Posições 2 e 3 → MOVER PARA A DIREITA (→→→) */
 .pos-2 {
   top: 160px;
-  right: 20%; /* mais perto da borda direita */
+  right: 20%;
 }
+
 .pos-3 {
   bottom: 160px;
   right: 20%;
 }
 
-/* Posições 5 e 6 → MOVER PARA A ESQUERDA (←←←) */
-.pos-6 {
-  top: 160px;
-  left: 20%; /* mais perto da borda esquerda */
+.pos-4 {
+  bottom: 150px;
+  left: 50%;
+  transform: translateX(-50%);
 }
+
 .pos-5 {
   bottom: 160px;
   left: 20%;
 }
 
-/* Posição 4 → MOVER PARA CIMA (↑↑↑) */
-.pos-4 {
-  bottom: 150px; /* mais alto na tela, longe dos controles */
-  left: 50%;
-  transform: translateX(-50%);
+.pos-6 {
+  top: 160px;
+  left: 20%;
 }
 
 /* JOGADOR ATUAL (VOCÊ) */
@@ -435,94 +434,175 @@ body {
   min-width: 300px;
 }
 
-/* ===== RESPONSIVIDADE ===== */
+/* ===== RESPONSIVIDADE MOBILE ===== */
 @media (max-width: 768px) {
+  /* MESA MOBILE - MAIS COMPACTA */
   .table-container {
-    width: 85%;
-    height: 45%;
-    top: 40%;
+    width: 90%;
+    height: 40%;
+    top: 35%;
   }
-
-  .avatar {
-    width: 55px;
-    height: 55px;
-    font-size: 1.2em;
+  
+  .poker-table {
+    border-width: 10px;
   }
-
-  .player-cards {
-    left: 65px;
-    width: 80px;
+  
+  .table-center {
+    width: 55%;
+    height: 40%;
   }
-
-  .player-card {
+  
+  .community-cards {
+    gap: 5px;
+  }
+  
+  .card-placeholder {
     width: 35px;
-    height: 49px;
-    font-size: 0.9em;
-  }
-
-  .pos-1 { top: 75px; }
-  .pos-2 { top: 120px; right: 24%; }
-  .pos-6 { top: 120px; left: 24%; }
-  .pos-3 { bottom: 140px; right: 24%; }
-  .pos-5 { bottom: 140px; left: 24%; }
-  .pos-4 { bottom: 120px; }
-
-  .controls {
-    width: 92%;
-    padding: 10px 20px;
-    min-height: 90px;
-  }
-
-  .action-btn {
-    padding: 8px 10px;
-    min-width: 65px;
-    font-size: 0.9em;
-    max-width: 75px;
-  }
-}
-
-@media (max-width: 480px) {
-  .avatar {
-    width: 45px;
-    height: 45px;
+    height: 50px;
     font-size: 1em;
   }
-
-  .player-cards {
-    left: 55px;
-    width: 70px;
+  
+  .pot {
+    font-size: 1.2em;
   }
-
+  
+  /* AVATARES MOBILE - POSIÇÕES CIRCULARES */
+  .avatar {
+    width: 50px;
+    height: 50px;
+    font-size: 1.1em;
+  }
+  
+  .player-cards {
+    left: 60px;
+    width: 70px;
+    gap: 3px;
+  }
+  
   .player-card {
     width: 30px;
     height: 42px;
     font-size: 0.85em;
   }
-
-  .pos-1 { top: 70px; }
-  .pos-2 { top: 100px; right: 20%; }
-  .pos-6 { top: 100px; left: 20%; }
-  .pos-3 { bottom: 120px; right: 20%; }
-  .pos-5 { bottom: 120px; left: 20%; }
-  .pos-4 { bottom: 100px; }
-
+  
+  .player-chips {
+    font-size: 0.8em;
+    min-width: 70px;
+    padding: 3px 6px;
+  }
+  
+  /* POSIÇÕES MOBILE - SENTIDO HORÁRIO */
+  .pos-1 {
+    top: 5px !important;
+    left: 50% !important;
+    right: auto !important;
+    bottom: auto !important;
+    transform: translateX(-50%) !important;
+  }
+  
+  .pos-2 {
+    top: 15% !important;
+    right: 5px !important;
+    left: auto !important;
+    bottom: auto !important;
+    transform: none !important;
+  }
+  
+  .pos-3 {
+    bottom: 25% !important;
+    right: 5px !important;
+    left: auto !important;
+    top: auto !important;
+    transform: none !important;
+  }
+  
+  .pos-4 {
+    bottom: 5px !important;
+    left: 50% !important;
+    right: auto !important;
+    top: auto !important;
+    transform: translateX(-50%) !important;
+  }
+  
+  .pos-5 {
+    bottom: 25% !important;
+    left: 5px !important;
+    right: auto !important;
+    top: auto !important;
+    transform: none !important;
+  }
+  
+  .pos-6 {
+    top: 15% !important;
+    left: 5px !important;
+    right: auto !important;
+    bottom: auto !important;
+    transform: none !important;
+  }
+  
+  /* CONTROLES MOBILE */
   .controls {
     width: 96%;
-    padding: 8px 16px;
-    min-height: 80px;
+    padding: 10px 15px;
+    min-height: 90px;
   }
-
+  
+  .action-buttons {
+    gap: 6px;
+  }
+  
   .action-btn {
-    padding: 6px 8px;
+    padding: 8px 6px;
     min-width: 55px;
     font-size: 0.85em;
     max-width: 65px;
   }
-
+  
   .bet-controls {
     gap: 8px;
     flex-wrap: wrap;
     justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  /* MOBILE PEQUENO - AJUSTES FINAIS */
+  .avatar {
+    width: 45px;
+    height: 45px;
+    font-size: 1em;
+  }
+  
+  .player-cards {
+    left: 50px;
+    width: 60px;
+  }
+  
+  .player-card {
+    width: 25px;
+    height: 35px;
+    font-size: 0.75em;
+  }
+  
+  .pos-2, .pos-3 {
+    right: 2px !important;
+  }
+  
+  .pos-5, .pos-6 {
+    left: 2px !important;
+  }
+  
+  .controls {
+    width: 98%;
+    padding: 8px 12px;
+    min-height: 80px;
+  }
+  
+  .action-btn {
+    padding: 6px 4px;
+    min-width: 50px;
+    font-size: 0.8em;
+    max-width: 60px;
   }
 }
 </style>
@@ -541,7 +621,7 @@ body {
 <!-- MENSAGEM DE STATUS -->
 <div class="status-message" id="statusMessage"></div>
 
-<!-- CONTAINER DA MESA (SÓ A MESA MESMO) -->
+<!-- CONTAINER DA MESA -->
 <div class="table-container">
   <div class="poker-table">
     <!-- ÁREA CENTRAL -->
@@ -558,10 +638,9 @@ body {
   </div>
 </div>
 
-<!-- AVATARES (FORA da .table-container, posicionados no BODY) -->
+<!-- AVATARES -->
 <div class="avatar-container pos-1" id="playerPos1">
   <div class="avatar" id="avatar1">?</div>
-  <!-- CARTAS AO LADO DO SEU AVATAR (POSIÇÃO 1) -->
   <div class="player-cards">
     <div class="player-card" id="playerCard1">?</div>
     <div class="player-card" id="playerCard2">?</div>
@@ -574,19 +653,9 @@ body {
   <div class="player-chips" id="chips2">-<br>0</div>
 </div>
 
-<div class="avatar-container pos-6" id="playerPos6">
-  <div class="avatar" id="avatar6">?</div>
-  <div class="player-chips" id="chips6">-<br>0</div>
-</div>
-
 <div class="avatar-container pos-3" id="playerPos3">
   <div class="avatar" id="avatar3">?</div>
   <div class="player-chips" id="chips3">-<br>0</div>
-</div>
-
-<div class="avatar-container pos-5" id="playerPos5">
-  <div class="avatar" id="avatar5">?</div>
-  <div class="player-chips" id="chips5">-<br>0</div>
 </div>
 
 <div class="avatar-container pos-4" id="playerPos4">
@@ -594,35 +663,43 @@ body {
   <div class="player-chips" id="chips4">-<br>0</div>
 </div>
 
-<!-- CONTROLES (FORA da .table-container, posicionados no BODY) -->
+<div class="avatar-container pos-5" id="playerPos5">
+  <div class="avatar" id="avatar5">?</div>
+  <div class="player-chips" id="chips5">-<br>0</div>
+</div>
+
+<div class="avatar-container pos-6" id="playerPos6">
+  <div class="avatar" id="avatar6">?</div>
+  <div class="player-chips" id="chips6">-<br>0</div>
+</div>
+
+<!-- CONTROLES -->
 <div class="controls-container">
   <div class="controls" id="playerControls">
-    <!-- BOTÕES DE AÇÃO -->
     <div class="action-buttons" id="actionButtons">
-      <button class="action-btn btn-fold" onclick="playerAction('fold')">Fold</button>
-      <button class="action-btn btn-check" onclick="playerAction('check')">Check</button>
-      <button class="action-btn btn-call" onclick="playerAction('call')">Call</button>
-      <button class="action-btn btn-raise" onclick="showRaiseControls()">Raise</button>
-      <button class="action-btn btn-allin" onclick="playerAction('allin')">All-in</button>
+      <button class="action-btn btn-fold" id="btnFold">Fold</button>
+      <button class="action-btn btn-check" id="btnCheck">Check</button>
+      <button class="action-btn btn-call" id="btnCall">Call</button>
+      <button class="action-btn btn-raise" id="btnRaise">Raise</button>
+      <button class="action-btn btn-allin" id="btnAllIn">All-in</button>
     </div>
 
-    <!-- CONTROLE DE APOSTA -->
     <div class="bet-controls" id="raiseControls">
-      <input type="range" min="0" max="100" value="0" class="bet-slider" id="betSlider" oninput="updateBetAmount()">
+      <input type="range" min="0" max="100" value="0" class="bet-slider" id="betSlider">
       <div class="bet-amount" id="betAmount">0</div>
-      <button class="action-btn btn-raise" onclick="confirmRaise()">Confirmar</button>
-      <button class="action-btn btn-fold" onclick="hideRaiseControls()">Cancelar</button>
+      <button class="action-btn btn-raise" id="btnConfirmRaise">Confirmar</button>
+      <button class="action-btn btn-fold" id="btnCancelRaise">Cancelar</button>
     </div>
 
-    <!-- TIMER DE AÇÃO -->
     <div class="action-timer" id="actionTimerContainer">
       <div class="timer-bar" id="actionTimerBar"></div>
     </div>
   </div>
 </div>
+
 <script>
 // =============================================
-// SISTEMA DE POKER - mesa-torneio.js CORRETO
+// SISTEMA DE POKER - MOBILE OPTIMIZADO
 // =============================================
 let tournamentId = null;
 let tournamentData = null;
@@ -669,6 +746,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         initializeInterface();
         setupRealtimeListener();
+        setupEventListeners();
         checkIfGameCanStart();
     });
 });
@@ -758,7 +836,24 @@ function setupRealtimeListener() {
 }
 
 // =============================================
-// 2. ATUALIZAÇÃO DA INTERFACE
+// 2. EVENT LISTENERS FIXADOS
+// =============================================
+function setupEventListeners() {
+    // Botões de ação
+    document.getElementById('btnFold').addEventListener('click', () => playerAction('fold'));
+    document.getElementById('btnCheck').addEventListener('click', () => playerAction('check'));
+    document.getElementById('btnCall').addEventListener('click', () => playerAction('call'));
+    document.getElementById('btnRaise').addEventListener('click', showRaiseControls);
+    document.getElementById('btnAllIn').addEventListener('click', () => playerAction('allin'));
+    
+    // Controles de aposta
+    document.getElementById('betSlider').addEventListener('input', updateBetAmount);
+    document.getElementById('btnConfirmRaise').addEventListener('click', confirmRaise);
+    document.getElementById('btnCancelRaise').addEventListener('click', hideRaiseControls);
+}
+
+// =============================================
+// 3. ATUALIZAÇÃO DA INTERFACE
 // =============================================
 function updateInterface() {
     if (!tournamentData) return;
@@ -901,7 +996,7 @@ function handlePhaseChange() {
 }
 
 // =============================================
-// 3. CONTROLE DE TURNO
+// 4. CONTROLE DE TURNO E AÇÕES
 // =============================================
 function checkMyTurn() {
     if (!tournamentData || !tournamentData.currentPlayerTurn) {
@@ -971,7 +1066,6 @@ async function initializePokerEngine() {
     }
 }
 
-// CONTINUA NO PRÓXIMO COMENTÁRIO...
 async function startNewHand() {
     if (!pokerGame || !gameStarted) return;
     
@@ -1044,20 +1138,41 @@ async function updateCurrentTurn(playerId) {
     }
 }
 
-async function processActionAndMoveToNext(action, amount = 0) {
-    if (isActionProcessing) return;
-    isActionProcessing = true;
+// =============================================
+// 5. AÇÕES DO JOGADOR - CORREÇÃO CRÍTICA
+// =============================================
+async function playerAction(action) {
+    if (!isMyTurn()) {
+        showNotification('Não é sua vez!', 'error');
+        return;
+    }
+    
+    if (isActionProcessing) {
+        showNotification('Ação em processamento...', 'info');
+        return;
+    }
     
     try {
-        const currentPlayerId = tournamentData.currentPlayerTurn;
+        isActionProcessing = true;
+        let amount = 0;
         
+        if (action === 'raise') {
+            amount = parseInt(document.getElementById('betAmount').textContent);
+            if (amount <= 0) {
+                showNotification('Escolha um valor para raise', 'error');
+                isActionProcessing = false;
+                return;
+            }
+        }
+        
+        // Processar ação no poker engine
         if (pokerGame) {
-            const result = pokerGame.playerAction(currentPlayerId, action, amount);
+            const result = pokerGame.playerAction(currentUser.uid, action, amount);
             
             if (result.success) {
+                // Atualizar Firestore com novo estado
                 const gameState = pokerGame.getGameInfo();
                 
-                // Update Firestore
                 await db.collection('tournaments').doc(tournamentId).update({
                     players: gameState.players,
                     pot: gameState.pot,
@@ -1065,15 +1180,20 @@ async function processActionAndMoveToNext(action, amount = 0) {
                     updatedAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
                 
+                hideRaiseControls();
+                
                 if (result.bettingRoundComplete) {
                     await advanceToNextPhase();
                 } else {
                     await moveToNextPlayer();
                 }
+            } else {
+                showNotification('Erro: ' + result.error, 'error');
             }
         }
+        
     } catch (error) {
-        showNotification('Erro: ' + error.message, 'error');
+        showNotification('Erro na ação: ' + error.message, 'error');
     } finally {
         isActionProcessing = false;
     }
@@ -1083,10 +1203,10 @@ async function moveToNextPlayer() {
     if (!pokerGame) return;
     
     const gameInfo = pokerGame.getGameInfo();
-    const nextPlayer = gameInfo.currentPlayerTurn;
+    const nextPlayer = gameInfo.nextPlayer;
     
     if (nextPlayer) {
-        await updateCurrentTurn(nextPlayer);
+        await updateCurrentTurn(nextPlayer.userId);
     } else {
         // Check if round is complete
         if (gameInfo.bettingRoundComplete) {
@@ -1112,6 +1232,16 @@ async function advanceToNextPhase() {
                     showNotification(`${winner.player.nickname} ganhou ${winner.prize} fichas!`, 'success');
                 });
             }
+            
+            // Update Firestore with final state
+            const gameState = pokerGame.getGameInfo();
+            await db.collection('tournaments').doc(tournamentId).update({
+                players: gameState.players,
+                communityCards: gameState.communityCards,
+                currentRound: 'showdown',
+                currentPlayerTurn: '',
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
             
             // Reset for new hand after 5 seconds
             setTimeout(() => {
@@ -1168,50 +1298,8 @@ async function resetForNewHand() {
 }
 
 // =============================================
-// 4. CONTROLES DO JOGADOR
+// 6. CONTROLES DE APOSTA
 // =============================================
-function setupControls() {
-    const slider = document.getElementById('betSlider');
-    if (slider) {
-        slider.addEventListener('input', updateBetAmount);
-    }
-    
-    // Action buttons
-    document.querySelector('.btn-fold')?.addEventListener('click', () => playerAction('fold'));
-    document.querySelector('.btn-check')?.addEventListener('click', () => playerAction('check'));
-    document.querySelector('.btn-call')?.addEventListener('click', () => playerAction('call'));
-    document.querySelector('.btn-bet')?.addEventListener('click', () => showRaiseControls());
-    document.querySelector('.btn-raise')?.addEventListener('click', () => showRaiseControls());
-    document.querySelector('.btn-allin')?.addEventListener('click', () => playerAction('allin'));
-    document.querySelector('.btn-cancel-raise')?.addEventListener('click', hideRaiseControls);
-    document.querySelector('.btn-confirm-raise')?.addEventListener('click', confirmRaise);
-}
-
-async function playerAction(action) {
-    if (!isMyTurn()) {
-        showNotification('Não é sua vez!', 'error');
-        return;
-    }
-    
-    try {
-        let amount = 0;
-        
-        if (action === 'raise') {
-            amount = parseInt(document.getElementById('betAmount').textContent);
-            if (amount <= 0) {
-                showNotification('Escolha um valor para raise', 'error');
-                return;
-            }
-        }
-        
-        await processActionAndMoveToNext(action, amount);
-        hideRaiseControls();
-        
-    } catch (error) {
-        showNotification('Erro: ' + error.message, 'error');
-    }
-}
-
 function showRaiseControls() {
     if (!isMyTurn()) return;
     
@@ -1272,16 +1360,14 @@ function updateActionButtons() {
     const maxBet = tournamentData.currentMaxBet || 0;
     const canCheck = myBet >= maxBet;
     
-    const checkBtn = document.querySelector('.btn-check');
-    const callBtn = document.querySelector('.btn-call');
-    const betBtn = document.querySelector('.btn-bet');
-    const raiseBtn = document.querySelector('.btn-raise');
+    const checkBtn = document.getElementById('btnCheck');
+    const callBtn = document.getElementById('btnCall');
+    const raiseBtn = document.getElementById('btnRaise');
     
-    if (checkBtn && callBtn && betBtn && raiseBtn) {
+    if (checkBtn && callBtn && raiseBtn) {
         checkBtn.style.display = canCheck ? 'block' : 'none';
         callBtn.style.display = (!canCheck && maxBet > 0) ? 'block' : 'none';
-        betBtn.style.display = (canCheck && maxBet === 0) ? 'block' : 'none';
-        raiseBtn.style.display = (!canCheck && maxBet > 0) ? 'block' : 'none';
+        raiseBtn.style.display = (maxBet > 0) ? 'block' : 'none';
         
         const callAmount = Math.max(0, maxBet - myBet);
         callBtn.textContent = callAmount > 0 ? `Call ${callAmount}` : 'Call';
@@ -1298,7 +1384,7 @@ function disablePlayerControls() {
 }
 
 // =============================================
-// 5. TIMER DE AÇÃO
+// 7. TIMER DE AÇÃO
 // =============================================
 function startActionTimer() {
     timeLeft = 30;
@@ -1334,7 +1420,7 @@ function stopActionTimer() {
 }
 
 // =============================================
-// 6. FUNÇÕES AUXILIARES
+// 8. FUNÇÕES AUXILIARES
 // =============================================
 function formatCard(card) {
     if (!card) return '?';
@@ -1377,707 +1463,14 @@ function showNotification(message, type = 'info') {
 }
 
 // =============================================
-// 7. LIMPEZA E GERENCIAMENTO
+// 9. LIMPEZA E GERENCIAMENTO
 // =============================================
 window.addEventListener('beforeunload', () => {
     if (realtimeListener) realtimeListener();
     stopActionTimer();
 });
 
-// Inicializar controles quando o DOM estiver pronto
-document.addEventListener('DOMContentLoaded', function() {
-    setupControls();
-});
-// =============================================
-// 8. SISTEMA DE SINCRONIZAÇÃO AVANÇADO
-// =============================================
-async function syncGameState() {
-    if (!tournamentData || !pokerGame) return;
-    
-    try {
-        const gameInfo = pokerGame.getGameInfo();
-        
-        // Atualizar estado no Firestore
-        await db.collection('tournaments').doc(tournamentId).update({
-            players: gameInfo.players.map(player => ({
-                userId: player.userId,
-                nickname: player.nickname,
-                chips: player.chips,
-                bet: player.bet || 0,
-                isActive: player.isActive !== false,
-                lastAction: player.lastAction || null,
-                cards: player.userId === currentUser.uid ? player.cards : [],
-                isAllIn: player.isAllIn || false
-            })),
-            communityCards: gameInfo.communityCards,
-            pot: gameInfo.pot,
-            currentRound: gameInfo.round,
-            dealerPosition: gameInfo.dealerPosition,
-            currentMaxBet: gameInfo.currentMaxBet || 0,
-            currentPlayerTurn: gameInfo.currentPlayerTurn || '',
-            handNumber: gameInfo.handNumber || 1,
-            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        
-        return true;
-    } catch (error) {
-        console.error('Erro na sincronização:', error);
-        return false;
-    }
-}
-
-function handleDisconnection() {
-    showNotification('🔌 Conexão perdida. Tentando reconectar...', 'warning');
-    
-    // Tentar reconectar a cada 5 segundos
-    const reconnectInterval = setInterval(async () => {
-        try {
-            // Verificar se ainda está no torneio
-            const tournamentDoc = await db.collection('tournaments').doc(tournamentId).get();
-            if (tournamentDoc.exists) {
-                tournamentData = tournamentDoc.data();
-                clearInterval(reconnectInterval);
-                showNotification('✅ Reconectado!', 'success');
-                updateInterface();
-                checkMyTurn();
-            }
-        } catch (error) {
-            console.error('Falha na reconexão:', error);
-        }
-    }, 5000);
-    
-    // Parar após 30 segundos
-    setTimeout(() => {
-        clearInterval(reconnectInterval);
-        showNotification('❌ Falha na reconexão. Recarregue a página.', 'error');
-    }, 30000);
-}
-
-// =============================================
-// 9. SISTEMA DE ÁUDIO E FEEDBACK
-// =============================================
-function playSound(soundType) {
-    if (!soundEnabled) return;
-    
-    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    
-    try {
-        switch(soundType) {
-            case 'card_deal':
-                playBeep(800, 0.1);
-                break;
-            case 'chips':
-                playBeep(600, 0.2);
-                break;
-            case 'notification':
-                playBeep(1000, 0.1);
-                break;
-            case 'win':
-                playVictorySound();
-                break;
-            case 'timer':
-                playBeep(400, 0.05);
-                break;
-        }
-    } catch (error) {
-        console.warn('Áudio não disponível:', error);
-    }
-}
-
-function playBeep(frequency, duration) {
-    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    const oscillator = audioContext.createOscillator();
-    const gainNode = audioContext.createGain();
-    
-    oscillator.connect(gainNode);
-    gainNode.connect(audioContext.destination);
-    
-    oscillator.frequency.value = frequency;
-    oscillator.type = 'sine';
-    
-    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
-    
-    oscillator.start(audioContext.currentTime);
-    oscillator.stop(audioContext.currentTime + duration);
-}
-
-function playVictorySound() {
-    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    const notes = [523.25, 659.25, 783.99, 1046.50];
-    let time = audioContext.currentTime;
-    
-    notes.forEach((freq, index) => {
-        const oscillator = audioContext.createOscillator();
-        const gainNode = audioContext.createGain();
-        
-        oscillator.connect(gainNode);
-        gainNode.connect(audioContext.destination);
-        
-        oscillator.frequency.value = freq;
-        oscillator.type = 'sine';
-        
-        gainNode.gain.setValueAtTime(0, time);
-        gainNode.gain.linearRampToValueAtTime(0.3, time + 0.1);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, time + 0.3);
-        
-        oscillator.start(time);
-        oscillator.stop(time + 0.3);
-        
-        time += 0.15;
-    });
-}
-
-// =============================================
-// 10. ANIMAÇÕES E EFEITOS VISUAIS
-// =============================================
-function animateCardDeal(element, delay = 0) {
-    setTimeout(() => {
-        element.style.transform = 'scale(1.2)';
-        element.style.transition = 'transform 0.3s';
-        
-        setTimeout(() => {
-            element.style.transform = 'scale(1)';
-        }, 300);
-    }, delay);
-}
-
-function animateChipMove(fromElement, toElement, amount) {
-    const chip = document.createElement('div');
-    chip.style.position = 'fixed';
-    chip.style.width = '20px';
-    chip.style.height = '20px';
-    chip.style.background = 'radial-gradient(circle, #ffd700, #daa520)';
-    chip.style.borderRadius = '50%';
-    chip.style.boxShadow = '0 2px 5px rgba(0,0,0,0.3)';
-    chip.style.zIndex = '1000';
-    
-    const fromRect = fromElement.getBoundingClientRect();
-    const toRect = toElement.getBoundingClientRect();
-    
-    chip.style.left = (fromRect.left + fromRect.width / 2 - 10) + 'px';
-    chip.style.top = (fromRect.top + fromRect.height / 2 - 10) + 'px';
-    
-    document.body.appendChild(chip);
-    
-    setTimeout(() => {
-        chip.style.transition = 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)';
-        chip.style.left = (toRect.left + toRect.width / 2 - 10) + 'px';
-        chip.style.top = (toRect.top + toRect.height / 2 - 10) + 'px';
-        
-        setTimeout(() => {
-            document.body.removeChild(chip);
-        }, 500);
-    }, 50);
-}
-
-function animatePotUpdate(newPot) {
-    const potElement = document.getElementById('potAmount');
-    if (!potElement) return;
-    
-    potElement.style.transform = 'scale(1.2)';
-    potElement.style.color = '#f1c40f';
-    potElement.style.transition = 'all 0.3s';
-    
-    setTimeout(() => {
-        potElement.textContent = newPot;
-        
-        setTimeout(() => {
-            potElement.style.transform = 'scale(1)';
-            potElement.style.color = '';
-        }, 300);
-    }, 150);
-}
-
-function animatePlayerHighlight(playerPosition, duration = 2000) {
-    const avatarElement = document.getElementById(`avatar${playerPosition}`);
-    if (!avatarElement) return;
-    
-    avatarElement.style.boxShadow = '0 0 20px #3498db';
-    avatarElement.style.transition = 'box-shadow 0.3s';
-    
-    setTimeout(() => {
-        avatarElement.style.boxShadow = '';
-    }, duration);
-}
-
-// =============================================
-// 11. SISTEMA DE ESTATÍSTICAS
-// =============================================
-function updateGameStatistics(action, amount = 0) {
-    switch(action) {
-        case 'fold':
-            gameStatistics.folds++;
-            break;
-        case 'check':
-            gameStatistics.checks++;
-            break;
-        case 'call':
-            gameStatistics.calls++;
-            break;
-        case 'raise':
-        case 'bet':
-            gameStatistics.raises++;
-            break;
-        case 'allin':
-            gameStatistics.allIns++;
-            break;
-    }
-    
-    gameStatistics.handsPlayed++;
-    
-    // Salvar estatísticas localmente
-    localStorage.setItem('poker_stats', JSON.stringify(gameStatistics));
-}
-
-function loadGameStatistics() {
-    const savedStats = localStorage.getItem('poker_stats');
-    if (savedStats) {
-        gameStatistics = JSON.parse(savedStats);
-    }
-}
-
-// =============================================
-// 12. SISTEMA DE HISTÓRICO DE MÃOS
-// =============================================
-function addToHandHistory(handData) {
-    handReplayData.push({
-        timestamp: new Date().toISOString(),
-        handNumber: currentHandNumber,
-        players: tournamentData.players?.map(p => ({
-            userId: p.userId,
-            nickname: p.nickname,
-            cards: p.userId === currentUser.uid ? p.cards : [],
-            action: p.lastAction,
-            chips: p.chips
-        })),
-        communityCards: tournamentData.communityCards || [],
-        pot: tournamentData.pot || 0,
-        winner: lastWinners[0]?.player?.nickname || null,
-        winningHand: lastWinners[0]?.hand?.hand || null
-    });
-    
-    // Manter apenas as últimas 50 mãos
-    if (handReplayData.length > 50) {
-        handReplayData.shift();
-    }
-    
-    // Salvar no localStorage
-    localStorage.setItem('hand_history', JSON.stringify(handReplayData));
-}
-
-// =============================================
-// 13. SISTEMA DE CONFIGURAÇÕES
-// =============================================
-function loadPlayerPreferences() {
-    const preferences = localStorage.getItem('poker_preferences');
-    if (preferences) {
-        const prefs = JSON.parse(preferences);
-        soundEnabled = prefs.soundEnabled !== false;
-        chatEnabled = prefs.chatEnabled !== false;
-        emojiEnabled = prefs.emojiEnabled !== false;
-        gameSpeed = prefs.gameSpeed || 'normal';
-        
-        // Aplicar velocidade do jogo
-        switch(gameSpeed) {
-            case 'fast':
-                animationDelay = 250;
-                break;
-            case 'normal':
-                animationDelay = 500;
-                break;
-            case 'slow':
-                animationDelay = 1000;
-                break;
-        }
-    }
-}
-
-function savePlayerPreferences() {
-    const preferences = {
-        soundEnabled,
-        chatEnabled,
-        emojiEnabled,
-        gameSpeed
-    };
-    localStorage.setItem('poker_preferences', JSON.stringify(preferences));
-}
-
-// =============================================
-// 14. SISTEMA DE NOTIFICAÇÕES AVANÇADO
-// =============================================
-function showAdvancedNotification(message, options = {}) {
-    const {
-        type = 'info',
-        duration = 3000,
-        icon = null,
-        action = null,
-        dismissible = true
-    } = options;
-    
-    const notification = document.createElement('div');
-    notification.className = `notification notification-${type}`;
-    notification.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background: ${getNotificationColor(type)};
-        color: white;
-        padding: 15px 20px;
-        border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        z-index: 10000;
-        min-width: 300px;
-        max-width: 400px;
-        animation: slideIn 0.3s ease-out;
-    `;
-    
-    let content = '';
-    if (icon) {
-        content += `<span style="margin-right: 10px; font-size: 1.2em;">${icon}</span>`;
-    }
-    content += `<span>${message}</span>`;
-    
-    if (action) {
-        content += `<button style="margin-left: 10px; background: rgba(255,255,255,0.2); border: none; color: white; padding: 5px 10px; border-radius: 4px; cursor: pointer;">${action.label}</button>`;
-    }
-    
-    if (dismissible) {
-        content += `<button style="position: absolute; top: 5px; right: 5px; background: none; border: none; color: white; font-size: 1.2em; cursor: pointer;">×</button>`;
-    }
-    
-    notification.innerHTML = content;
-    document.body.appendChild(notification);
-    
-    // Configurar eventos
-    if (action) {
-        notification.querySelector('button').addEventListener('click', action.callback);
-    }
-    
-    if (dismissible) {
-        const closeBtn = notification.querySelectorAll('button')[action ? 1 : 0];
-        closeBtn.addEventListener('click', () => {
-            notification.remove();
-        });
-    }
-    
-    // Auto-remover após duração
-    if (duration > 0) {
-        setTimeout(() => {
-            if (notification.parentNode) {
-                notification.style.animation = 'slideOut 0.3s ease-in';
-                setTimeout(() => notification.remove(), 300);
-            }
-        }, duration);
-    }
-    
-    return notification;
-}
-
-function getNotificationColor(type) {
-    switch(type) {
-        case 'success': return 'linear-gradient(135deg, #2ecc71, #27ae60)';
-        case 'error': return 'linear-gradient(135deg, #e74c3c, #c0392b)';
-        case 'warning': return 'linear-gradient(135deg, #f39c12, #d35400)';
-        case 'info': return 'linear-gradient(135deg, #3498db, #2980b9)';
-        case 'turn': return 'linear-gradient(135deg, #9b59b6, #8e44ad)';
-        default: return 'linear-gradient(135deg, #34495e, #2c3e50)';
-    }
-}
-
-// =============================================
-// 15. SISTEMA DE BACKUP E RECUPERAÇÃO
-// =============================================
-function createBackup() {
-    const backup = {
-        tournamentId,
-        tournamentData,
-        gameStatistics,
-        handReplayData,
-        timestamp: new Date().toISOString()
-    };
-    
-    localStorage.setItem('poker_backup', JSON.stringify(backup));
-    return backup;
-}
-
-async function restoreBackup() {
-    const backupStr = localStorage.getItem('poker_backup');
-    if (!backupStr) return false;
-    
-    try {
-        const backup = JSON.parse(backupStr);
-        
-        // Verificar se é o mesmo torneio
-        if (backup.tournamentId !== tournamentId) {
-            showAdvancedNotification('Backup de torneio diferente. Não foi possível restaurar.', { type: 'warning' });
-            return false;
-        }
-        
-        // Restaurar dados
-        tournamentData = backup.tournamentData;
-        gameStatistics = backup.gameStatistics;
-        handReplayData = backup.handReplayData;
-        
-        showAdvancedNotification('✅ Backup restaurado com sucesso!', { type: 'success' });
-        updateInterface();
-        return true;
-        
-    } catch (error) {
-        console.error('Erro ao restaurar backup:', error);
-        return false;
-    }
-}
-
-// =============================================
-// 16. INICIALIZAÇÃO FINAL
-// =============================================
-function finalizeInitialization() {
-    // Carregar preferências
-    loadPlayerPreferences();
-    loadGameStatistics();
-    
-    // Configurar backup automático a cada 5 minutos
-    setInterval(() => {
-        createBackup();
-    }, 5 * 60 * 1000);
-    
-    // Verificar se há backup para restaurar
-    setTimeout(() => {
-        const lastBackup = localStorage.getItem('poker_backup');
-        if (lastBackup) {
-            const backup = JSON.parse(lastBackup);
-            const backupTime = new Date(backup.timestamp);
-            const currentTime = new Date();
-            const hoursDiff = (currentTime - backupTime) / (1000 * 60 * 60);
-            
-            if (hoursDiff < 1) { // Backup com menos de 1 hora
-                showAdvancedNotification('📂 Backup recente encontrado. Deseja restaurar?', {
-                    type: 'info',
-                    duration: 10000,
-                    action: {
-                        label: 'Restaurar',
-                        callback: restoreBackup
-                    }
-                });
-            }
-        }
-    }, 2000);
-    
-    // Adicionar estilos CSS dinâmicos
-    addDynamicStyles();
-    
-    showAdvancedNotification('✅ Sistema de Poker carregado com sucesso!', { 
-        type: 'success',
-        duration: 2000
-    });
-}
-
-function addDynamicStyles() {
-    const style = document.createElement('style');
-    style.textContent = `
-        @keyframes slideIn {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-        
-        @keyframes slideOut {
-            from { transform: translateX(0); opacity: 1; }
-            to { transform: translateX(100%); opacity: 0; }
-        }
-        
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
-        
-        @keyframes highlight {
-            0% { box-shadow: 0 0 0 0 rgba(52, 152, 219, 0.7); }
-            70% { box-shadow: 0 0 0 10px rgba(52, 152, 219, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(52, 152, 219, 0); }
-        }
-        
-        .current-turn {
-            animation: pulse 2s infinite, highlight 1.5s infinite;
-        }
-        
-        .player-folded {
-            opacity: 0.5;
-            filter: grayscale(100%);
-        }
-        
-        .player-you {
-            border: 3px solid #2ecc71 !important;
-        }
-        
-        .card-placeholder {
-            transition: all 0.3s ease;
-        }
-        
-        .card-placeholder:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-        }
-        
-        .action-btn {
-            transition: all 0.2s ease;
-        }
-        
-        .action-btn:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-        }
-        
-        .action-btn:active:not(:disabled) {
-            transform: translateY(0);
-        }
-        
-        #actionTimerBar {
-            transition: width 1s linear, background-color 0.3s ease;
-        }
-    `;
-    document.head.appendChild(style);
-}
-
-// =============================================
-// 17. EXPORTAR/IMPORTAR DADOS
-// =============================================
-function exportGameData() {
-    const exportData = {
-        tournament: tournamentData,
-        statistics: gameStatistics,
-        handHistory: handReplayData,
-        exportDate: new Date().toISOString(),
-        version: '1.0.0'
-    };
-    
-    const dataStr = JSON.stringify(exportData, null, 2);
-    const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-    
-    const exportFileDefaultName = `poker-torneio-${tournamentId}-${new Date().toISOString().split('T')[0]}.json`;
-    
-    const linkElement = document.createElement('a');
-    linkElement.setAttribute('href', dataUri);
-    linkElement.setAttribute('download', exportFileDefaultName);
-    linkElement.click();
-    
-    showAdvancedNotification('📥 Dados exportados com sucesso!', { type: 'success' });
-}
-
-// =============================================
-// 18. LIMPEZA FINAL E OTIMIZAÇÃO
-// =============================================
-function cleanup() {
-    // Limpar listeners
-    if (realtimeListener) realtimeListener();
-    stopActionTimer();
-    
-    // Limpar intervalos
-    const highestIntervalId = setInterval(() => {}, 0);
-    for (let i = 0; i < highestIntervalId; i++) {
-        clearInterval(i);
-    }
-    
-    // Limpar timeouts
-    const highestTimeoutId = setTimeout(() => {}, 0);
-    for (let i = 0; i < highestTimeoutId; i++) {
-        clearTimeout(i);
-    }
-    
-    // Salvar estado atual
-    createBackup();
-    savePlayerPreferences();
-    
-    console.log('✅ Sistema limpo com sucesso');
-}
-
-// =============================================
-// 19. INICIALIZAR TUDO
-// =============================================
-window.addEventListener('load', () => {
-    setTimeout(() => {
-        finalizeInitialization();
-    }, 1000);
-});
-
-window.addEventListener('beforeunload', (event) => {
-    cleanup();
-    
-    // Para Chrome
-    event.preventDefault();
-    event.returnValue = '';
-    
-    // Para outros navegadores
-    return '';
-});
-
-// =============================================
-// 20. EXPORTAR FUNÇÕES GLOBAIS (se necessário)
-// =============================================
-window.PokerTournament = {
-    exportGameData,
-    restoreBackup,
-    toggleSound: () => {
-        soundEnabled = !soundEnabled;
-        savePlayerPreferences();
-        showAdvancedNotification(`Som ${soundEnabled ? 'ativado' : 'desativado'}`, {
-            type: 'info',
-            duration: 2000
-        });
-    },
-    toggleChat: () => {
-        chatEnabled = !chatEnabled;
-        savePlayerPreferences();
-        showAdvancedNotification(`Chat ${chatEnabled ? 'ativado' : 'desativado'}`, {
-            type: 'info',
-            duration: 2000
-        });
-    },
-    setGameSpeed: (speed) => {
-        if (['fast', 'normal', 'slow'].includes(speed)) {
-            gameSpeed = speed;
-            savePlayerPreferences();
-            showAdvancedNotification(`Velocidade definida para: ${speed}`, {
-                type: 'info',
-                duration: 2000
-            });
-        }
-    },
-    showHandHistory: () => {
-        if (handReplayData.length === 0) {
-            showAdvancedNotification('Nenhuma mão no histórico', { type: 'info' });
-            return;
-        }
-        
-        const historyWindow = window.open('', 'Histórico de Mãos', 'width=600,height=400');
-        historyWindow.document.write(`
-            <html>
-            <head>
-                <title>Histórico de Mãos</title>
-                <style>
-                    body { font-family: Arial, sans-serif; padding: 20px; }
-                    .hand { border: 1px solid #ddd; padding: 10px; margin: 10px 0; border-radius: 5px; }
-                    .winner { background: #d4edda; }
-                </style>
-            </head>
-            <body>
-                <h2>Histórico de Mãos (${handReplayData.length})</h2>
-                ${handReplayData.map(hand => `
-                    <div class="hand ${hand.winner ? 'winner' : ''}">
-                        <strong>Mão #${hand.handNumber}</strong><br>
-                        ${hand.timestamp}<br>
-                        Pote: ${hand.pot}<br>
-                        ${hand.winner ? `Vencedor: ${hand.winner} (${hand.winningHand})` : 'Sem vencedor'}
-                    </div>
-                `).join('')}
-            </body>
-            </html>
-        `);
-    }
-};
-
-console.log('🎮 Sistema de Torneio de Poker carregado com sucesso!');
+console.log('🎮 Sistema de Torneio de Poker Mobile carregado com sucesso!');
 </script>
 </body>
 </html>
