@@ -641,6 +641,8 @@ let minRaise = 0;
 let actionPhase = 'waiting';
 let isActionProcessing = false;
 let currentBlinds = { small: 50, big: 100 };
+let handActive = false;
+let bettingRoundStarted = false;
 
 const positionMap = [1, 2, 6, 3, 5, 4];
 
@@ -766,18 +768,16 @@ function setupRealtimeListener() {
       .onSnapshot((doc) => {
          if (doc.exists) {
             const newData = doc.data();
-            
             tournamentData = newData;
             updateInterface();
             
-            const turnChanged = newData.currentPlayerTurn !== tournamentData?.currentPlayerTurn;
-            if (turnChanged) {
+            if (newData.currentPlayerTurn) {
                checkMyTurn();
             }
             
-            const phaseChanged = newData.currentRound !== actionPhase;
-            if (phaseChanged) {
-               actionPhase = newData.currentRound || 'waiting';
+            if (newData.currentRound && newData.currentRound !== actionPhase) {
+               actionPhase = newData.currentRound;
+               handlePhaseChange();
             }
          }
       }, (error) => {
@@ -848,7 +848,6 @@ function updateInterface() {
    });
    
    updateMyCards();
-   checkMyTurn();
 }
 
 function updateCommunityCards() {
@@ -904,6 +903,18 @@ function updateMyCards() {
       if (myCardsContainer) {
          myCardsContainer.style.display = 'none';
       }
+   }
+}
+
+function handlePhaseChange() {
+   if (actionPhase === 'flop') {
+      showNotification('🃏 FLOP virado!', 'info');
+   } else if (actionPhase === 'turn') {
+      showNotification('🃏 TURN virado!', 'info');
+   } else if (actionPhase === 'river') {
+      showNotification('🃏 RIVER virado!', 'info');
+   } else if (actionPhase === 'showdown') {
+      showNotification('🏆 SHOWDOWN! Determinando vencedores...', 'info');
    }
 }
 
@@ -985,6 +996,8 @@ async function startNewHand() {
       
       actionPhase = 'preflop';
       currentBet = currentBlinds.big;
+      bettingRoundStarted = false;
+      handActive = true;
       
       const handResult = await pokerGame.startHand();
       const gameInfo = pokerGame.getGameInfo();
@@ -993,10 +1006,6 @@ async function startNewHand() {
       if (myPlayerInfo && myPlayerInfo.cards && myPlayerInfo.cards.length >= 2) {
          myCards = myPlayerInfo.cards;
       }
-      
-      const players = gameInfo.players || [];
-      const maxBet = Math.max(...players.map(p => p.bet || 0));
-      currentBet = maxBet;
       
       await updateGameStateInFirestore(gameInfo);
       
@@ -1012,44 +1021,23 @@ async function startNewHand() {
 }
 
 function startBettingRound() {
-   const players = tournamentData.players || [];
-   const activePlayers = players.filter(p => p.isActive !== false && p.lastAction !== 'fold' && p.chips > 0);
+   if (!handActive || !pokerGame || !tournamentData) return;
    
-   if (activePlayers.length <= 1) {
-      setTimeout(() => {
-         advanceToNextPhase();
-      }, 1000);
-      return;
-   }
+   bettingRoundStarted = true;
    
-   const dealerIndex = tournamentData.dealerPosition || 0;
-   let currentPlayerIndex;
+   const gameInfo = pokerGame.getGameInfo();
+   const nextPlayer = gameInfo.currentPlayerTurn;
    
-   if (actionPhase === 'preflop') {
-      const bigBlindIndex = (dealerIndex + 2) % players.length;
-      currentPlayerIndex = (bigBlindIndex + 1) % players.length;
+   if (nextPlayer) {
+      updateCurrentTurn(nextPlayer);
    } else {
-      currentPlayerIndex = (dealerIndex + 1) % players.length;
-   }
-   
-   let foundPlayer = false;
-   let attempts = 0;
-   
-   while (!foundPlayer && attempts < players.length * 2) {
-      const player = players[currentPlayerIndex];
+      const activePlayers = tournamentData.players?.filter(p => 
+         p.isActive !== false && p.lastAction !== 'fold' && p.chips > 0
+      ) || [];
       
-      if (player && 
-          player.isActive !== false && 
-          player.lastAction !== 'fold' && 
-          player.chips > 0) {
-         
-         foundPlayer = true;
-         updateCurrentTurn(player.userId);
-         break;
+      if (activePlayers.length > 0) {
+         updateCurrentTurn(activePlayers[0].userId);
       }
-      
-      currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
-      attempts++;
    }
 }
 
@@ -1075,17 +1063,10 @@ async function processActionAndMoveToNext(action, amount = 0) {
          const result = await pokerGame.playerAction(currentPlayerId, action, amount);
          
          if (result.success) {
-            if (['bet', 'raise', 'allin'].includes(action)) {
-               const player = tournamentData.players?.find(p => p.userId === currentPlayerId);
-               if (player) {
-                  currentBet = Math.max(currentBet, player.bet || 0);
-               }
-            }
-            
             const gameState = pokerGame.getGameInfo();
             await updateGameStateInFirestore(gameState);
             
-            if (checkIfRoundComplete()) {
+            if (result.bettingRoundComplete) {
                await advanceToNextPhase();
             } else {
                await moveToNextPlayer();
@@ -1100,84 +1081,62 @@ async function processActionAndMoveToNext(action, amount = 0) {
    }
 }
 
-function checkIfRoundComplete() {
-   const players = tournamentData.players || [];
-   const activePlayers = players.filter(p => 
-      p.isActive !== false && 
-      p.lastAction !== 'fold' && 
-      p.chips > 0
-   );
+async function moveToNextPlayer() {
+   const gameInfo = pokerGame.getGameInfo();
+   const nextPlayer = gameInfo.currentPlayerTurn;
    
-   if (activePlayers.length <= 1) return true;
+   if (nextPlayer) {
+      await updateCurrentTurn(nextPlayer);
+   } else {
+      checkIfBettingRoundComplete();
+   }
+}
+
+function checkIfBettingRoundComplete() {
+   if (!pokerGame) return false;
    
-   const maxBet = Math.max(...activePlayers.map(p => p.bet || 0));
-   const allEqualOrFolded = activePlayers.every(p => 
-      (p.bet || 0) === maxBet || 
-      p.lastAction === 'fold' || 
-      p.isAllIn === true
-   );
-   
-   return allEqualOrFolded;
+   const gameInfo = pokerGame.getGameInfo();
+   return gameInfo.bettingRoundComplete;
 }
 
 async function advanceToNextPhase() {
-   if (!pokerGame) return;
+   if (!pokerGame || !handActive) return;
    
    try {
-      let result;
-      let showMessage = true;
+      const result = pokerGame.advanceRound();
       
-      switch (actionPhase) {
-         case 'preflop':
-            actionPhase = 'flop';
-            result = await pokerGame.dealer.dealFlop();
-            if (showMessage) showNotification('🃏 FLOP virado!', 'info');
-            break;
-            
-         case 'flop':
-            actionPhase = 'turn';
-            result = await pokerGame.dealer.dealTurn();
-            if (showMessage) showNotification('🃏 TURN virado!', 'info');
-            break;
-            
-         case 'turn':
-            actionPhase = 'river';
-            result = await pokerGame.dealer.dealRiver();
-            if (showMessage) showNotification('🃏 RIVER virado!', 'info');
-            break;
-            
-         case 'river':
+      if (result) {
+         if (result.round === 'showdown') {
             actionPhase = 'showdown';
-            const winners = pokerGame.dealer.determineWinners();
+            
             showNotification('🏆 SHOWDOWN! Determinando vencedores...', 'info');
             
-            pokerGame.distributePrizes(winners);
+            if (result.winners && result.winners.length > 0) {
+               result.winners.forEach(winner => {
+                  showNotification(`${winner.player.nickname} ganhou ${winner.prize} fichas!`, 'success');
+               });
+            }
             
             setTimeout(() => {
                resetForNewHand();
-            }, 3000);
-            return;
-      }
-      
-      if (result) {
-         currentBet = 0;
-         
-         const gameState = pokerGame.getGameInfo();
-         gameState.currentRound = actionPhase;
-         
-         await db.collection('tournaments').doc(tournamentId).update({
-            communityCards: gameState.communityCards,
-            pot: gameState.pot,
-            currentRound: actionPhase,
-            players: gameState.players.map(p => ({
-               ...p,
-               lastAction: null,
-               bet: 0
-            })),
-            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-         });
-         
-         if (actionPhase !== 'showdown') {
+            }, 5000);
+         } else {
+            const gameState = pokerGame.getGameInfo();
+            await db.collection('tournaments').doc(tournamentId).update({
+               communityCards: gameState.communityCards,
+               pot: gameState.pot,
+               currentRound: gameState.round,
+               players: gameState.players.map(p => ({
+                  ...p,
+                  lastAction: null,
+                  bet: 0
+               })),
+               currentPlayerTurn: '',
+               updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            
+            actionPhase = gameState.round;
+            
             setTimeout(() => {
                startBettingRound();
             }, 2000);
@@ -1188,55 +1147,22 @@ async function advanceToNextPhase() {
       console.error('Erro ao avançar fase:', error);
    }
 }
-async function moveToNextPlayer() {
-   const players = tournamentData.players || [];
-   const currentPlayerId = tournamentData.currentPlayerTurn;
-   const currentIndex = players.findIndex(p => p.userId === currentPlayerId);
-   
-   if (currentIndex === -1) {
-      startBettingRound();
-      return;
-   }
-   
-   let nextIndex = (currentIndex + 1) % players.length;
-   let attempts = 0;
-   
-   while (attempts < players.length * 2) {
-      const nextPlayer = players[nextIndex];
-      
-      if (nextPlayer && 
-          nextPlayer.isActive !== false && 
-          nextPlayer.lastAction !== 'fold' && 
-          nextPlayer.chips > 0) {
-         
-         await updateCurrentTurn(nextPlayer.userId);
-         return;
-      }
-      
-      nextIndex = (nextIndex + 1) % players.length;
-      attempts++;
-   }
-}
 
 async function resetForNewHand() {
    if (pokerGame && pokerGame.dealer) {
+      handActive = false;
+      bettingRoundStarted = false;
+      
       pokerGame.dealer.resetForNewHand();
       
-      currentBet = 0;
-      minRaise = 0;
-      actionPhase = 'preflop';
-      myCards = [];
+      const gameState = pokerGame.getGameInfo();
       
       await db.collection('tournaments').doc(tournamentId).update({
          communityCards: [],
          currentRound: 'preflop',
          currentPlayerTurn: '',
-         players: tournamentData.players.map(p => ({
-            ...p,
-            bet: 0,
-            lastAction: null,
-            cards: []
-         })),
+         players: gameState.players,
+         pot: 0,
          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
       });
       
@@ -1285,7 +1211,7 @@ function showRaiseControls() {
    if (!me) return;
    
    const maxBet = me.chips || 0;
-   const minBet = currentBet > 0 ? currentBet * 2 : currentBlinds.big * 2;
+   const minBet = Math.max(currentBlinds.big * 2, (tournamentData.currentMaxBet || 0) * 2);
    
    const slider = document.getElementById('betSlider');
    slider.min = minBet;
@@ -1333,16 +1259,19 @@ function updateActionButtons() {
    if (!me) return;
    
    const myBet = me.bet || 0;
-   const canCheck = myBet >= currentBet;
+   const maxBet = tournamentData.currentMaxBet || 0;
+   const canCheck = myBet >= maxBet;
    
    const checkBtn = document.querySelector('.btn-check');
    const callBtn = document.querySelector('.btn-call');
+   const betBtn = document.querySelector('.btn-bet');
    
-   if (checkBtn && callBtn) {
+   if (checkBtn && callBtn && betBtn) {
       checkBtn.style.display = canCheck ? 'block' : 'none';
-      callBtn.style.display = !canCheck ? 'block' : 'none';
+      callBtn.style.display = (!canCheck && maxBet > 0) ? 'block' : 'none';
+      betBtn.style.display = (canCheck && maxBet === 0) ? 'block' : 'none';
       
-      const callAmount = Math.max(0, currentBet - myBet);
+      const callAmount = Math.max(0, maxBet - myBet);
       callBtn.textContent = callAmount > 0 ? `Call ${callAmount}` : 'Call';
    }
 }
@@ -1398,6 +1327,7 @@ async function updateGameStateInFirestore(gameState) {
          currentPlayerTurn: gameState.currentPlayerTurn || '',
          currentRound: gameState.round || 'preflop',
          dealerPosition: gameState.dealerPosition || 0,
+         currentMaxBet: gameState.currentMaxBet || 0,
          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
       });
       

@@ -1,4 +1,4 @@
-// poker-engine.js - Sistema de Texas Hold'em
+// poker-engine.js - Sistema COMPLETO de Texas Hold'em Poker
 
 const POKER_HANDS = {
     ROYAL_FLUSH: { value: 10, name: 'Royal Flush' },
@@ -488,56 +488,51 @@ class PokerDealer {
         this.currentRound = 'preflop';
         this.handEvaluator = new HandEvaluator();
         this.handHistory = [];
+        this.smallBlind = 50;
+        this.bigBlind = 100;
+        this.currentMaxBet = 0;
     }
     
-    async startNewHand() {
+    startNewHand() {
         this.communityCards = [];
         this.burnedCards = [];
         this.pot = 0;
+        this.currentMaxBet = 0;
         
         this.deck.reset();
         this.deck.shuffle();
         
-        await this.dealPrivateCards();
-        
+        this.dealPrivateCards();
         this.applyBlinds();
         
         this.currentRound = 'preflop';
         
-        return {
-            players: this.players,
-            communityCards: this.communityCards,
-            pot: this.pot,
-            round: this.currentRound,
-            dealerPosition: this.dealerPosition
-        };
+        return this.getGameState();
     }
     
-    async dealPrivateCards() {
-        const startPos = (this.dealerPosition + 1) % this.players.length;
-        
+    dealPrivateCards() {
         for (let i = 0; i < this.players.length; i++) {
-            const playerIdx = (startPos + i) % this.players.length;
-            const player = this.players[playerIdx];
+            const player = this.players[i];
             
             if (player.isActive && player.chips > 0) {
-                const card = this.deck.deal(1)[0];
-                player.cards = player.cards || [];
-                player.cards.push(card);
+                player.cards = [];
                 player.bet = 0;
                 player.lastAction = null;
-                await this.delay(10);
+                player.isAllIn = false;
             }
         }
         
-        for (let i = 0; i < this.players.length; i++) {
-            const playerIdx = (startPos + i) % this.players.length;
-            const player = this.players[playerIdx];
-            
-            if (player.isActive && player.chips > 0 && player.cards?.length === 1) {
-                const card = this.deck.deal(1)[0];
-                player.cards.push(card);
-                await this.delay(10);
+        const startPos = (this.dealerPosition + 1) % this.players.length;
+        
+        for (let cardNum = 0; cardNum < 2; cardNum++) {
+            for (let i = 0; i < this.players.length; i++) {
+                const playerIdx = (startPos + i) % this.players.length;
+                const player = this.players[playerIdx];
+                
+                if (player.isActive && player.chips > 0) {
+                    const card = this.deck.deal(1)[0];
+                    player.cards.push(card);
+                }
             }
         }
     }
@@ -546,32 +541,35 @@ class PokerDealer {
         const smallBlindPos = (this.dealerPosition + 1) % this.players.length;
         const bigBlindPos = (this.dealerPosition + 2) % this.players.length;
         
-        const smallBlind = 50;
-        const bigBlind = 100;
-        
         const sbPlayer = this.players[smallBlindPos];
         if (sbPlayer && sbPlayer.isActive) {
-            const blindAmount = Math.min(smallBlind, sbPlayer.chips);
+            const blindAmount = Math.min(this.smallBlind, sbPlayer.chips);
             sbPlayer.bet = blindAmount;
             sbPlayer.chips -= blindAmount;
             this.pot += blindAmount;
             sbPlayer.lastAction = 'small blind';
+            this.currentMaxBet = Math.max(this.currentMaxBet, blindAmount);
         }
         
         const bbPlayer = this.players[bigBlindPos];
         if (bbPlayer && bbPlayer.isActive) {
-            const blindAmount = Math.min(bigBlind, bbPlayer.chips);
+            const blindAmount = Math.min(this.bigBlind, bbPlayer.chips);
             bbPlayer.bet = blindAmount;
             bbPlayer.chips -= blindAmount;
             this.pot += blindAmount;
             bbPlayer.lastAction = 'big blind';
+            this.currentMaxBet = Math.max(this.currentMaxBet, blindAmount);
         }
     }
     
-    async dealFlop() {
+    dealFlop() {
         this.deck.burnCard();
-        this.communityCards = this.deck.deal(3);
+        const flopCards = this.deck.deal(3);
+        this.communityCards = [...flopCards];
         this.currentRound = 'flop';
+        
+        this.resetPlayerActions();
+        this.currentMaxBet = 0;
         
         return {
             communityCards: this.communityCards,
@@ -580,12 +578,15 @@ class PokerDealer {
         };
     }
     
-    async dealTurn() {
+    dealTurn() {
         this.deck.burnCard();
         const turnCard = this.deck.deal(1)[0];
         this.communityCards.push(turnCard);
         this.currentRound = 'turn';
         
+        this.resetPlayerActions();
+        this.currentMaxBet = 0;
+        
         return {
             communityCards: this.communityCards,
             round: this.currentRound,
@@ -593,17 +594,29 @@ class PokerDealer {
         };
     }
     
-    async dealRiver() {
+    dealRiver() {
         this.deck.burnCard();
         const riverCard = this.deck.deal(1)[0];
         this.communityCards.push(riverCard);
         this.currentRound = 'river';
+        
+        this.resetPlayerActions();
+        this.currentMaxBet = 0;
         
         return {
             communityCards: this.communityCards,
             round: this.currentRound,
             pot: this.pot
         };
+    }
+    
+    resetPlayerActions() {
+        this.players.forEach(player => {
+            if (player.isActive && player.lastAction !== 'fold') {
+                player.lastAction = null;
+                player.bet = 0;
+            }
+        });
     }
     
     processPlayerAction(playerId, action, amount = 0) {
@@ -612,7 +625,6 @@ class PokerDealer {
             throw new Error('Jogador não encontrado ou inativo');
         }
         
-        const maxBet = this.getCurrentMaxBet();
         const playerBet = player.bet || 0;
         const playerChips = player.chips || 0;
         
@@ -624,14 +636,14 @@ class PokerDealer {
                 break;
                 
             case 'check':
-                if (playerBet < maxBet) {
+                if (playerBet < this.currentMaxBet) {
                     throw new Error('Não pode dar check com aposta para igualar');
                 }
                 player.lastAction = 'check';
                 break;
                 
             case 'call':
-                const callAmount = Math.max(0, maxBet - playerBet);
+                const callAmount = Math.max(0, this.currentMaxBet - playerBet);
                 if (callAmount > playerChips) {
                     throw new Error('Fichas insuficientes para call');
                 }
@@ -642,14 +654,31 @@ class PokerDealer {
                 break;
                 
             case 'bet':
-            case 'raise':
                 if (amount <= 0) {
                     throw new Error('Valor de aposta inválido');
                 }
                 if (amount > playerChips) {
                     throw new Error('Fichas insuficientes');
                 }
-                if (action === 'raise' && amount <= maxBet) {
+                if (this.currentMaxBet > 0) {
+                    throw new Error('Não pode fazer bet quando já há apostas');
+                }
+                
+                player.bet = amount;
+                player.chips -= amount;
+                this.pot += amount;
+                this.currentMaxBet = amount;
+                player.lastAction = 'bet';
+                break;
+                
+            case 'raise':
+                if (amount <= 0) {
+                    throw new Error('Valor de raise inválido');
+                }
+                if (amount > playerChips) {
+                    throw new Error('Fichas insuficientes');
+                }
+                if (amount <= this.currentMaxBet) {
                     throw new Error('Raise deve ser maior que a aposta atual');
                 }
                 
@@ -657,7 +686,8 @@ class PokerDealer {
                 player.bet = totalBet;
                 player.chips -= amount;
                 this.pot += amount;
-                player.lastAction = action === 'bet' ? 'bet' : 'raise';
+                this.currentMaxBet = totalBet;
+                player.lastAction = 'raise';
                 break;
                 
             case 'allin':
@@ -665,6 +695,7 @@ class PokerDealer {
                 player.bet += allinAmount;
                 player.chips = 0;
                 this.pot += allinAmount;
+                this.currentMaxBet = Math.max(this.currentMaxBet, player.bet);
                 player.lastAction = 'allin';
                 player.isAllIn = true;
                 break;
@@ -687,7 +718,8 @@ class PokerDealer {
             player: player,
             pot: this.pot,
             action: action,
-            amount: amount
+            amount: amount,
+            currentMaxBet: this.currentMaxBet
         };
     }
     
@@ -748,12 +780,62 @@ class PokerDealer {
         });
     }
     
-    getCurrentMaxBet() {
-        return Math.max(...this.players.map(p => p.bet || 0));
+    isBettingRoundComplete() {
+        const activePlayers = this.getActivePlayers();
+        
+        if (activePlayers.length <= 1) {
+            return true;
+        }
+        
+        const playersToAct = activePlayers.filter(p => 
+            p.lastAction === null || 
+            (p.lastAction === 'check' && this.currentMaxBet === 0) ||
+            (p.lastAction === 'call' && p.bet < this.currentMaxBet)
+        );
+        
+        if (playersToAct.length === 0) {
+            return true;
+        }
+        
+        const allBetsEqual = activePlayers.every(p => 
+            p.bet === this.currentMaxBet || 
+            p.lastAction === 'fold' || 
+            p.isAllIn
+        );
+        
+        return allBetsEqual;
     }
     
     getActivePlayers() {
-        return this.players.filter(p => p.isActive);
+        return this.players.filter(p => p.isActive && p.chips > 0);
+    }
+    
+    getCurrentPlayerTurn() {
+        const activePlayers = this.getActivePlayers();
+        if (activePlayers.length === 0) return null;
+        
+        const dealerIndex = this.dealerPosition;
+        let startIndex;
+        
+        if (this.currentRound === 'preflop') {
+            const bigBlindIndex = (dealerIndex + 2) % this.players.length;
+            startIndex = (bigBlindIndex + 1) % this.players.length;
+        } else {
+            startIndex = (dealerIndex + 1) % this.players.length;
+        }
+        
+        for (let i = 0; i < this.players.length; i++) {
+            const index = (startIndex + i) % this.players.length;
+            const player = this.players[index];
+            
+            if (player.isActive && 
+                player.lastAction === null && 
+                player.chips > 0) {
+                return player;
+            }
+        }
+        
+        return null;
     }
     
     getGameState() {
@@ -765,37 +847,40 @@ class PokerDealer {
                 bet: p.bet,
                 isActive: p.isActive,
                 lastAction: p.lastAction,
-                cards: p.cards ? p.cards.map(c => c.toString()) : []
+                cards: p.cards ? p.cards.map(c => c.toString()) : [],
+                isAllIn: p.isAllIn || false
             })),
             communityCards: this.communityCards.map(c => c.toString()),
             pot: this.pot,
             round: this.currentRound,
             dealerPosition: this.dealerPosition,
+            currentMaxBet: this.currentMaxBet,
             activePlayers: this.getActivePlayers().length
         };
     }
     
     resetForNewHand() {
+        this.communityCards = [];
+        this.burnedCards = [];
+        this.pot = 0;
+        this.currentMaxBet = 0;
+        this.handHistory = [];
+        
+        this.dealerPosition = (this.dealerPosition + 1) % this.players.length;
+        
         this.players.forEach(player => {
             player.cards = [];
             player.bet = 0;
             player.lastAction = null;
             player.isAllIn = false;
+            
+            if (player.chips <= 0) {
+                player.isActive = false;
+            }
         });
-        
-        this.communityCards = [];
-        this.burnedCards = [];
-        this.pot = 0;
-        this.handHistory = [];
-        
-        this.dealerPosition = (this.dealerPosition + 1) % this.players.length;
         
         this.deck.restoreUsedCards();
         this.currentRound = 'preflop';
-    }
-    
-    delay(ms) {
-        return new Promise(resolve => setTimeout(resolve, ms));
     }
 }
 
@@ -828,7 +913,8 @@ class PokerGameEngine {
             isActive: true,
             cards: [],
             bet: 0,
-            lastAction: null
+            lastAction: null,
+            isAllIn: false
         }));
         
         this.dealer = new PokerDealer(preparedPlayers, 0);
@@ -838,7 +924,7 @@ class PokerGameEngine {
         return this.dealer.getGameState();
     }
     
-    async startHand() {
+    startHand() {
         if (this.gameState !== 'active') {
             throw new Error('Jogo não está ativo');
         }
@@ -849,7 +935,7 @@ class PokerGameEngine {
         
         this.handNumber++;
         
-        const handResult = await this.dealer.startNewHand();
+        const handResult = this.dealer.startNewHand();
         
         return {
             ...handResult,
@@ -867,14 +953,12 @@ class PokerGameEngine {
         try {
             const result = this.dealer.processPlayerAction(playerId, action, amount);
             
-            if (this.isRoundComplete()) {
-                this.advanceRound();
-            }
-            
             return {
                 success: true,
                 ...result,
-                gameState: this.dealer.getGameState()
+                gameState: this.dealer.getGameState(),
+                bettingRoundComplete: this.dealer.isBettingRoundComplete(),
+                nextPlayer: this.dealer.getCurrentPlayerTurn()
             };
         } catch (error) {
             return {
@@ -884,16 +968,18 @@ class PokerGameEngine {
         }
     }
     
-    async advanceRound() {
+    advanceRound() {
+        if (!this.dealer) return null;
+        
         switch (this.dealer.currentRound) {
             case 'preflop':
-                return await this.dealer.dealFlop();
+                return this.dealer.dealFlop();
                 
             case 'flop':
-                return await this.dealer.dealTurn();
+                return this.dealer.dealTurn();
                 
             case 'turn':
-                return await this.dealer.dealRiver();
+                return this.dealer.dealRiver();
                 
             case 'river':
                 const winners = this.dealer.determineWinners();
@@ -935,20 +1021,6 @@ class PokerGameEngine {
         }
     }
     
-    isRoundComplete() {
-        const activePlayers = this.dealer.getActivePlayers();
-        
-        if (activePlayers.length <= 1) {
-            return true;
-        }
-        
-        const maxBet = this.dealer.getCurrentMaxBet();
-        const allBetsEqual = activePlayers.every(p => (p.bet || 0) === maxBet);
-        const allActed = activePlayers.every(p => p.lastAction !== null);
-        
-        return allBetsEqual && allActed;
-    }
-    
     getCurrentBlinds() {
         const currentLevel = Math.min(this.blindLevel, this.blindStructure.length);
         const blindInfo = this.blindStructure[currentLevel - 1];
@@ -978,7 +1050,9 @@ class PokerGameEngine {
             ante: blinds.ante,
             gameState: this.gameState,
             activePlayers: this.dealer.getActivePlayers().length,
-            totalPlayers: this.dealer.players.length
+            totalPlayers: this.dealer.players.length,
+            currentPlayerTurn: this.dealer.getCurrentPlayerTurn()?.userId || null,
+            bettingRoundComplete: this.dealer.isBettingRoundComplete()
         };
     }
     
@@ -1008,6 +1082,6 @@ if (typeof window !== 'undefined') {
         HAND_RANKINGS: POKER_HANDS,
         SUITS,
         RANKS,
-        VERSION: '1.0.0'
+        VERSION: '2.0.0'
     };
 }
