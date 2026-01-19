@@ -474,13 +474,13 @@ body {
   min-width: 250px;
 }
 
-/* ===== RESPONSIVIDADE MOBILE ===== */
+/* ===== RESPONSIVIDADE MOBILE - 6 POSIÇÕES SIMÉTRICAS ===== */
 @media (max-width: 768px) {
-  /* MESA MOBILE - MAIS COMPACTA */
+  /* MESA MOBILE */
   .table-container {
-    width: 95%;
-    height: 35%;
-    top: 30%;
+    width: 90%;
+    height: 40%;
+    top: 35%;
   }
   
   .poker-table {
@@ -488,52 +488,52 @@ body {
   }
   
   .table-center {
-    width: 60%;
-    height: 45%;
+    width: 55%;
+    height: 40%;
   }
   
   .community-cards {
-    gap: 4px;
+    gap: 5px;
   }
   
   .card-placeholder {
-    width: 30px;
-    height: 45px;
+    width: 35px;
+    height: 50px;
     font-size: 0.9em;
   }
   
   .pot {
-    font-size: 1.1em;
+    font-size: 1.2em;
   }
   
-  /* AVATARES MOBILE - APENAS 4 POSIÇÕES VISÍVEIS */
+  /* AVATARES MOBILE - CARTAS MAIORES */
   .avatar {
-    width: 45px;
-    height: 45px;
-    font-size: 1em;
+    width: 55px;
+    height: 55px;
+    font-size: 1.2em;
   }
   
   .player-cards {
-    left: 55px;
-    width: 60px;
-    gap: 3px;
+    left: 65px;
+    width: 75px;
+    gap: 4px;
   }
   
   .player-card {
-    width: 25px;
-    height: 35px;
-    font-size: 0.75em;
+    width: 32px;
+    height: 45px;
+    font-size: 0.9em;
   }
   
   .player-chips {
-    font-size: 0.75em;
-    min-width: 65px;
-    padding: 3px 5px;
+    font-size: 0.8em;
+    min-width: 70px;
+    padding: 3px 6px;
   }
   
-  /* POSIÇÕES MOBILE - APENAS 4 VISÍVEIS */
+  /* POSIÇÕES MOBILE - 6 LUGARES SIMÉTRICOS */
   .pos-1 {
-    top: 15px !important;
+    top: 20px !important;
     left: 50% !important;
     right: auto !important;
     bottom: auto !important;
@@ -542,18 +542,23 @@ body {
   
   .pos-2 {
     top: 25% !important;
-    right: 10px !important;
+    right: 15px !important;
     left: auto !important;
     bottom: auto !important;
     transform: none !important;
   }
   
   .pos-3 {
-    display: none !important; /* OCULTA - 5ª posição */
+    bottom: 25% !important;
+    right: 15px !important;
+    left: auto !important;
+    top: auto !important;
+    transform: none !important;
+    display: block !important; /* GARANTIR VISÍVEL */
   }
   
   .pos-4 {
-    bottom: 15px !important;
+    bottom: 20px !important;
     left: 50% !important;
     right: auto !important;
     top: auto !important;
@@ -562,14 +567,19 @@ body {
   
   .pos-5 {
     bottom: 25% !important;
-    left: 10px !important;
+    left: 15px !important;
     right: auto !important;
     top: auto !important;
     transform: none !important;
+    display: block !important; /* GARANTIR VISÍVEL */
   }
   
   .pos-6 {
-    display: none !important; /* OCULTA - 6ª posição */
+    top: 25% !important;
+    left: 15px !important;
+    right: auto !important;
+    bottom: auto !important;
+    transform: none !important;
   }
   
   /* INDICADORES DE BLIND MOBILE */
@@ -611,30 +621,30 @@ body {
 }
 
 @media (max-width: 480px) {
-  /* MOBILE PEQUENO - AJUSTES FINAIS */
+  /* MOBILE PEQUENO - AJUSTES */
   .avatar {
-    width: 40px;
-    height: 40px;
-    font-size: 0.9em;
+    width: 50px;
+    height: 50px;
+    font-size: 1.1em;
   }
   
   .player-cards {
-    left: 45px;
-    width: 50px;
+    left: 55px;
+    width: 65px;
   }
   
   .player-card {
-    width: 22px;
-    height: 30px;
-    font-size: 0.7em;
+    width: 28px;
+    height: 40px;
+    font-size: 0.85em;
   }
   
-  .pos-2 {
-    right: 5px !important;
+  .pos-2, .pos-3 {
+    right: 10px !important;
   }
   
-  .pos-5 {
-    left: 5px !important;
+  .pos-5, .pos-6 {
+    left: 10px !important;
   }
   
   .controls {
@@ -756,7 +766,7 @@ body {
 
 <script>
 // =============================================
-// SISTEMA DE POKER - LÓGICA COMPLETA
+// SISTEMA DE POKER - 6 POSIÇÕES + FLUXO COMPLETO
 // =============================================
 let tournamentId = null;
 let tournamentData = null;
@@ -857,6 +867,7 @@ function initializeInterface() {
     
     const players = tournamentData.players || [];
     
+    // APENAS JOGADORES INSCRITOS APARECEM
     players.forEach((player, index) => {
         if (index < 6) {
             const pos = positionMap[index];
@@ -1116,7 +1127,7 @@ function handlePhaseChange() {
 }
 
 // =============================================
-// 4. CONTROLE DE TURNO - LÓGICA POKER COMPLETA
+// 4. CONTROLE DE TURNO - FLUXO COMPLETO
 // =============================================
 function checkMyTurn() {
     if (!tournamentData || !tournamentData.currentPlayerTurn) {
@@ -1259,7 +1270,7 @@ async function updateCurrentTurn(playerId) {
 }
 
 // =============================================
-// 5. AÇÕES DO JOGADOR - LÓGICA POKER CORRETA
+// 5. AÇÕES DO JOGADOR - FLUXO EM TEMPO REAL
 // =============================================
 async function playerAction(action) {
     if (!isMyTurn()) {
@@ -1296,6 +1307,7 @@ async function playerAction(action) {
                     isActionProcessing = false;
                     return;
                 }
+                showNotification('✅ Check - Vez passada!', 'success');
                 break;
                 
             case 'call':
@@ -1308,6 +1320,9 @@ async function playerAction(action) {
                 if (callAmount > myChips) {
                     // All-in automaticamente
                     action = 'allin';
+                    showNotification('💰 All-in automático!', 'info');
+                } else {
+                    showNotification(`💰 Call ${callAmount} - Vez passada!`, 'success');
                 }
                 break;
                 
@@ -1328,6 +1343,15 @@ async function playerAction(action) {
                     isActionProcessing = false;
                     return;
                 }
+                showNotification(`💰 Raise ${amount} - Vez passada!`, 'success');
+                break;
+                
+            case 'fold':
+                showNotification('🗑️ Fold - Vez passada!', 'info');
+                break;
+                
+            case 'allin':
+                showNotification('💰 All-in - Vez passada!', 'info');
                 break;
         }
         
@@ -1683,7 +1707,7 @@ window.addEventListener('beforeunload', () => {
     stopActionTimer();
 });
 
-console.log('🎮 Sistema de Torneio de Poker - Lógica Completa carregado!');
+console.log('🎮 Sistema de Torneio de Poker - 6 Posições + Fluxo Completo carregado!');
 </script>
 </body>
 </html>
