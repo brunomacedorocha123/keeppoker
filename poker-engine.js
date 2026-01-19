@@ -1,5 +1,4 @@
-// poker-engine.js - Sistema COMPLETO de Texas Hold'em Poker
-
+// poker-engine.js - Sistema COMPLETO de Texas Hold'em
 const POKER_HANDS = {
     ROYAL_FLUSH: { value: 10, name: 'Royal Flush' },
     STRAIGHT_FLUSH: { value: 9, name: 'Straight Flush' },
@@ -63,10 +62,8 @@ class PokerDeck {
         this.cards = [];
         this.burnedCards = [];
         this.usedCards = [];
-        
         const suits = Object.keys(SUITS);
         const ranks = Object.keys(RANKS);
-        
         for (let suit of suits) {
             for (let rank of ranks) {
                 this.cards.push(new PokerCard(suit, rank));
@@ -77,14 +74,12 @@ class PokerDeck {
     
     shuffle() {
         let currentIndex = this.cards.length;
-        
         while (currentIndex !== 0) {
             const randomIndex = Math.floor(Math.random() * currentIndex);
             currentIndex--;
             [this.cards[currentIndex], this.cards[randomIndex]] = 
             [this.cards[randomIndex], this.cards[currentIndex]];
         }
-        
         return this.cards;
     }
     
@@ -92,7 +87,6 @@ class PokerDeck {
         if (count > this.cards.length) {
             throw new Error(`Baralho insuficiente`);
         }
-        
         const dealtCards = this.cards.splice(0, count);
         this.usedCards.push(...dealtCards);
         return dealtCards;
@@ -100,7 +94,6 @@ class PokerDeck {
     
     burnCard() {
         if (this.cards.length === 0) return null;
-        
         const burnedCard = this.deal(1)[0];
         this.burnedCards.push(burnedCard);
         return burnedCard;
@@ -128,72 +121,61 @@ class HandEvaluator {
         if (this.handCache.has(cacheKey)) {
             return this.handCache.get(cacheKey);
         }
-        
         const allCards = [...hand, ...community];
-        
         let result = this.checkRoyalFlush(allCards);
         if (result) {
             result = this.finalizeResult(result, POKER_HANDS.ROYAL_FLUSH);
             this.handCache.set(cacheKey, result);
             return result;
         }
-        
         result = this.checkStraightFlush(allCards);
         if (result) {
             result = this.finalizeResult(result, POKER_HANDS.STRAIGHT_FLUSH);
             this.handCache.set(cacheKey, result);
             return result;
         }
-        
         result = this.checkFourOfAKind(allCards);
         if (result) {
             result = this.finalizeResult(result, POKER_HANDS.FOUR_OF_A_KIND);
             this.handCache.set(cacheKey, result);
             return result;
         }
-        
         result = this.checkFullHouse(allCards);
         if (result) {
             result = this.finalizeResult(result, POKER_HANDS.FULL_HOUSE);
             this.handCache.set(cacheKey, result);
             return result;
         }
-        
         result = this.checkFlush(allCards);
         if (result) {
             result = this.finalizeResult(result, POKER_HANDS.FLUSH);
             this.handCache.set(cacheKey, result);
             return result;
         }
-        
         result = this.checkStraight(allCards);
         if (result) {
             result = this.finalizeResult(result, POKER_HANDS.STRAIGHT);
             this.handCache.set(cacheKey, result);
             return result;
         }
-        
         result = this.checkThreeOfAKind(allCards);
         if (result) {
             result = this.finalizeResult(result, POKER_HANDS.THREE_OF_A_KIND);
             this.handCache.set(cacheKey, result);
             return result;
         }
-        
         result = this.checkTwoPair(allCards);
         if (result) {
             result = this.finalizeResult(result, POKER_HANDS.TWO_PAIR);
             this.handCache.set(cacheKey, result);
             return result;
         }
-        
         result = this.checkOnePair(allCards);
         if (result) {
             result = this.finalizeResult(result, POKER_HANDS.ONE_PAIR);
             this.handCache.set(cacheKey, result);
             return result;
         }
-        
         result = this.checkHighCard(allCards);
         result = this.finalizeResult(result, POKER_HANDS.HIGH_CARD);
         this.handCache.set(cacheKey, result);
@@ -203,12 +185,10 @@ class HandEvaluator {
     checkRoyalFlush(cards) {
         const straightFlush = this.checkStraightFlush(cards);
         if (!straightFlush) return null;
-        
         const values = straightFlush.map(c => c.value).sort((a, b) => a - b);
         const hasAce = values.includes(14);
         const hasTen = values.includes(10);
         const hasKing = values.includes(13);
-        
         if (hasAce && hasTen && hasKing && straightFlush.length === 5) {
             return straightFlush;
         }
@@ -221,7 +201,6 @@ class HandEvaluator {
             if (!suits[card.suit]) suits[card.suit] = [];
             suits[card.suit].push(card);
         });
-        
         for (let suit in suits) {
             if (suits[suit].length >= 5) {
                 const straight = this.checkStraight(suits[suit]);
@@ -235,14 +214,12 @@ class HandEvaluator {
     
     checkFourOfAKind(cards) {
         const groups = this.groupByValue(cards);
-        
         for (let value in groups) {
             if (groups[value].length >= 4) {
                 const four = groups[value].slice(0, 4);
                 const remaining = cards.filter(c => c.value !== parseInt(value))
                     .sort((a, b) => b.value - a.value);
                 const kicker = remaining[0];
-                
                 return [...four, kicker].slice(0, 5);
             }
         }
@@ -253,7 +230,6 @@ class HandEvaluator {
         const groups = this.groupByValue(cards);
         let threeOfAKind = null;
         let pair = null;
-        
         for (let value in groups) {
             if (groups[value].length >= 3) {
                 if (!threeOfAKind || parseInt(value) > threeOfAKind.value) {
@@ -264,9 +240,7 @@ class HandEvaluator {
                 }
             }
         }
-        
         if (!threeOfAKind) return null;
-        
         for (let value in groups) {
             const numValue = parseInt(value);
             if (groups[value].length >= 2 && numValue !== threeOfAKind.value) {
@@ -278,9 +252,7 @@ class HandEvaluator {
                 }
             }
         }
-        
         if (!pair) return null;
-        
         return [...threeOfAKind.cards, ...pair.cards];
     }
     
@@ -290,7 +262,6 @@ class HandEvaluator {
             if (!suits[card.suit]) suits[card.suit] = [];
             suits[card.suit].push(card);
         });
-        
         for (let suit in suits) {
             if (suits[suit].length >= 5) {
                 return suits[suit]
@@ -304,27 +275,23 @@ class HandEvaluator {
     checkStraight(cards) {
         const uniqueCards = [];
         const seen = new Set();
-        
         cards.sort((a, b) => b.value - a.value).forEach(card => {
             if (!seen.has(card.value)) {
                 seen.add(card.value);
                 uniqueCards.push(card);
             }
         });
-        
         for (let i = 0; i <= uniqueCards.length - 5; i++) {
             const sequence = uniqueCards.slice(i, i + 5);
             if (this.isConsecutive(sequence.map(c => c.value))) {
                 return sequence;
             }
         }
-        
         const hasAce = uniqueCards.some(c => c.value === 14);
         const hasTwo = uniqueCards.some(c => c.value === 2);
         const hasThree = uniqueCards.some(c => c.value === 3);
         const hasFour = uniqueCards.some(c => c.value === 4);
         const hasFive = uniqueCards.some(c => c.value === 5);
-        
         if (hasAce && hasTwo && hasThree && hasFour && hasFive) {
             const lowStraight = [
                 uniqueCards.find(c => c.value === 14),
@@ -335,20 +302,17 @@ class HandEvaluator {
             ];
             return lowStraight.filter(c => c !== undefined);
         }
-        
         return null;
     }
     
     checkThreeOfAKind(cards) {
         const groups = this.groupByValue(cards);
-        
         for (let value in groups) {
             if (groups[value].length >= 3) {
                 const three = groups[value].slice(0, 3);
                 const remaining = cards.filter(c => c.value !== parseInt(value))
                     .sort((a, b) => b.value - a.value)
                     .slice(0, 2);
-                
                 return [...three, ...remaining];
             }
         }
@@ -358,7 +322,6 @@ class HandEvaluator {
     checkTwoPair(cards) {
         const groups = this.groupByValue(cards);
         const pairs = [];
-        
         for (let value in groups) {
             if (groups[value].length >= 2) {
                 pairs.push({
@@ -367,32 +330,26 @@ class HandEvaluator {
                 });
             }
         }
-        
         if (pairs.length >= 2) {
             pairs.sort((a, b) => b.value - a.value);
             const bestPairs = pairs.slice(0, 2);
-            
             const usedValues = bestPairs.map(p => p.value);
             const kicker = cards
                 .filter(c => !usedValues.includes(c.value))
                 .sort((a, b) => b.value - a.value)[0];
-            
             return [...bestPairs[0].cards, ...bestPairs[1].cards, kicker].slice(0, 5);
         }
-        
         return null;
     }
     
     checkOnePair(cards) {
         const groups = this.groupByValue(cards);
-        
         for (let value in groups) {
             if (groups[value].length >= 2) {
                 const pair = groups[value].slice(0, 2);
                 const remaining = cards.filter(c => c.value !== parseInt(value))
                     .sort((a, b) => b.value - a.value)
                     .slice(0, 3);
-                
                 return [...pair, ...remaining];
             }
         }
@@ -442,11 +399,9 @@ class HandEvaluator {
     calculateHandValue(cards, handRank) {
         let value = handRank * 1000000;
         cards.sort((a, b) => b.value - a.value);
-        
         for (let i = 0; i < cards.length; i++) {
             value += cards[i].value * Math.pow(14, 4 - i);
         }
-        
         return value;
     }
     
@@ -459,24 +414,19 @@ class HandEvaluator {
         if (hand1.rank !== hand2.rank) {
             return hand1.rank > hand2.rank ? 1 : -1;
         }
-        
         if (hand1.value !== hand2.value) {
             return hand1.value > hand2.value ? 1 : -1;
         }
-        
         const cards1 = hand1.cards.sort((a, b) => b.value - a.value);
         const cards2 = hand2.cards.sort((a, b) => b.value - a.value);
-        
         for (let i = 0; i < Math.min(cards1.length, cards2.length); i++) {
             if (cards1[i].value !== cards2[i].value) {
                 return cards1[i].value > cards2[i].value ? 1 : -1;
             }
         }
-        
         return 0;
     }
 }
-
 class PokerDealer {
     constructor(players, dealerPosition = 0) {
         this.players = players;
@@ -491,6 +441,7 @@ class PokerDealer {
         this.smallBlind = 50;
         this.bigBlind = 100;
         this.currentMaxBet = 0;
+        this.bettingRoundActive = true;
     }
     
     startNewHand() {
@@ -498,27 +449,24 @@ class PokerDealer {
         this.burnedCards = [];
         this.pot = 0;
         this.currentMaxBet = 0;
-        
+        this.bettingRoundActive = true;
         this.deck.reset();
         this.deck.shuffle();
-        
         this.dealPrivateCards();
         this.applyBlinds();
-        
         this.currentRound = 'preflop';
-        
         return this.getGameState();
     }
     
     dealPrivateCards() {
         for (let i = 0; i < this.players.length; i++) {
             const player = this.players[i];
-            
             if (player.isActive && player.chips > 0) {
                 player.cards = [];
                 player.bet = 0;
                 player.lastAction = null;
                 player.isAllIn = false;
+                player.hasActedThisRound = false;
             }
         }
         
@@ -528,7 +476,6 @@ class PokerDealer {
             for (let i = 0; i < this.players.length; i++) {
                 const playerIdx = (startPos + i) % this.players.length;
                 const player = this.players[playerIdx];
-                
                 if (player.isActive && player.chips > 0) {
                     const card = this.deck.deal(1)[0];
                     player.cards.push(card);
@@ -548,6 +495,7 @@ class PokerDealer {
             sbPlayer.chips -= blindAmount;
             this.pot += blindAmount;
             sbPlayer.lastAction = 'small blind';
+            sbPlayer.hasActedThisRound = true;
             this.currentMaxBet = Math.max(this.currentMaxBet, blindAmount);
         }
         
@@ -558,6 +506,7 @@ class PokerDealer {
             bbPlayer.chips -= blindAmount;
             this.pot += blindAmount;
             bbPlayer.lastAction = 'big blind';
+            bbPlayer.hasActedThisRound = true;
             this.currentMaxBet = Math.max(this.currentMaxBet, blindAmount);
         }
     }
@@ -567,10 +516,8 @@ class PokerDealer {
         const flopCards = this.deck.deal(3);
         this.communityCards = [...flopCards];
         this.currentRound = 'flop';
-        
-        this.resetPlayerActions();
+        this.resetPlayerActionsForNewRound();
         this.currentMaxBet = 0;
-        
         return {
             communityCards: this.communityCards,
             round: this.currentRound,
@@ -583,10 +530,8 @@ class PokerDealer {
         const turnCard = this.deck.deal(1)[0];
         this.communityCards.push(turnCard);
         this.currentRound = 'turn';
-        
-        this.resetPlayerActions();
+        this.resetPlayerActionsForNewRound();
         this.currentMaxBet = 0;
-        
         return {
             communityCards: this.communityCards,
             round: this.currentRound,
@@ -599,10 +544,8 @@ class PokerDealer {
         const riverCard = this.deck.deal(1)[0];
         this.communityCards.push(riverCard);
         this.currentRound = 'river';
-        
-        this.resetPlayerActions();
+        this.resetPlayerActionsForNewRound();
         this.currentMaxBet = 0;
-        
         return {
             communityCards: this.communityCards,
             round: this.currentRound,
@@ -610,11 +553,12 @@ class PokerDealer {
         };
     }
     
-    resetPlayerActions() {
+    resetPlayerActionsForNewRound() {
         this.players.forEach(player => {
             if (player.isActive && player.lastAction !== 'fold') {
                 player.lastAction = null;
                 player.bet = 0;
+                player.hasActedThisRound = false;
             }
         });
     }
@@ -633,6 +577,7 @@ class PokerDealer {
                 player.isActive = false;
                 player.lastAction = 'fold';
                 player.cards = [];
+                player.hasActedThisRound = true;
                 break;
                 
             case 'check':
@@ -640,47 +585,44 @@ class PokerDealer {
                     throw new Error('Não pode dar check com aposta para igualar');
                 }
                 player.lastAction = 'check';
+                player.hasActedThisRound = true;
                 break;
                 
             case 'call':
                 const callAmount = Math.max(0, this.currentMaxBet - playerBet);
                 if (callAmount > playerChips) {
-                    throw new Error('Fichas insuficientes para call');
+                    player.lastAction = 'allin';
+                    player.bet += playerChips;
+                    player.chips = 0;
+                    this.pot += playerChips;
+                    player.isAllIn = true;
+                    this.currentMaxBet = Math.max(this.currentMaxBet, player.bet);
+                } else {
+                    player.bet += callAmount;
+                    player.chips -= callAmount;
+                    this.pot += callAmount;
+                    player.lastAction = 'call';
                 }
-                player.bet += callAmount;
-                player.chips -= callAmount;
-                this.pot += callAmount;
-                player.lastAction = 'call';
+                player.hasActedThisRound = true;
                 break;
                 
             case 'bet':
-                if (amount <= 0) {
-                    throw new Error('Valor de aposta inválido');
-                }
-                if (amount > playerChips) {
-                    throw new Error('Fichas insuficientes');
-                }
-                if (this.currentMaxBet > 0) {
-                    throw new Error('Não pode fazer bet quando já há apostas');
-                }
+                if (amount <= 0) throw new Error('Valor de aposta inválido');
+                if (amount > playerChips) throw new Error('Fichas insuficientes');
+                if (this.currentMaxBet > 0) throw new Error('Não pode fazer bet quando já há apostas');
                 
                 player.bet = amount;
                 player.chips -= amount;
                 this.pot += amount;
                 this.currentMaxBet = amount;
                 player.lastAction = 'bet';
+                player.hasActedThisRound = true;
                 break;
                 
             case 'raise':
-                if (amount <= 0) {
-                    throw new Error('Valor de raise inválido');
-                }
-                if (amount > playerChips) {
-                    throw new Error('Fichas insuficientes');
-                }
-                if (amount <= this.currentMaxBet) {
-                    throw new Error('Raise deve ser maior que a aposta atual');
-                }
+                if (amount <= 0) throw new Error('Valor de raise inválido');
+                if (amount > playerChips) throw new Error('Fichas insuficientes');
+                if (amount <= this.currentMaxBet) throw new Error('Raise deve ser maior que a aposta atual');
                 
                 const totalBet = playerBet + amount;
                 player.bet = totalBet;
@@ -688,6 +630,7 @@ class PokerDealer {
                 this.pot += amount;
                 this.currentMaxBet = totalBet;
                 player.lastAction = 'raise';
+                player.hasActedThisRound = true;
                 break;
                 
             case 'allin':
@@ -698,6 +641,7 @@ class PokerDealer {
                 this.currentMaxBet = Math.max(this.currentMaxBet, player.bet);
                 player.lastAction = 'allin';
                 player.isAllIn = true;
+                player.hasActedThisRound = true;
                 break;
                 
             default:
@@ -728,10 +672,7 @@ class PokerDealer {
             p.isActive && p.cards && p.cards.length === 2
         );
         
-        if (activePlayers.length === 0) {
-            return [];
-        }
-        
+        if (activePlayers.length === 0) return [];
         if (activePlayers.length === 1) {
             const winner = activePlayers[0];
             return [{
@@ -782,37 +723,28 @@ class PokerDealer {
     
     isBettingRoundComplete() {
         const activePlayers = this.getActivePlayers();
+        if (activePlayers.length <= 1) return true;
         
-        if (activePlayers.length <= 1) {
-            return true;
-        }
-        
-        const playersToAct = activePlayers.filter(p => 
-            p.lastAction === null || 
-            (p.lastAction === 'check' && this.currentMaxBet === 0) ||
-            (p.lastAction === 'call' && p.bet < this.currentMaxBet)
+        const playersWhoNeedToAct = activePlayers.filter(p => 
+            !p.hasActedThisRound && 
+            !p.isAllIn && 
+            p.lastAction !== 'fold'
         );
         
-        if (playersToAct.length === 0) {
-            return true;
-        }
+        if (playersWhoNeedToAct.length > 0) return false;
         
-        const allBetsEqual = activePlayers.every(p => 
-            p.bet === this.currentMaxBet || 
+        const allBetsEqualized = activePlayers.every(p => 
+            p.isAllIn || 
             p.lastAction === 'fold' || 
-            p.isAllIn
+            p.bet === this.currentMaxBet
         );
         
-        return allBetsEqual;
+        return allBetsEqualized;
     }
     
-    getActivePlayers() {
-        return this.players.filter(p => p.isActive && p.chips > 0);
-    }
-    
-    getCurrentPlayerTurn() {
+    getNextPlayerToAct() {
         const activePlayers = this.getActivePlayers();
-        if (activePlayers.length === 0) return null;
+        if (activePlayers.length <= 1) return null;
         
         const dealerIndex = this.dealerPosition;
         let startIndex;
@@ -829,7 +761,9 @@ class PokerDealer {
             const player = this.players[index];
             
             if (player.isActive && 
-                player.lastAction === null && 
+                !player.hasActedThisRound && 
+                !player.isAllIn && 
+                player.lastAction !== 'fold' && 
                 player.chips > 0) {
                 return player;
             }
@@ -838,7 +772,12 @@ class PokerDealer {
         return null;
     }
     
+    getActivePlayers() {
+        return this.players.filter(p => p.isActive && p.chips > 0);
+    }
+    
     getGameState() {
+        const nextPlayer = this.getNextPlayerToAct();
         return {
             players: this.players.map(p => ({
                 userId: p.userId,
@@ -848,14 +787,17 @@ class PokerDealer {
                 isActive: p.isActive,
                 lastAction: p.lastAction,
                 cards: p.cards ? p.cards.map(c => c.toString()) : [],
-                isAllIn: p.isAllIn || false
+                isAllIn: p.isAllIn || false,
+                hasActedThisRound: p.hasActedThisRound || false
             })),
             communityCards: this.communityCards.map(c => c.toString()),
             pot: this.pot,
             round: this.currentRound,
             dealerPosition: this.dealerPosition,
             currentMaxBet: this.currentMaxBet,
-            activePlayers: this.getActivePlayers().length
+            activePlayers: this.getActivePlayers().length,
+            currentPlayerTurn: nextPlayer ? nextPlayer.userId : null,
+            bettingRoundComplete: this.isBettingRoundComplete()
         };
     }
     
@@ -865,7 +807,6 @@ class PokerDealer {
         this.pot = 0;
         this.currentMaxBet = 0;
         this.handHistory = [];
-        
         this.dealerPosition = (this.dealerPosition + 1) % this.players.length;
         
         this.players.forEach(player => {
@@ -873,10 +814,8 @@ class PokerDealer {
             player.bet = 0;
             player.lastAction = null;
             player.isAllIn = false;
-            
-            if (player.chips <= 0) {
-                player.isActive = false;
-            }
+            player.hasActedThisRound = false;
+            if (player.chips <= 0) player.isActive = false;
         });
         
         this.deck.restoreUsedCards();
@@ -914,7 +853,8 @@ class PokerGameEngine {
             cards: [],
             bet: 0,
             lastAction: null,
-            isAllIn: false
+            isAllIn: false,
+            hasActedThisRound: false
         }));
         
         this.dealer = new PokerDealer(preparedPlayers, 0);
@@ -934,7 +874,6 @@ class PokerGameEngine {
         }
         
         this.handNumber++;
-        
         const handResult = this.dealer.startNewHand();
         
         return {
@@ -958,7 +897,7 @@ class PokerGameEngine {
                 ...result,
                 gameState: this.dealer.getGameState(),
                 bettingRoundComplete: this.dealer.isBettingRoundComplete(),
-                nextPlayer: this.dealer.getCurrentPlayerTurn()
+                nextPlayer: this.dealer.getNextPlayerToAct()
             };
         } catch (error) {
             return {
@@ -974,27 +913,20 @@ class PokerGameEngine {
         switch (this.dealer.currentRound) {
             case 'preflop':
                 return this.dealer.dealFlop();
-                
             case 'flop':
                 return this.dealer.dealTurn();
-                
             case 'turn':
                 return this.dealer.dealRiver();
-                
             case 'river':
                 const winners = this.dealer.determineWinners();
-                
                 this.distributePrizes(winners);
-                
                 this.dealer.resetForNewHand();
-                
                 return {
                     round: 'showdown',
                     winners: winners,
                     potDistributed: true,
                     nextHandReady: true
                 };
-                
             default:
                 return null;
         }
@@ -1024,7 +956,6 @@ class PokerGameEngine {
     getCurrentBlinds() {
         const currentLevel = Math.min(this.blindLevel, this.blindStructure.length);
         const blindInfo = this.blindStructure[currentLevel - 1];
-        
         return {
             smallBlind: blindInfo.small,
             bigBlind: blindInfo.big,
@@ -1034,13 +965,9 @@ class PokerGameEngine {
     }
     
     getGameInfo() {
-        if (!this.dealer) {
-            return { gameState: 'not_initialized' };
-        }
-        
+        if (!this.dealer) return { gameState: 'not_initialized' };
         const state = this.dealer.getGameState();
         const blinds = this.getCurrentBlinds();
-        
         return {
             ...state,
             handNumber: this.handNumber,
@@ -1050,18 +977,14 @@ class PokerGameEngine {
             ante: blinds.ante,
             gameState: this.gameState,
             activePlayers: this.dealer.getActivePlayers().length,
-            totalPlayers: this.dealer.players.length,
-            currentPlayerTurn: this.dealer.getCurrentPlayerTurn()?.userId || null,
-            bettingRoundComplete: this.dealer.isBettingRoundComplete()
+            totalPlayers: this.dealer.players.length
         };
     }
     
     getPlayerInfo(playerId) {
         if (!this.dealer) return null;
-        
         const player = this.dealer.players.find(p => p.userId === playerId);
         if (!player) return null;
-        
         return {
             ...player,
             cards: player.cards ? player.cards.map(c => c.toString()) : [],
@@ -1082,6 +1005,6 @@ if (typeof window !== 'undefined') {
         HAND_RANKINGS: POKER_HANDS,
         SUITS,
         RANKS,
-        VERSION: '2.0.0'
+        VERSION: '3.0.0'
     };
 }
