@@ -10,15 +10,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     
-    <!-- Módulos do Poker (os 5 que criamos) -->
-    <script src="poker-engine/baralho-texas.js"></script>
-    <script src="poker-engine/jogador.js"></script>
-    <script src="poker-engine/pot.js"></script>
-    <script src="poker-engine/torneio.js"></script>
-    <script src="poker-engine/poker-manager.js"></script>
-    
-    <!-- SEU CSS ORIGINAL (mantenha igual) -->
-   <style>
+    <style>
         /* ===== CSS ORIGINAL DA MESA - NÃO MODIFICADO ===== */
         * {
             margin: 0;
@@ -739,13 +731,12 @@
     </style>
 </head>
 <body>
-    <!-- SEU HTML ORIGINAL (mantenha igual) -->
     <div class="header">
-        <div class="tournament-info" id="tournamentName">Torneio</div>
+        <div class="tournament-info" id="tournamentName">Torneio KeepPoker</div>
         <div class="game-stats">
             <div class="stat" id="blinds">50/100</div>
             <div class="stat" id="pot">Pote: 0</div>
-            <div class="stat" id="playersCount">1/6</div>
+            <div class="stat" id="playersCount">0/6</div>
         </div>
     </div>
 
@@ -767,22 +758,22 @@
     </div>
 
     <!-- 6 AVATARES -->
-    <div class="avatar-container pos-1" id="playerPos1">...</div>
-    <div class="avatar-container pos-2" id="playerPos2">...</div>
-    <div class="avatar-container pos-3" id="playerPos3">...</div>
-    <div class="avatar-container pos-4" id="playerPos4">...</div>
-    <div class="avatar-container pos-5" id="playerPos5">...</div>
-    <div class="avatar-container pos-6" id="playerPos6">...</div>
+    <div class="avatar-container pos-1" id="playerPos1"></div>
+    <div class="avatar-container pos-2" id="playerPos2"></div>
+    <div class="avatar-container pos-3" id="playerPos3"></div>
+    <div class="avatar-container pos-4" id="playerPos4"></div>
+    <div class="avatar-container pos-5" id="playerPos5"></div>
+    <div class="avatar-container pos-6" id="playerPos6"></div>
 
     <!-- CONTROLES -->
     <div class="controls-container">
         <div class="controls" id="playerControls">
             <div class="action-buttons" id="actionButtons">
                 <button class="action-btn btn-fold" id="btnFold">Fold</button>
-                <button class="action-btn btn-check" id="btnCheck" style="display: none;">Check</button>
-                <button class="action-btn btn-call" id="btnCall" style="display: none;">Call 0</button>
-                <button class="action-btn btn-raise" id="btnRaise" style="display: none;">Raise</button>
-                <button class="action-btn btn-allin" id="btnAllIn" style="display: none;">All-in</button>
+                <button class="action-btn btn-check" id="btnCheck">Check</button>
+                <button class="action-btn btn-call" id="btnCall">Call 0</button>
+                <button class="action-btn btn-raise" id="btnRaise">Raise</button>
+                <button class="action-btn btn-allin" id="btnAllIn">All-in</button>
             </div>
 
             <div class="bet-controls" id="raiseControls">
@@ -798,12 +789,3138 @@
         </div>
     </div>
 
+    <!-- SCRIPT PRINCIPAL -->
     <script>
         // =============================================
-        // SEU CÓDIGO ORIGINAL - ADAPTADO
+        // MÓDULOS DO POKER - INTEGRADOS GLOBALMENTE
         // =============================================
         
-        // 1. Firebase (mantenha igual)
+        // ============ MÓDULO BARALHO ============
+        const SUITS = {
+            HEARTS: { name: 'hearts', symbol: '♥', color: 'red' },
+            DIAMONDS: { name: 'diamonds', symbol: '♦', color: 'red' },
+            CLUBS: { name: 'clubs', symbol: '♣', color: 'black' },
+            SPADES: { name: 'spades', symbol: '♠', color: 'black' }
+        };
+
+        const RANKS = {
+            '2': { value: 2, symbol: '2' },
+            '3': { value: 3, symbol: '3' },
+            '4': { value: 4, symbol: '4' },
+            '5': { value: 5, symbol: '5' },
+            '6': { value: 6, symbol: '6' },
+            '7': { value: 7, symbol: '7' },
+            '8': { value: 8, symbol: '8' },
+            '9': { value: 9, symbol: '9' },
+            '10': { value: 10, symbol: '10' },
+            'J': { value: 11, symbol: 'J' },
+            'Q': { value: 12, symbol: 'Q' },
+            'K': { value: 13, symbol: 'K' },
+            'A': { value: 14, symbol: 'A' }
+        };
+
+        class PokerCard {
+            constructor(suit, rank) {
+                if (!SUITS[suit]) throw new Error(`Naipe inválido: ${suit}`);
+                if (!RANKS[rank]) throw new Error(`Valor inválido: ${rank}`);
+                
+                this.suit = suit;
+                this.rank = rank;
+                this.value = RANKS[rank].value;
+                this.symbol = SUITS[suit].symbol;
+                this.color = SUITS[suit].color;
+                this.display = rank + SUITS[suit].symbol;
+                this.id = `${rank}${suit.charAt(0)}`;
+                this.faceUp = false;
+            }
+            
+            toString() {
+                return this.display;
+            }
+            
+            flip() {
+                this.faceUp = !this.faceUp;
+                return this;
+            }
+            
+            isHigherThan(otherCard) {
+                return this.value > otherCard.value;
+            }
+            
+            isSameRank(otherCard) {
+                return this.value === otherCard.value;
+            }
+            
+            isSameSuit(otherCard) {
+                return this.suit === otherCard.suit;
+            }
+            
+            toJSON() {
+                return {
+                    suit: this.suit,
+                    rank: this.rank,
+                    display: this.display,
+                    value: this.value,
+                    id: this.id,
+                    faceUp: this.faceUp,
+                    color: this.color
+                };
+            }
+            
+            static fromString(cardString) {
+                const rankMatch = cardString.match(/^[0-9JQKA]+/);
+                const suitMatch = cardString.match(/[♥♦♣♠]$/);
+                
+                if (!rankMatch || !suitMatch) {
+                    throw new Error(`Formato de carta inválido: ${cardString}`);
+                }
+                
+                const rank = rankMatch[0];
+                const suitSymbol = suitMatch[0];
+                
+                let suit;
+                switch(suitSymbol) {
+                    case '♥': suit = 'HEARTS'; break;
+                    case '♦': suit = 'DIAMONDS'; break;
+                    case '♣': suit = 'CLUBS'; break;
+                    case '♠': suit = 'SPADES'; break;
+                    default: throw new Error(`Símbolo inválido: ${suitSymbol}`);
+                }
+                
+                return new PokerCard(suit, rank);
+            }
+            
+            static compare(cardA, cardB) {
+                return cardB.value - cardA.value;
+            }
+        }
+
+        class PokerDeck {
+            constructor() {
+                this.cards = [];
+                this.burnedCards = [];
+                this.usedCards = [];
+                this.reset();
+            }
+            
+            reset() {
+                console.log('♠️ Resetting deck...');
+                this.cards = [];
+                this.burnedCards = [];
+                this.usedCards = [];
+                
+                const suits = Object.keys(SUITS);
+                const ranks = Object.keys(RANKS);
+                
+                for (let suit of suits) {
+                    for (let rank of ranks) {
+                        this.cards.push(new PokerCard(suit, rank));
+                    }
+                }
+                
+                console.log(`✅ Deck reset: ${this.cards.length} cards`);
+                return this.cards;
+            }
+            
+            shuffle() {
+                console.log('🔀 Shuffling deck...');
+                let currentIndex = this.cards.length;
+                
+                while (currentIndex !== 0) {
+                    const randomIndex = Math.floor(Math.random() * currentIndex);
+                    currentIndex--;
+                    
+                    [this.cards[currentIndex], this.cards[randomIndex]] = 
+                    [this.cards[randomIndex], this.cards[currentIndex]];
+                }
+                
+                console.log(`✅ Deck shuffled: ${this.cards.length} cards`);
+                return this.cards;
+            }
+            
+            deal(count = 1, faceUp = false) {
+                if (this.cards.length < count) {
+                    console.warn(`⚠️ Not enough cards. Requested: ${count}, Available: ${this.cards.length}`);
+                    this.restoreUsedCards();
+                }
+                
+                const dealtCards = this.cards.splice(0, count);
+                
+                dealtCards.forEach(card => {
+                    card.faceUp = faceUp;
+                });
+                
+                this.usedCards.push(...dealtCards);
+                
+                console.log(`🃏 Dealt ${count} card(s): ${dealtCards.map(c => c.display).join(', ')}`);
+                return dealtCards;
+            }
+            
+            dealSpecific(cardIds, faceUp = false) {
+                const cards = [];
+                
+                for (const cardId of cardIds) {
+                    const index = this.cards.findIndex(c => c.id === cardId);
+                    if (index !== -1) {
+                        const card = this.cards.splice(index, 1)[0];
+                        card.faceUp = faceUp;
+                        cards.push(card);
+                    }
+                }
+                
+                if (cards.length > 0) {
+                    this.usedCards.push(...cards);
+                    console.log(`🃏 Dealt specific cards: ${cards.map(c => c.display).join(', ')}`);
+                }
+                
+                return cards;
+            }
+            
+            burnCard() {
+                if (this.cards.length === 0) {
+                    console.warn('⚠️ Trying to burn card with empty deck');
+                    return null;
+                }
+                
+                const burnedCard = this.deal(1, false)[0];
+                this.burnedCards.push(burnedCard);
+                
+                console.log(`🔥 Burned card: ${burnedCard.display}`);
+                return burnedCard;
+            }
+            
+            restoreUsedCards() {
+                console.log('🔄 Restoring used cards...');
+                
+                this.cards = [...this.cards, ...this.usedCards, ...this.burnedCards];
+                this.usedCards = [];
+                this.burnedCards = [];
+                
+                this.shuffle();
+                
+                console.log(`✅ Cards restored. Total: ${this.cards.length} cards`);
+                return this.cards;
+            }
+            
+            peek(count = 1) {
+                return this.cards.slice(0, count);
+            }
+            
+            getStats() {
+                return {
+                    remaining: this.cards.length,
+                    used: this.usedCards.length,
+                    burned: this.burnedCards.length,
+                    total: this.cards.length + this.usedCards.length + this.burnedCards.length
+                };
+            }
+            
+            toJSON() {
+                return {
+                    remainingCards: this.cards.map(c => c.toJSON()),
+                    usedCards: this.usedCards.map(c => c.toJSON()),
+                    burnedCards: this.burnedCards.map(c => c.toJSON())
+                };
+            }
+            
+            static fromJSON(jsonData) {
+                const deck = new PokerDeck();
+                deck.cards = jsonData.remainingCards.map(cardData => {
+                    const card = new PokerCard(cardData.suit, cardData.rank);
+                    card.faceUp = cardData.faceUp;
+                    return card;
+                });
+                deck.usedCards = jsonData.usedCards.map(cardData => {
+                    const card = new PokerCard(cardData.suit, cardData.rank);
+                    card.faceUp = cardData.faceUp;
+                    return card;
+                });
+                deck.burnedCards = jsonData.burnedCards.map(cardData => {
+                    const card = new PokerCard(cardData.suit, cardData.rank);
+                    card.faceUp = cardData.faceUp;
+                    return card;
+                });
+                return deck;
+            }
+        }
+
+        // ============ MÓDULO JOGADOR ============
+        class PokerPlayer {
+            constructor(userId, nickname, chips = 1500, position = 0, isBot = false) {
+                if (!userId) throw new Error('ID do jogador é obrigatório');
+                
+                this.userId = userId;
+                this.nickname = nickname || `Jogador_${userId.slice(-4)}`;
+                this.isBot = isBot;
+                this.avatar = this.generateAvatar();
+                
+                this.chips = Math.max(0, chips);
+                this.startingChips = this.chips;
+                this.bet = 0;
+                this.totalBetThisHand = 0;
+                this.lastBetAmount = 0;
+                
+                this.cards = [];
+                this.bestHand = null;
+                this.handRank = 0;
+                
+                this.position = position;
+                this.isActive = true;
+                this.isInHand = true;
+                this.isFolded = false;
+                this.isAllIn = false;
+                this.hasActedThisRound = false;
+                this.sittingOut = false;
+                this.isEliminated = false;
+                
+                this.isDealer = false;
+                this.isSmallBlind = false;
+                this.isBigBlind = false;
+                this.isCurrentTurn = false;
+                
+                this.lastAction = null;
+                this.lastActionAmount = 0;
+                this.actionHistory = [];
+                this.timeBank = 30;
+                this.timeRemaining = 30;
+                
+                this.connected = true;
+                this.lastSeen = new Date();
+                this.ping = 0;
+                
+                this.isWinner = false;
+                this.wonAmount = 0;
+                this.potWon = 0;
+                
+                this.stats = {
+                    handsPlayed: 0,
+                    handsWon: 0,
+                    totalProfit: 0,
+                    biggestPotWon: 0,
+                    biggestWin: 0,
+                    biggestLoss: 0,
+                    vpip: 0,
+                    pfr: 0,
+                    aggressionFactor: 0,
+                    folds: 0,
+                    checks: 0,
+                    calls: 0,
+                    bets: 0,
+                    raises: 0,
+                    allins: 0,
+                    showDowns: 0,
+                    showDownWins: 0
+                };
+                
+                if (isBot) {
+                    this.botPersonality = this.generateBotPersonality();
+                    this.botDifficulty = 'medium';
+                }
+            }
+            
+            resetForNewHand() {
+                this.cards = [];
+                this.bestHand = null;
+                this.handRank = 0;
+                this.bet = 0;
+                this.totalBetThisHand = 0;
+                this.lastBetAmount = 0;
+                this.lastAction = null;
+                this.lastActionAmount = 0;
+                this.isFolded = false;
+                this.isAllIn = false;
+                this.hasActedThisRound = false;
+                this.isCurrentTurn = false;
+                this.isWinner = false;
+                this.wonAmount = 0;
+                this.potWon = 0;
+                this.isInHand = true;
+                
+                if (this.chips <= 0) {
+                    this.isEliminated = true;
+                    this.isActive = false;
+                    this.isInHand = false;
+                }
+                
+                return this;
+            }
+            
+            dealCards(cards) {
+                if (!cards || !Array.isArray(cards)) {
+                    throw new Error('Cards deve ser um array');
+                }
+                if (cards.length !== 2) {
+                    throw new Error('Deve receber exatamente 2 cartas');
+                }
+                
+                this.cards = cards;
+                this.stats.handsPlayed++;
+                
+                console.log(`🃏 ${this.nickname} recebeu: ${cards.map(c => c.display).join(' ')}`);
+                return this;
+            }
+            
+            takeAction(action, amount = 0, gameState = {}) {
+                if (!this.canAct(gameState)) {
+                    throw new Error(`${this.nickname} não pode agir no momento`);
+                }
+                
+                const actionLower = action.toLowerCase();
+                this.lastAction = actionLower;
+                this.lastActionAmount = amount;
+                this.hasActedThisRound = true;
+                this.isCurrentTurn = false;
+                
+                let chipsAdded = 0;
+                let actionResult = { action: actionLower, amount: 0, success: true };
+                
+                switch(actionLower) {
+                    case 'fold':
+                        this.fold();
+                        break;
+                        
+                    case 'check':
+                        chipsAdded = this.check(gameState.currentMaxBet);
+                        break;
+                        
+                    case 'call':
+                        chipsAdded = this.call(gameState.currentMaxBet);
+                        break;
+                        
+                    case 'bet':
+                        chipsAdded = this.bet(amount, gameState.currentMaxBet);
+                        break;
+                        
+                    case 'raise':
+                        chipsAdded = this.raise(amount, gameState.currentMaxBet);
+                        break;
+                        
+                    case 'allin':
+                        chipsAdded = this.allIn();
+                        break;
+                        
+                    default:
+                        throw new Error(`Ação inválida: ${action}`);
+                }
+                
+                this.actionHistory.push({
+                    action: actionLower,
+                    amount: chipsAdded,
+                    round: gameState.currentRound,
+                    timestamp: new Date().toISOString(),
+                    position: this.position,
+                    chipsBefore: this.chips + chipsAdded,
+                    chipsAfter: this.chips
+                });
+                
+                this.updateStats(actionLower, chipsAdded);
+                
+                actionResult.amount = chipsAdded;
+                console.log(`🎯 ${this.nickname} ${actionLower}${chipsAdded > 0 ? ' ' + chipsAdded : ''}`);
+                
+                return actionResult;
+            }
+            
+            fold() {
+                this.isFolded = true;
+                this.isInHand = false;
+                this.bet = 0;
+                this.stats.folds++;
+                return 0;
+            }
+            
+            check(currentMaxBet) {
+                if (!this.canCheck(currentMaxBet)) {
+                    throw new Error('Não pode dar check, precisa igualar a aposta');
+                }
+                this.stats.checks++;
+                return 0;
+            }
+            
+            call(currentMaxBet) {
+                const callAmount = this.getCallAmount(currentMaxBet);
+                if (callAmount <= 0) {
+                    return this.check(currentMaxBet);
+                }
+                
+                const chipsAdded = this.addToBet(callAmount);
+                this.stats.calls++;
+                return chipsAdded;
+            }
+            
+            bet(amount, currentMaxBet) {
+                if (currentMaxBet > 0) {
+                    throw new Error('Não pode fazer bet quando já há apostas (use raise)');
+                }
+                if (amount <= 0) {
+                    throw new Error('Valor de bet inválido');
+                }
+                
+                const chipsAdded = this.addToBet(amount);
+                this.stats.bets++;
+                return chipsAdded;
+            }
+            
+            raise(amount, currentMaxBet) {
+                const minRaise = this.getMinRaise(currentMaxBet);
+                
+                if (amount < minRaise && this.chips >= minRaise) {
+                    throw new Error(`Raise mínimo: ${minRaise} (atual: ${amount})`);
+                }
+                
+                const chipsAdded = this.addToBet(amount);
+                this.stats.raises++;
+                return chipsAdded;
+            }
+            
+            allIn() {
+                const chipsAdded = this.addToBet(this.chips);
+                this.isAllIn = true;
+                this.stats.allins++;
+                return chipsAdded;
+            }
+            
+            addToBet(amount) {
+                if (amount <= 0) return 0;
+                
+                const actualAmount = Math.min(amount, this.chips);
+                
+                if (actualAmount <= 0) {
+                    console.warn(`${this.nickname} tentou apostar sem fichas`);
+                    return 0;
+                }
+                
+                this.chips -= actualAmount;
+                this.bet += actualAmount;
+                this.totalBetThisHand += actualAmount;
+                this.lastBetAmount = actualAmount;
+                
+                if (this.chips === 0) {
+                    this.isAllIn = true;
+                    console.log(`💎 ${this.nickname} está ALL-IN!`);
+                }
+                
+                return actualAmount;
+            }
+            
+            refundBet(amount) {
+                const refundAmount = Math.min(amount, this.bet);
+                this.chips += refundAmount;
+                this.bet -= refundAmount;
+                this.totalBetThisHand -= refundAmount;
+                return refundAmount;
+            }
+            
+            winChips(amount, potSize = 0) {
+                this.chips += amount;
+                this.wonAmount = amount;
+                this.potWon = potSize;
+                this.isWinner = true;
+                this.stats.totalProfit += amount;
+                this.stats.handsWon++;
+                
+                if (amount > this.stats.biggestWin) {
+                    this.stats.biggestWin = amount;
+                }
+                
+                if (potSize > this.stats.biggestPotWon) {
+                    this.stats.biggestPotWon = potSize;
+                }
+                
+                console.log(`💰 ${this.nickname} ganhou ${amount} fichas`);
+                return amount;
+            }
+            
+            canAct(gameState = {}) {
+                if (!this.isActive) return false;
+                if (this.isEliminated) return false;
+                if (!this.isInHand) return false;
+                if (this.isFolded) return false;
+                if (this.isAllIn) return false;
+                if (this.sittingOut) return false;
+                if (!this.connected) return false;
+                if (this.chips <= 0) return false;
+                
+                if (gameState.currentPlayerTurn === this.userId) {
+                    return true;
+                }
+                
+                return false;
+            }
+            
+            canCheck(currentMaxBet) {
+                return this.bet >= currentMaxBet;
+            }
+            
+            getCallAmount(currentMaxBet) {
+                return Math.max(0, currentMaxBet - this.bet);
+            }
+            
+            getMinRaise(currentMaxBet) {
+                if (currentMaxBet === 0) return 0;
+                
+                const difference = currentMaxBet - this.bet;
+                return Math.max(currentMaxBet + difference, currentMaxBet * 2);
+            }
+            
+            canRaise(currentMaxBet) {
+                if (this.isAllIn) return false;
+                if (this.chips <= 0) return false;
+                
+                const minRaise = this.getMinRaise(currentMaxBet);
+                const callAmount = this.getCallAmount(currentMaxBet);
+                
+                return this.chips > callAmount && this.chips >= minRaise;
+            }
+            
+            updateStats(action, chipsAdded = 0) {
+                if (['bet', 'raise', 'call', 'allin'].includes(action) && chipsAdded > 0) {
+                    this.stats.vpip = ((this.stats.handsPlayed * this.stats.vpip) + 1) / 
+                                     (this.stats.handsPlayed + 1);
+                }
+                
+                if (action === 'raise' && chipsAdded > 0) {
+                    this.stats.pfr = ((this.stats.handsPlayed * this.stats.pfr) + 1) / 
+                                    (this.stats.handsPlayed + 1);
+                }
+                
+                const aggressiveActions = ['bet', 'raise', 'allin'].filter(a => a === action).length;
+                const passiveActions = ['check', 'call', 'fold'].filter(a => a === action).length;
+                
+                if (passiveActions > 0) {
+                    this.stats.aggressionFactor = aggressiveActions / passiveActions;
+                }
+            }
+            
+            getROI() {
+                if (this.stats.handsPlayed === 0) return 0;
+                return (this.stats.totalProfit / (this.stats.handsPlayed * this.startingChips)) * 100;
+            }
+            
+            getWinRate() {
+                if (this.stats.handsPlayed === 0) return 0;
+                return (this.stats.handsWon / this.stats.handsPlayed) * 100;
+            }
+            
+            generateBotPersonality() {
+                const personalities = ['tight', 'loose', 'aggressive', 'passive', 'balanced'];
+                const randomPersonality = personalities[Math.floor(Math.random() * personalities.length)];
+                
+                return {
+                    type: randomPersonality,
+                    bluffFrequency: Math.random() * 0.3,
+                    callFrequency: 0.5 + Math.random() * 0.3,
+                    raiseFrequency: 0.1 + Math.random() * 0.2,
+                    patience: Math.random() * 0.8 + 0.2,
+                    riskTolerance: Math.random()
+                };
+            }
+            
+            generateAvatar() {
+                const colors = [
+                    '#FF6B6B', '#4ECDC4', '#FFD166', '#06D6A0', 
+                    '#118AB2', '#EF476F', '#7209B7', '#F3722C'
+                ];
+                const color = colors[Math.floor(Math.random() * colors.length)];
+                const initial = this.nickname.charAt(0).toUpperCase();
+                
+                return {
+                    color: color,
+                    initial: initial,
+                    emoji: this.getRandomEmoji()
+                };
+            }
+            
+            getRandomEmoji() {
+                const emojis = ['😎', '🤠', '😏', '🧐', '😈', '🤖', '👑', '💎'];
+                return emojis[Math.floor(Math.random() * emojis.length)];
+            }
+            
+            toJSON() {
+                return {
+                    userId: this.userId,
+                    nickname: this.nickname,
+                    isBot: this.isBot,
+                    avatar: this.avatar,
+                    
+                    chips: this.chips,
+                    startingChips: this.startingChips,
+                    bet: this.bet,
+                    totalBetThisHand: this.totalBetThisHand,
+                    lastBetAmount: this.lastBetAmount,
+                    
+                    cards: this.cards.map(card => card?.toJSON?.() || card),
+                    bestHand: this.bestHand,
+                    handRank: this.handRank,
+                    
+                    position: this.position,
+                    isActive: this.isActive,
+                    isInHand: this.isInHand,
+                    isFolded: this.isFolded,
+                    isAllIn: this.isAllIn,
+                    hasActedThisRound: this.hasActedThisRound,
+                    sittingOut: this.sittingOut,
+                    isEliminated: this.isEliminated,
+                    
+                    isDealer: this.isDealer,
+                    isSmallBlind: this.isSmallBlind,
+                    isBigBlind: this.isBigBlind,
+                    isCurrentTurn: this.isCurrentTurn,
+                    
+                    lastAction: this.lastAction,
+                    lastActionAmount: this.lastActionAmount,
+                    actionHistory: this.actionHistory.slice(-10),
+                    timeRemaining: this.timeRemaining,
+                    
+                    connected: this.connected,
+                    lastSeen: this.lastSeen.toISOString(),
+                    ping: this.ping,
+                    
+                    isWinner: this.isWinner,
+                    wonAmount: this.wonAmount,
+                    potWon: this.potWon,
+                    
+                    stats: this.stats,
+                    
+                    botPersonality: this.botPersonality,
+                    botDifficulty: this.botDifficulty
+                };
+            }
+            
+            static fromJSON(jsonData, CardClass) {
+                const player = new PokerPlayer(
+                    jsonData.userId,
+                    jsonData.nickname,
+                    jsonData.chips,
+                    jsonData.position,
+                    jsonData.isBot
+                );
+                
+                Object.keys(jsonData).forEach(key => {
+                    if (key !== 'cards') {
+                        player[key] = jsonData[key];
+                    }
+                });
+                
+                if (jsonData.cards && CardClass) {
+                    player.cards = jsonData.cards.map(cardData => {
+                        if (typeof cardData === 'string') {
+                            return CardClass.fromString(cardData);
+                        } else if (cardData.suit && cardData.rank) {
+                            return new CardClass(cardData.suit, cardData.rank);
+                        }
+                        return cardData;
+                    });
+                }
+                
+                if (jsonData.lastSeen) {
+                    player.lastSeen = new Date(jsonData.lastSeen);
+                }
+                
+                return player;
+            }
+            
+            get isPlaying() {
+                return this.isActive && this.isInHand && !this.isFolded && !this.sittingOut;
+            }
+            
+            get canReceiveCards() {
+                return this.isActive && this.isInHand && this.chips > 0;
+            }
+            
+            get stackSize() {
+                return this.chips;
+            }
+            
+            get isShortStack() {
+                return this.chips < 20;
+            }
+            
+            get profit() {
+                return this.chips - this.startingChips;
+            }
+            
+            getDisplayInfo(showCards = false) {
+                return {
+                    name: this.nickname,
+                    chips: this.chips,
+                    bet: this.bet,
+                    position: this.position,
+                    status: this.getStatusText(),
+                    cards: showCards ? this.cards.map(c => c.display) : ['?', '?'],
+                    isTurn: this.isCurrentTurn,
+                    isDealer: this.isDealer,
+                    isSmallBlind: this.isSmallBlind,
+                    isBigBlind: this.isBigBlind,
+                    lastAction: this.lastAction,
+                    timeRemaining: this.timeRemaining
+                };
+            }
+            
+            getStatusText() {
+                if (this.isEliminated) return 'Eliminado';
+                if (this.sittingOut) return 'Ausente';
+                if (this.isFolded) return 'Desistiu';
+                if (this.isAllIn) return 'All-in';
+                if (!this.connected) return 'Desconectado';
+                if (this.isCurrentTurn) return 'Sua vez';
+                return 'Aguardando';
+            }
+            
+            startTurnTimer(seconds = 30) {
+                this.timeRemaining = seconds;
+                this.isCurrentTurn = true;
+                
+                console.log(`⏱️ ${this.nickname} tem ${seconds}s para agir`);
+                
+                return {
+                    startTime: new Date(),
+                    duration: seconds,
+                    playerId: this.userId
+                };
+            }
+            
+            stopTurnTimer() {
+                this.timeRemaining = 0;
+                this.isCurrentTurn = false;
+            }
+            
+            updateTimer() {
+                if (this.isCurrentTurn && this.timeRemaining > 0) {
+                    this.timeRemaining--;
+                    
+                    if (this.timeRemaining <= 5) {
+                        console.warn(`⚠️ ${this.nickname} tem apenas ${this.timeRemaining}s restantes!`);
+                    }
+                    
+                    return this.timeRemaining;
+                }
+                return 0;
+            }
+            
+            sitOut() {
+                this.sittingOut = true;
+                this.isInHand = false;
+                console.log(`💺 ${this.nickname} sentou fora`);
+            }
+            
+            sitIn() {
+                this.sittingOut = false;
+                this.isInHand = true;
+                console.log(`🎮 ${this.nickname} retornou ao jogo`);
+            }
+            
+            eliminate() {
+                this.isEliminated = true;
+                this.isActive = false;
+                this.isInHand = false;
+                this.chips = 0;
+                console.log(`☠️ ${this.nickname} foi eliminado`);
+            }
+            
+            reconnect() {
+                this.connected = true;
+                this.lastSeen = new Date();
+                console.log(`🔌 ${this.nickname} reconectou`);
+            }
+            
+            disconnect() {
+                this.connected = false;
+                this.lastSeen = new Date();
+                console.log(`📴 ${this.nickname} desconectou`);
+            }
+        }
+
+        class PlayerManager {
+            constructor(maxPlayers = 9) {
+                this.maxPlayers = maxPlayers;
+                this.players = [];
+                this.seats = Array(maxPlayers).fill(null);
+                this.playerMap = new Map();
+                this.activeCount = 0;
+                this.eliminatedCount = 0;
+                this.connectedCount = 0;
+            }
+            
+            addPlayer(userId, nickname, chips = 1500, isBot = false) {
+                if (this.players.length >= this.maxPlayers) {
+                    throw new Error(`Mesa cheia (max: ${this.maxPlayers})`);
+                }
+                
+                if (this.getPlayerById(userId)) {
+                    throw new Error('Jogador já está na mesa');
+                }
+                
+                const position = this.findAvailableSeat();
+                if (position === -1) {
+                    throw new Error('Nenhum assento disponível');
+                }
+                
+                const player = new PokerPlayer(userId, nickname, chips, position, isBot);
+                
+                this.players.push(player);
+                this.playerMap.set(userId, player);
+                this.seats[position] = userId;
+                this.activeCount++;
+                this.connectedCount++;
+                
+                console.log(`👤 ${nickname} entrou na posição ${position} com ${chips} fichas`);
+                
+                return player;
+            }
+            
+            removePlayer(userId) {
+                const player = this.getPlayerById(userId);
+                if (!player) return false;
+                
+                const index = this.players.findIndex(p => p.userId === userId);
+                if (index !== -1) {
+                    this.players.splice(index, 1);
+                }
+                
+                this.playerMap.delete(userId);
+                this.seats[player.position] = null;
+                
+                if (player.isActive) this.activeCount--;
+                if (player.connected) this.connectedCount--;
+                if (player.isEliminated) this.eliminatedCount--;
+                
+                console.log(`🚪 ${player.nickname} saiu da mesa`);
+                return true;
+            }
+            
+            getPlayerById(userId) {
+                return this.playerMap.get(userId);
+            }
+            
+            getPlayerByPosition(position) {
+                const userId = this.seats[position];
+                return userId ? this.getPlayerById(userId) : null;
+            }
+            
+            getPlayerByNickname(nickname) {
+                return this.players.find(p => p.nickname.toLowerCase() === nickname.toLowerCase());
+            }
+            
+            getActivePlayers() {
+                return this.players.filter(p => p.isActive && !p.sittingOut && p.chips > 0);
+            }
+            
+            getPlayersInHand() {
+                return this.players.filter(p => p.isInHand && !p.isFolded);
+            }
+            
+            getPlayersEligibleForCards() {
+                return this.players.filter(p => p.canReceiveCards);
+            }
+            
+            getConnectedPlayers() {
+                return this.players.filter(p => p.connected);
+            }
+            
+            getPlayersWhoCanAct(gameState) {
+                return this.players.filter(p => p.canAct(gameState));
+            }
+            
+            getAllInPlayers() {
+                return this.players.filter(p => p.isAllIn);
+            }
+            
+            findAvailableSeat() {
+                for (let i = 0; i < this.seats.length; i++) {
+                    if (this.seats[i] === null) {
+                        return i;
+                    }
+                }
+                return -1;
+            }
+            
+            changePlayerPosition(userId, newPosition) {
+                if (newPosition < 0 || newPosition >= this.maxPlayers) {
+                    throw new Error('Posição inválida');
+                }
+                
+                if (this.seats[newPosition] !== null) {
+                    throw new Error('Posição já ocupada');
+                }
+                
+                const player = this.getPlayerById(userId);
+                if (!player) return false;
+                
+                this.seats[player.position] = null;
+                
+                player.position = newPosition;
+                this.seats[newPosition] = userId;
+                
+                console.log(`🔄 ${player.nickname} mudou para posição ${newPosition}`);
+                return true;
+            }
+            
+            compactSeats() {
+                const activePlayers = this.getActivePlayers();
+                
+                activePlayers.sort((a, b) => a.position - b.position);
+                
+                this.seats.fill(null);
+                activePlayers.forEach((player, index) => {
+                    player.position = index;
+                    this.seats[index] = player.userId;
+                });
+                
+                console.log(`📦 Assentos compactados: ${activePlayers.length} jogadores ativos`);
+            }
+            
+            resetAllForNewHand() {
+                this.players.forEach(player => {
+                    player.resetForNewHand();
+                });
+                
+                console.log(`🔄 Todos os jogadores resetados para nova mão`);
+            }
+            
+            assignSpecialPositions(dealerPosition, smallBlind, bigBlind) {
+                this.players.forEach(player => {
+                    player.isDealer = (player.position === dealerPosition);
+                    player.isSmallBlind = (player.position === smallBlind);
+                    player.isBigBlind = (player.position === bigBlind);
+                });
+                
+                const dealer = this.getPlayerByPosition(dealerPosition);
+                const sb = this.getPlayerByPosition(smallBlind);
+                const bb = this.getPlayerByPosition(bigBlind);
+                
+                console.log(`👑 Dealer: ${dealer?.nickname}, SB: ${sb?.nickname}, BB: ${bb?.nickname}`);
+            }
+            
+            getPlayerOrder(startPosition = 0) {
+                const activePlayers = this.getActivePlayers();
+                
+                return [...activePlayers].sort((a, b) => {
+                    let aDist = (a.position - startPosition + this.maxPlayers) % this.maxPlayers;
+                    let bDist = (b.position - startPosition + this.maxPlayers) % this.maxPlayers;
+                    
+                    return aDist - bDist;
+                });
+            }
+            
+            getTableStats() {
+                const activePlayers = this.getActivePlayers();
+                const inHandPlayers = this.getPlayersInHand();
+                const connectedPlayers = this.getConnectedPlayers();
+                
+                return {
+                    totalPlayers: this.players.length,
+                    activePlayers: activePlayers.length,
+                    inHandPlayers: inHandPlayers.length,
+                    connectedPlayers: connectedPlayers.length,
+                    eliminatedPlayers: this.eliminatedCount,
+                    availableSeats: this.maxPlayers - this.players.length,
+                    averageStack: this.getAverageStack(),
+                    totalChips: this.getTotalChips(),
+                    biggestStack: this.getBiggestStack(),
+                    smallestStack: this.getSmallestStack()
+                };
+            }
+            
+            getAverageStack() {
+                const activePlayers = this.getActivePlayers();
+                if (activePlayers.length === 0) return 0;
+                
+                const total = activePlayers.reduce((sum, p) => sum + p.chips, 0);
+                return Math.floor(total / activePlayers.length);
+            }
+            
+            getTotalChips() {
+                return this.players.reduce((sum, p) => sum + p.chips, 0);
+            }
+            
+            getBiggestStack() {
+                const activePlayers = this.getActivePlayers();
+                if (activePlayers.length === 0) return { player: null, chips: 0 };
+                
+                const player = activePlayers.reduce((max, p) => p.chips > max.chips ? p : max, activePlayers[0]);
+                return { player: player.nickname, chips: player.chips };
+            }
+            
+            getSmallestStack() {
+                const activePlayers = this.getActivePlayers();
+                if (activePlayers.length === 0) return { player: null, chips: 0 };
+                
+                const player = activePlayers.reduce((min, p) => p.chips < min.chips ? p : min, activePlayers[0]);
+                return { player: player.nickname, chips: player.chips };
+            }
+            
+            toJSON() {
+                return {
+                    maxPlayers: this.maxPlayers,
+                    players: this.players.map(p => p.toJSON()),
+                    seats: this.seats,
+                    activeCount: this.activeCount,
+                    eliminatedCount: this.eliminatedCount,
+                    connectedCount: this.connectedCount,
+                    stats: this.getTableStats()
+                };
+            }
+            
+            static fromJSON(jsonData, CardClass) {
+                const manager = new PlayerManager(jsonData.maxPlayers);
+                
+                jsonData.players.forEach(playerData => {
+                    const player = PokerPlayer.fromJSON(playerData, CardClass);
+                    manager.players.push(player);
+                    manager.playerMap.set(player.userId, player);
+                });
+                
+                manager.seats = jsonData.seats;
+                manager.activeCount = jsonData.activeCount;
+                manager.eliminatedCount = jsonData.eliminatedCount;
+                manager.connectedCount = jsonData.connectedCount;
+                
+                return manager;
+            }
+            
+            isFull() {
+                return this.players.length >= this.maxPlayers;
+            }
+            
+            canStartGame(minPlayers = 2) {
+                const eligiblePlayers = this.getPlayersEligibleForCards();
+                return eligiblePlayers.length >= minPlayers;
+            }
+            
+            updateConnectionStatus(userId, isConnected) {
+                const player = this.getPlayerById(userId);
+                if (player) {
+                    player.connected = isConnected;
+                    player.lastSeen = new Date();
+                    
+                    if (isConnected) {
+                        this.connectedCount++;
+                        console.log(`🔗 ${player.nickname} conectado`);
+                    } else {
+                        this.connectedCount--;
+                        console.log(`🔌 ${player.nickname} desconectado`);
+                    }
+                }
+            }
+            
+            kickInactivePlayers(maxInactivityMinutes = 5) {
+                const now = new Date();
+                const kicked = [];
+                
+                this.players.forEach(player => {
+                    if (!player.connected && !player.isBot) {
+                        const minutesInactive = (now - new Date(player.lastSeen)) / (1000 * 60);
+                        
+                        if (minutesInactive > maxInactivityMinutes) {
+                            this.removePlayer(player.userId);
+                            kicked.push(player.nickname);
+                            console.log(`⏰ ${player.nickname} removido por inatividade`);
+                        }
+                    }
+                });
+                
+                return kicked;
+            }
+            
+            redistributeChips(chipsPerPlayer = 1500) {
+                this.players.forEach(player => {
+                    if (player.isActive && player.chips <= 0) {
+                        player.chips = chipsPerPlayer;
+                        player.startingChips = chipsPerPlayer;
+                        player.isEliminated = false;
+                        console.log(`🔄 ${player.nickname} recebeu ${chipsPerPlayer} fichas`);
+                    }
+                });
+            }
+        }
+
+        // ============ MÓDULO POTE ============
+        class PlayerContribution {
+            constructor(playerId, amount = 0) {
+                this.playerId = playerId;
+                this.amount = amount;
+                this.isEligible = true;
+                this.hasWon = false;
+                this.wonAmount = 0;
+                this.contributionsByRound = {
+                    preflop: 0,
+                    flop: 0,
+                    turn: 0,
+                    river: 0
+                };
+            }
+            
+            addContribution(amount, round) {
+                this.amount += amount;
+                if (this.contributionsByRound[round] !== undefined) {
+                    this.contributionsByRound[round] += amount;
+                }
+                return this.amount;
+            }
+            
+            reset() {
+                this.amount = 0;
+                this.isEligible = true;
+                this.hasWon = false;
+                this.wonAmount = 0;
+                Object.keys(this.contributionsByRound).forEach(round => {
+                    this.contributionsByRound[round] = 0;
+                });
+            }
+            
+            toJSON() {
+                return {
+                    playerId: this.playerId,
+                    amount: this.amount,
+                    isEligible: this.isEligible,
+                    hasWon: this.hasWon,
+                    wonAmount: this.wonAmount,
+                    contributionsByRound: { ...this.contributionsByRound }
+                };
+            }
+        }
+
+        class Pot {
+            constructor(id, level = 0) {
+                this.id = id;
+                this.level = level;
+                this.amount = 0;
+                this.playerContributions = new Map();
+                this.eligiblePlayers = new Set();
+                this.winners = [];
+                this.isDistributed = false;
+                this.isLocked = false;
+                this.createdAt = new Date();
+            }
+            
+            addPlayerContribution(playerId, amount, round = 'preflop') {
+                if (this.isLocked) {
+                    console.warn(`⚠️ Pot ${this.id} está bloqueado, não pode receber mais apostas`);
+                    return 0;
+                }
+                
+                let contribution = this.playerContributions.get(playerId);
+                
+                if (!contribution) {
+                    contribution = new PlayerContribution(playerId);
+                    this.playerContributions.set(playerId, contribution);
+                }
+                
+                const newAmount = contribution.addContribution(amount, round);
+                this.amount += amount;
+                
+                if (amount > 0) {
+                    this.eligiblePlayers.add(playerId);
+                }
+                
+                console.log(`💰 Pot ${this.id}: ${playerId} contribuiu ${amount} (total: ${this.amount})`);
+                return newAmount;
+            }
+            
+            removeEligiblePlayer(playerId) {
+                this.eligiblePlayers.delete(playerId);
+                
+                const contribution = this.playerContributions.get(playerId);
+                if (contribution) {
+                    contribution.isEligible = false;
+                }
+                
+                console.log(`🚫 ${playerId} removido da elegibilidade do pot ${this.id}`);
+                return true;
+            }
+            
+            isPlayerEligible(playerId) {
+                return this.eligiblePlayers.has(playerId);
+            }
+            
+            getPlayerContribution(playerId) {
+                const contribution = this.playerContributions.get(playerId);
+                return contribution ? contribution.amount : 0;
+            }
+            
+            getEligiblePlayers() {
+                return Array.from(this.eligiblePlayers);
+            }
+            
+            getEligiblePlayerCount() {
+                return this.eligiblePlayers.size;
+            }
+            
+            distributeToWinners(winnerPlayers, handEvaluations = {}) {
+                if (this.isDistributed) {
+                    console.warn(`⚠️ Pot ${this.id} já foi distribuído`);
+                    return [];
+                }
+                
+                if (this.amount <= 0) {
+                    console.warn(`⚠️ Pot ${this.id} está vazio`);
+                    return [];
+                }
+                
+                if (winnerPlayers.length === 0) {
+                    console.warn(`⚠️ Nenhum vencedor para pot ${this.id}`);
+                    return [];
+                }
+                
+                this.winners = [...winnerPlayers];
+                this.isDistributed = true;
+                this.isLocked = true;
+                
+                const distribution = this.calculateDistribution(winnerPlayers, handEvaluations);
+                
+                distribution.forEach(({ playerId, amount }) => {
+                    const contribution = this.playerContributions.get(playerId);
+                    if (contribution) {
+                        contribution.hasWon = true;
+                        contribution.wonAmount = amount;
+                    }
+                });
+                
+                console.log(`🏆 Pot ${this.id} distribuído: ${distribution.map(d => `${d.playerId}: ${d.amount}`).join(', ')}`);
+                return distribution;
+            }
+            
+            calculateDistribution(winnerPlayers, handEvaluations) {
+                const distribution = [];
+                const potAmount = this.amount;
+                
+                if (winnerPlayers.length === 1) {
+                    distribution.push({
+                        playerId: winnerPlayers[0],
+                        amount: potAmount,
+                        percentage: 100,
+                        isSoleWinner: true
+                    });
+                } else {
+                    const winnersCount = winnerPlayers.length;
+                    const baseAmount = Math.floor(potAmount / winnersCount);
+                    const remainder = potAmount % winnersCount;
+                    
+                    winnerPlayers.forEach((playerId, index) => {
+                        const amount = baseAmount + (index < remainder ? 1 : 0);
+                        const percentage = (amount / potAmount) * 100;
+                        
+                        distribution.push({
+                            playerId: playerId,
+                            amount: amount,
+                            percentage: percentage,
+                            isSoleWinner: false,
+                            handStrength: handEvaluations[playerId] || null
+                        });
+                    });
+                }
+                
+                return distribution;
+            }
+            
+            reset() {
+                this.amount = 0;
+                this.playerContributions.clear();
+                this.eligiblePlayers.clear();
+                this.winners = [];
+                this.isDistributed = false;
+                this.isLocked = false;
+                this.createdAt = new Date();
+            }
+            
+            toJSON() {
+                const contributions = {};
+                this.playerContributions.forEach((value, key) => {
+                    contributions[key] = value.toJSON();
+                });
+                
+                return {
+                    id: this.id,
+                    level: this.level,
+                    amount: this.amount,
+                    contributions: contributions,
+                    eligiblePlayers: Array.from(this.eligiblePlayers),
+                    winners: this.winners,
+                    isDistributed: this.isDistributed,
+                    isLocked: this.isLocked,
+                    createdAt: this.createdAt.toISOString(),
+                    eligiblePlayerCount: this.getEligiblePlayerCount(),
+                    averageContribution: this.getAverageContribution()
+                };
+            }
+            
+            getAverageContribution() {
+                if (this.playerContributions.size === 0) return 0;
+                const total = Array.from(this.playerContributions.values())
+                    .reduce((sum, contrib) => sum + contrib.amount, 0);
+                return total / this.playerContributions.size;
+            }
+            
+            getMaxContribution() {
+                let max = 0;
+                this.playerContributions.forEach(contrib => {
+                    if (contrib.amount > max) max = contrib.amount;
+                });
+                return max;
+            }
+            
+            getMinContribution() {
+                let min = Infinity;
+                this.playerContributions.forEach(contrib => {
+                    if (contrib.amount < min && contrib.amount > 0) min = contrib.amount;
+                });
+                return min === Infinity ? 0 : min;
+            }
+            
+            isActive() {
+                return !this.isLocked && !this.isDistributed;
+            }
+        }
+
+        class PotManager {
+            constructor() {
+                this.mainPot = new Pot('main', 0);
+                this.sidePots = [];
+                this.totalAmount = 0;
+                this.history = [];
+                this.currentRound = 'preflop';
+                this.isShowdown = false;
+                this.lastDistribution = null;
+            }
+            
+            addBet(playerId, amount, playerAllInAmount = Infinity) {
+                if (amount <= 0) return { added: 0, pots: [] };
+                
+                let remainingAmount = amount;
+                const potsAffected = [];
+                
+                const mainPotSpace = this.getPotSpaceForPlayer(playerId, this.mainPot, playerAllInAmount);
+                const amountToMain = Math.min(remainingAmount, mainPotSpace);
+                
+                if (amountToMain > 0) {
+                    this.mainPot.addPlayerContribution(playerId, amountToMain, this.currentRound);
+                    remainingAmount -= amountToMain;
+                    potsAffected.push({ potId: 'main', amount: amountToMain });
+                }
+                
+                for (const sidePot of this.sidePots) {
+                    if (remainingAmount <= 0) break;
+                    
+                    const potSpace = this.getPotSpaceForPlayer(playerId, sidePot, playerAllInAmount);
+                    const amountToSide = Math.min(remainingAmount, potSpace);
+                    
+                    if (amountToSide > 0) {
+                        sidePot.addPlayerContribution(playerId, amountToSide, this.currentRound);
+                        remainingAmount -= amountToSide;
+                        potsAffected.push({ potId: sidePot.id, amount: amountToSide });
+                    }
+                }
+                
+                while (remainingAmount > 0) {
+                    const newSidePot = this.createNewSidePot();
+                    const potSpace = this.getPotSpaceForPlayer(playerId, newSidePot, playerAllInAmount);
+                    const amountToNewPot = Math.min(remainingAmount, potSpace);
+                    
+                    if (amountToNewPot > 0) {
+                        newSidePot.addPlayerContribution(playerId, amountToNewPot, this.currentRound);
+                        remainingAmount -= amountToNewPot;
+                        potsAffected.push({ potId: newSidePot.id, amount: amountToNewPot });
+                        this.sidePots.push(newSidePot);
+                    }
+                }
+                
+                this.updateTotalAmount();
+                
+                console.log(`🎰 ${playerId} apostou ${amount}: ${potsAffected.map(p => `${p.potId}(${p.amount})`).join(', ')}`);
+                return {
+                    added: amount - remainingAmount,
+                    pots: potsAffected,
+                    totalAmount: this.totalAmount
+                };
+            }
+            
+            getPotSpaceForPlayer(playerId, pot, playerAllInAmount) {
+                if (playerAllInAmount <= 0) return 0;
+                
+                let maxContribution = 0;
+                pot.playerContributions.forEach(contrib => {
+                    if (contrib.amount > maxContribution) {
+                        maxContribution = contrib.amount;
+                    }
+                });
+                
+                const currentContribution = pot.getPlayerContribution(playerId) || 0;
+                
+                const spaceInPot = maxContribution - currentContribution;
+                const spaceByAllIn = playerAllInAmount - currentContribution;
+                
+                return Math.min(spaceInPot, spaceByAllIn);
+            }
+            
+            createNewSidePot() {
+                const sidePotNumber = this.sidePots.length + 1;
+                const sidePot = new Pot(`side-${sidePotNumber}`, sidePotNumber);
+                
+                let previousPot;
+                if (sidePotNumber === 1) {
+                    previousPot = this.mainPot;
+                } else {
+                    previousPot = this.sidePots[sidePotNumber - 2];
+                }
+                
+                previousPot.playerContributions.forEach((contrib, playerId) => {
+                    if (contrib.amount > 0) {
+                        sidePot.eligiblePlayers.add(playerId);
+                    }
+                });
+                
+                console.log(`🆕 Criado side pot ${sidePot.id}`);
+                return sidePot;
+            }
+            
+            playerFolds(playerId) {
+                this.mainPot.removeEligiblePlayer(playerId);
+                this.sidePots.forEach(pot => {
+                    pot.removeEligiblePlayer(playerId);
+                });
+                
+                console.log(`🎴 ${playerId} foldou - removido de todos os potes`);
+                return true;
+            }
+            
+            playerAllIn(playerId, allInAmount) {
+                console.log(`💎 ${playerId} all-in com ${allInAmount}`);
+                this.recalculateForAllIn(playerId, allInAmount);
+                return true;
+            }
+            
+            recalculateForAllIn(playerId, allInAmount) {
+                let totalContributed = 0;
+                
+                const mainContribution = this.mainPot.getPlayerContribution(playerId);
+                totalContributed += mainContribution;
+                
+                for (const sidePot of this.sidePots) {
+                    const contribution = sidePot.getPlayerContribution(playerId);
+                    
+                    if (totalContributed + contribution > allInAmount) {
+                        const excess = (totalContributed + contribution) - allInAmount;
+                        this.handleExcessContribution(sidePot, playerId, excess);
+                    }
+                    
+                    totalContributed += contribution;
+                }
+                
+                this.updateTotalAmount();
+            }
+            
+            handleExcessContribution(pot, playerId, excessAmount) {
+                if (excessAmount <= 0) return;
+                
+                const newSidePot = this.createNewSidePot();
+                console.log(`🔄 Movendo excesso de ${excessAmount} de ${playerId} para novo side pot`);
+            }
+            
+            distributeAllPots(winningPlayersByStrength, handEvaluations = {}) {
+                if (this.isShowdown) {
+                    console.warn('⚠️ Showdown já realizado');
+                    return this.lastDistribution;
+                }
+                
+                this.isShowdown = true;
+                const distribution = {
+                    timestamp: new Date().toISOString(),
+                    pots: [],
+                    totalDistributed: 0,
+                    winners: {}
+                };
+                
+                const allPots = [this.mainPot, ...this.sidePots];
+                
+                for (const pot of allPots) {
+                    if (pot.amount <= 0) continue;
+                    
+                    const eligibleWinners = winningPlayersByStrength.filter(playerId => 
+                        pot.isPlayerEligible(playerId)
+                    );
+                    
+                    if (eligibleWinners.length === 0) {
+                        console.warn(`⚠️ Nenhum vencedor elegível para pot ${pot.id}`);
+                        continue;
+                    }
+                    
+                    const potDistribution = pot.distributeToWinners(eligibleWinners, handEvaluations);
+                    
+                    potDistribution.forEach(({ playerId, amount }) => {
+                        if (!distribution.winners[playerId]) {
+                            distribution.winners[playerId] = 0;
+                        }
+                        distribution.winners[playerId] += amount;
+                        distribution.totalDistributed += amount;
+                    });
+                    
+                    distribution.pots.push({
+                        potId: pot.id,
+                        amount: pot.amount,
+                        distribution: potDistribution,
+                        eligibleWinners: eligibleWinners
+                    });
+                }
+                
+                this.lastDistribution = distribution;
+                this.saveToHistory(distribution);
+                
+                console.log(`🏆 Distribuição completa: ${JSON.stringify(distribution.winners)}`);
+                return distribution;
+            }
+            
+            saveToHistory(distribution) {
+                this.history.push({
+                    ...distribution,
+                    potsCount: this.sidePots.length + 1,
+                    totalAmount: this.totalAmount,
+                    mainPotAmount: this.mainPot.amount,
+                    sidePotsAmount: this.sidePots.reduce((sum, pot) => sum + pot.amount, 0)
+                });
+                
+                if (this.history.length > 100) {
+                    this.history.shift();
+                }
+            }
+            
+            updateTotalAmount() {
+                let total = this.mainPot.amount;
+                this.sidePots.forEach(pot => {
+                    total += pot.amount;
+                });
+                this.totalAmount = total;
+                return total;
+            }
+            
+            advanceRound(newRound) {
+                if (!['preflop', 'flop', 'turn', 'river'].includes(newRound)) {
+                    throw new Error(`Rodada inválida: ${newRound}`);
+                }
+                
+                this.currentRound = newRound;
+                console.log(`🔄 Avançando para rodada: ${newRound}`);
+                return this.currentRound;
+            }
+            
+            resetForNewHand() {
+                this.mainPot.reset();
+                this.sidePots = [];
+                this.totalAmount = 0;
+                this.isShowdown = false;
+                this.currentRound = 'preflop';
+                this.lastDistribution = null;
+                
+                console.log('🔄 PotManager resetado para nova mão');
+                return this;
+            }
+            
+            getAllPots() {
+                return [this.mainPot, ...this.sidePots];
+            }
+            
+            getActivePots() {
+                return this.getAllPots().filter(pot => !pot.isDistributed);
+            }
+            
+            getDistributedPots() {
+                return this.getAllPots().filter(pot => pot.isDistributed);
+            }
+            
+            getSidePotCount() {
+                return this.sidePots.length;
+            }
+            
+            getLargestPot() {
+                const allPots = this.getAllPots();
+                if (allPots.length === 0) return null;
+                
+                return allPots.reduce((largest, current) => {
+                    return current.amount > largest.amount ? current : largest;
+                });
+            }
+            
+            getPotStats() {
+                const allPots = this.getAllPots();
+                
+                return {
+                    totalPots: allPots.length,
+                    totalAmount: this.totalAmount,
+                    mainPotAmount: this.mainPot.amount,
+                    sidePotsCount: this.sidePots.length,
+                    sidePotsTotal: this.sidePots.reduce((sum, pot) => sum + pot.amount, 0),
+                    averagePotSize: allPots.length > 0 ? this.totalAmount / allPots.length : 0,
+                    largestPot: this.getLargestPot()?.amount || 0,
+                    smallestPot: allPots.length > 0 ? Math.min(...allPots.map(p => p.amount)) : 0,
+                    distributedPots: this.getDistributedPots().length,
+                    activePots: this.getActivePots().length,
+                    historyCount: this.history.length
+                };
+            }
+            
+            getPlayerTotalContribution(playerId) {
+                let total = 0;
+                
+                total += this.mainPot.getPlayerContribution(playerId);
+                this.sidePots.forEach(pot => {
+                    total += pot.getPlayerContribution(playerId);
+                });
+                
+                return total;
+            }
+            
+            getPlayerMaxWin(playerId) {
+                let maxWin = 0;
+                
+                const allPots = this.getAllPots();
+                allPots.forEach(pot => {
+                    if (pot.isPlayerEligible(playerId)) {
+                        if (pot.getEligiblePlayerCount() === 1) {
+                            maxWin += pot.amount;
+                        } else {
+                            maxWin += Math.floor(pot.amount / pot.getEligiblePlayerCount());
+                        }
+                    }
+                });
+                
+                return maxWin;
+            }
+            
+            toJSON() {
+                return {
+                    mainPot: this.mainPot.toJSON(),
+                    sidePots: this.sidePots.map(pot => pot.toJSON()),
+                    totalAmount: this.totalAmount,
+                    currentRound: this.currentRound,
+                    isShowdown: this.isShowdown,
+                    lastDistribution: this.lastDistribution,
+                    potStats: this.getPotStats(),
+                    historyCount: this.history.length
+                };
+            }
+            
+            static fromJSON(jsonData) {
+                const manager = new PotManager();
+                
+                manager.mainPot = Object.assign(new Pot('main', 0), jsonData.mainPot);
+                
+                manager.mainPot.playerContributions = new Map();
+                Object.entries(jsonData.mainPot.contributions || {}).forEach(([playerId, contribData]) => {
+                    const contrib = new PlayerContribution(playerId);
+                    Object.assign(contrib, contribData);
+                    manager.mainPot.playerContributions.set(playerId, contrib);
+                });
+                
+                manager.mainPot.eligiblePlayers = new Set(jsonData.mainPot.eligiblePlayers || []);
+                
+                manager.sidePots = (jsonData.sidePots || []).map(potData => {
+                    const pot = new Pot(potData.id, potData.level);
+                    Object.assign(pot, potData);
+                    
+                    pot.playerContributions = new Map();
+                    Object.entries(potData.contributions || {}).forEach(([playerId, contribData]) => {
+                        const contrib = new PlayerContribution(playerId);
+                        Object.assign(contrib, contribData);
+                        pot.playerContributions.set(playerId, contrib);
+                    });
+                    
+                    pot.eligiblePlayers = new Set(potData.eligiblePlayers || []);
+                    
+                    return pot;
+                });
+                
+                manager.totalAmount = jsonData.totalAmount || 0;
+                manager.currentRound = jsonData.currentRound || 'preflop';
+                manager.isShowdown = jsonData.isShowdown || false;
+                manager.lastDistribution = jsonData.lastDistribution || null;
+                manager.history = jsonData.history || [];
+                
+                return manager;
+            }
+        }
+
+        // ============ MÓDULO HAND EVALUATOR SIMPLES ============
+        class HandEvaluator {
+            evaluate(playerCards, communityCards) {
+                console.log('🃏 Avaliando mão...');
+                
+                return {
+                    rank: 1,
+                    value: 1000 + Math.random() * 9000,
+                    hand: 'High Card',
+                    cards: [...playerCards, ...communityCards].slice(0, 5),
+                    description: 'Mão de teste'
+                };
+            }
+            
+            compareHands(handA, handB) {
+                return handB.value - handA.value;
+            }
+        }
+
+        // ============ MÓDULO POKER MANAGER ============
+        const GAME_STATES = {
+            LOBBY: 'lobby',
+            STARTING: 'starting',
+            PREFLOP: 'preflop',
+            FLOP: 'flop',
+            TURN: 'turn',
+            RIVER: 'river',
+            SHOWDOWN: 'showdown',
+            DISTRIBUTING: 'distributing',
+            BETWEEN_HANDS: 'between_hands',
+            PAUSED: 'paused',
+            FINISHED: 'finished'
+        };
+
+        const ACTION_TYPES = {
+            FOLD: 'fold',
+            CHECK: 'check',
+            CALL: 'call',
+            BET: 'bet',
+            RAISE: 'raise',
+            ALL_IN: 'allin',
+            TIMEOUT: 'timeout'
+        };
+
+        class PokerGameManager {
+            constructor(config = {}) {
+                this.gameId = config.gameId || `game_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+                this.name = config.name || 'Mesa de Poker';
+                this.gameType = config.gameType || 'tournament';
+                this.maxPlayers = config.maxPlayers || 9;
+                this.minPlayers = config.minPlayers || 2;
+                this.startingStack = config.startingStack || 1500;
+                this.smallBlind = config.smallBlind || 10;
+                this.bigBlind = config.bigBlind || 20;
+                this.ante = config.ante || 0;
+                this.actionTime = config.actionTime || 30;
+                this.isPrivate = config.isPrivate || false;
+                this.password = config.password || null;
+                
+                this.state = GAME_STATES.LOBBY;
+                this.currentRound = 'preflop';
+                this.handNumber = 0;
+                this.dealerPosition = 0;
+                this.smallBlindPosition = 0;
+                this.bigBlindPosition = 0;
+                this.currentPlayerTurn = null;
+                this.currentMaxBet = 0;
+                this.lastRaiseAmount = 0;
+                this.lastAction = null;
+                
+                this.deck = null;
+                this.playerManager = null;
+                this.potManager = null;
+                this.tournament = null;
+                this.handEvaluator = null;
+                
+                this.actionTimer = null;
+                this.actionTimeRemaining = this.actionTime;
+                this.handStartTime = null;
+                this.roundStartTime = null;
+                this.isPaused = false;
+                this.pauseStartTime = null;
+                this.totalPauseTime = 0;
+                
+                this.eventListeners = new Map();
+                this.messageQueue = [];
+                this.broadcastEnabled = true;
+                
+                this.stats = {
+                    totalHands: 0,
+                    totalPots: 0,
+                    biggestPot: 0,
+                    averagePot: 0,
+                    fastestHand: null,
+                    mostActivePlayer: null,
+                    playersJoined: 0,
+                    playersLeft: 0
+                };
+                
+                this.handHistory = [];
+                this.actionHistory = [];
+                this.chatHistory = [];
+                this.errorLog = [];
+                
+                this.settings = {
+                    autoMuckLosingHands: true,
+                    showWinningHand: true,
+                    allowChat: true,
+                    allowEmotes: true,
+                    allowTimeBank: true,
+                    timeBankSeconds: 30,
+                    maxTimeBanks: 3,
+                    minRaise: 'pot',
+                    allowStraddle: false,
+                    allowRunningItTwice: false,
+                    rabbitHunt: false
+                };
+                
+                this.initialized = false;
+                
+                console.log(`🎮 PokerGameManager criado: ${this.name} (${this.gameId})`);
+            }
+            
+            async initialize() {
+                if (this.initialized) {
+                    console.warn('⚠️ Jogo já inicializado');
+                    return false;
+                }
+                
+                try {
+                    console.log('🔄 Inicializando PokerGameManager...');
+                    
+                    this.initializeModules();
+                    this.setupEventListeners();
+                    this.resetGameState();
+                    
+                    this.initialized = true;
+                    
+                    console.log('✅ PokerGameManager inicializado com sucesso');
+                    this.emit('game_initialized', { gameId: this.gameId, name: this.name });
+                    
+                    return true;
+                    
+                } catch (error) {
+                    console.error('❌ Erro na inicialização:', error);
+                    this.logError('initialize_failed', error);
+                    return false;
+                }
+            }
+            
+            initializeModules() {
+                this.deck = new PokerDeck();
+                this.deck.reset();
+                this.deck.shuffle();
+                
+                this.playerManager = new PlayerManager(this.maxPlayers);
+                
+                this.potManager = new PotManager();
+                
+                this.handEvaluator = new HandEvaluator();
+                
+                console.log('📦 Módulos inicializados');
+            }
+            
+            setupEventListeners() {
+                this.on('action_timer_tick', (data) => {
+                    this.handleActionTimer(data);
+                });
+                
+                this.on('player_action', (data) => {
+                    this.handlePlayerAction(data);
+                });
+                
+                this.on('system_pause', () => {
+                    this.pauseGame();
+                });
+                
+                this.on('system_resume', () => {
+                    this.resumeGame();
+                });
+                
+                console.log('🎯 Listeners configurados');
+            }
+            
+            addPlayer(userId, nickname, chips = null, isBot = false) {
+                if (!this.initialized) {
+                    throw new Error('Jogo não inicializado');
+                }
+                
+                if (this.state !== GAME_STATES.LOBBY && this.state !== GAME_STATES.BETWEEN_HANDS) {
+                    throw new Error('Não é possível adicionar jogadores durante uma mão');
+                }
+                
+                if (this.playerManager.getPlayerById(userId)) {
+                    throw new Error('Jogador já está na mesa');
+                }
+                
+                const startingChips = chips !== null ? chips : this.startingStack;
+                
+                const player = this.playerManager.addPlayer(userId, nickname, startingChips, isBot);
+                
+                this.stats.playersJoined++;
+                
+                this.emit('player_joined', {
+                    playerId: userId,
+                    nickname: nickname,
+                    chips: startingChips,
+                    position: player.position,
+                    isBot: isBot,
+                    totalPlayers: this.playerManager.players.length
+                });
+                
+                console.log(`👤 ${nickname} entrou no jogo`);
+                
+                this.checkIfCanStart();
+                
+                return player;
+            }
+            
+            removePlayer(userId, reason = 'left') {
+                if (!this.playerManager.getPlayerById(userId)) {
+                    return false;
+                }
+                
+                const player = this.playerManager.getPlayerById(userId);
+                
+                if (this.state !== GAME_STATES.LOBBY && 
+                    this.state !== GAME_STATES.BETWEEN_HANDS &&
+                    this.state !== GAME_STATES.FINISHED) {
+                    
+                    this.forcePlayerFold(userId);
+                }
+                
+                this.playerManager.removePlayer(userId);
+                
+                this.stats.playersLeft++;
+                
+                this.emit('player_left', {
+                    playerId: userId,
+                    nickname: player?.nickname,
+                    reason: reason,
+                    totalPlayers: this.playerManager.players.length
+                });
+                
+                console.log(`🚪 ${player?.nickname || userId} saiu do jogo (${reason})`);
+                
+                this.checkIfGameShouldEnd();
+                
+                return true;
+            }
+            
+            forcePlayerFold(playerId) {
+                const player = this.playerManager.getPlayerById(playerId);
+                if (!player || !player.isInHand) return false;
+                
+                player.takeAction('fold', 0, { currentMaxBet: this.currentMaxBet });
+                
+                this.potManager.playerFolds(playerId);
+                
+                if (this.currentPlayerTurn === playerId) {
+                    this.advanceTurn();
+                }
+                
+                console.log(`⚡ ${player.nickname} foldou forçadamente`);
+                return true;
+            }
+            
+            checkIfCanStart() {
+                if (this.state !== GAME_STATES.LOBBY) return;
+                
+                const eligiblePlayers = this.playerManager.getPlayersEligibleForCards();
+                
+                if (eligiblePlayers.length >= this.minPlayers) {
+                    console.log(`✅ ${eligiblePlayers.length} jogadores prontos - pode iniciar`);
+                    this.emit('game_can_start', {
+                        playerCount: eligiblePlayers.length,
+                        minPlayers: this.minPlayers
+                    });
+                }
+            }
+            
+            startNewHand() {
+                if (!this.canStartNewHand()) {
+                    throw new Error('Não pode iniciar nova mão no momento');
+                }
+                
+                console.log(`🃏 Iniciando nova mão #${this.handNumber + 1}`);
+                
+                this.state = GAME_STATES.STARTING;
+                this.handNumber++;
+                this.handStartTime = new Date();
+                this.currentRound = 'preflop';
+                this.currentMaxBet = 0;
+                this.lastRaiseAmount = 0;
+                this.lastAction = null;
+                
+                this.emit('hand_starting', {
+                    handNumber: this.handNumber,
+                    dealerPosition: this.dealerPosition,
+                    playersInHand: this.playerManager.getPlayersInHand().length
+                });
+                
+                this.resetForNewHand();
+                this.assignPositions();
+                this.dealCards();
+                this.postBlinds();
+                this.determineFirstToAct();
+                
+                this.state = GAME_STATES.PREFLOP;
+                this.roundStartTime = new Date();
+                
+                console.log(`🚀 Mão #${this.handNumber} iniciada`);
+                
+                this.startActionTimer();
+                
+                this.emit('hand_started', this.getGameState());
+                
+                return this.getGameState();
+            }
+            
+            canStartNewHand() {
+                if (this.state !== GAME_STATES.LOBBY && 
+                    this.state !== GAME_STATES.BETWEEN_HANDS) {
+                    return false;
+                }
+                
+                const eligiblePlayers = this.playerManager.getPlayersEligibleForCards();
+                return eligiblePlayers.length >= this.minPlayers;
+            }
+            
+            resetForNewHand() {
+                this.deck.restoreUsedCards();
+                this.deck.shuffle();
+                
+                this.playerManager.resetAllForNewHand();
+                
+                this.potManager.resetForNewHand();
+                
+                this.currentMaxBet = 0;
+                this.lastRaiseAmount = 0;
+                this.lastAction = null;
+                
+                console.log('🔄 Estado resetado para nova mão');
+            }
+            
+            assignPositions() {
+                const activePlayers = this.playerManager.getActivePlayers();
+                if (activePlayers.length === 0) return;
+                
+                this.dealerPosition = (this.dealerPosition + 1) % activePlayers.length;
+                
+                this.smallBlindPosition = (this.dealerPosition + 1) % activePlayers.length;
+                this.bigBlindPosition = (this.dealerPosition + 2) % activePlayers.length;
+                
+                this.playerManager.assignSpecialPositions(
+                    this.dealerPosition,
+                    this.smallBlindPosition,
+                    this.bigBlindPosition
+                );
+                
+                console.log(`👑 Dealer: pos ${this.dealerPosition}, SB: ${this.smallBlindPosition}, BB: ${this.bigBlindPosition}`);
+            }
+            
+            dealCards() {
+                const players = this.playerManager.getPlayersEligibleForCards();
+                
+                players.forEach(player => {
+                    const cards = this.deck.deal(2, false);
+                    player.dealCards(cards);
+                    
+                    this.emitToPlayer(player.userId, 'cards_dealt', {
+                        cards: cards.map(c => c.display),
+                        handNumber: this.handNumber
+                    });
+                });
+                
+                console.log(`🃏 Cartas distribuídas para ${players.length} jogadores`);
+            }
+            
+            postBlinds() {
+                const activePlayers = this.playerManager.getActivePlayers();
+                
+                if (activePlayers[this.smallBlindPosition]) {
+                    const sbPlayer = activePlayers[this.smallBlindPosition];
+                    const sbAmount = Math.min(this.smallBlind, sbPlayer.chips);
+                    
+                    sbPlayer.addToBet(sbAmount);
+                    this.potManager.addBet(sbPlayer.userId, sbAmount);
+                    this.currentMaxBet = sbAmount;
+                    
+                    sbPlayer.lastAction = 'small blind';
+                    sbPlayer.hasActedThisRound = true;
+                    
+                    console.log(`💰 Small Blind: ${sbPlayer.nickname} apostou ${sbAmount}`);
+                }
+                
+                if (activePlayers[this.bigBlindPosition]) {
+                    const bbPlayer = activePlayers[this.bigBlindPosition];
+                    const bbAmount = Math.min(this.bigBlind, bbPlayer.chips);
+                    
+                    bbPlayer.addToBet(bbAmount);
+                    this.potManager.addBet(bbPlayer.userId, bbAmount);
+                    this.currentMaxBet = bbAmount;
+                    
+                    bbPlayer.lastAction = 'big blind';
+                    bbPlayer.hasActedThisRound = true;
+                    
+                    console.log(`💰 Big Blind: ${bbPlayer.nickname} apostou ${bbAmount}`);
+                }
+                
+                if (this.ante > 0) {
+                    activePlayers.forEach(player => {
+                        if (player.position !== this.smallBlindPosition && 
+                            player.position !== this.bigBlindPosition) {
+                            
+                            const anteAmount = Math.min(this.ante, player.chips);
+                            if (anteAmount > 0) {
+                                player.addToBet(anteAmount);
+                                this.potManager.addBet(player.userId, anteAmount);
+                                
+                                player.lastAction = 'ante';
+                                console.log(`💰 Ante: ${player.nickname} pagou ${anteAmount}`);
+                            }
+                        }
+                    });
+                }
+            }
+            
+            determineFirstToAct() {
+                const playersInHand = this.playerManager.getPlayersInHand();
+                if (playersInHand.length === 0) return null;
+                
+                let startPosition;
+                
+                if (this.currentRound === 'preflop') {
+                    startPosition = (this.bigBlindPosition + 1) % playersInHand.length;
+                } else {
+                    startPosition = (this.dealerPosition + 1) % playersInHand.length;
+                }
+                
+                for (let i = 0; i < playersInHand.length; i++) {
+                    const index = (startPosition + i) % playersInHand.length;
+                    const player = playersInHand[index];
+                    
+                    if (this.canPlayerAct(player.userId)) {
+                        this.currentPlayerTurn = player.userId;
+                        player.isCurrentTurn = true;
+                        
+                        console.log(`🎯 Primeiro a agir: ${player.nickname}`);
+                        return player.userId;
+                    }
+                }
+                
+                this.currentPlayerTurn = null;
+                return null;
+            }
+            
+            advanceTurn() {
+                const currentPlayer = this.playerManager.getPlayerById(this.currentPlayerTurn);
+                if (currentPlayer) {
+                    currentPlayer.isCurrentTurn = false;
+                }
+                
+                const playersInHand = this.playerManager.getPlayersInHand();
+                if (playersInHand.length === 0) {
+                    this.currentPlayerTurn = null;
+                    return null;
+                }
+                
+                const currentIndex = playersInHand.findIndex(p => p.userId === this.currentPlayerTurn);
+                let nextIndex = currentIndex;
+                
+                for (let i = 1; i <= playersInHand.length; i++) {
+                    nextIndex = (currentIndex + i) % playersInHand.length;
+                    const nextPlayer = playersInHand[nextIndex];
+                    
+                    if (this.canPlayerAct(nextPlayer.userId)) {
+                        this.currentPlayerTurn = nextPlayer.userId;
+                        nextPlayer.isCurrentTurn = true;
+                        
+                        console.log(`🔄 Turno avançado para: ${nextPlayer.nickname}`);
+                        
+                        this.startActionTimer();
+                        
+                        return nextPlayer.userId;
+                    }
+                }
+                
+                this.currentPlayerTurn = null;
+                this.checkRoundCompletion();
+                
+                return null;
+            }
+            
+            canPlayerAct(playerId) {
+                const player = this.playerManager.getPlayerById(playerId);
+                if (!player) return false;
+                
+                return player.isInHand && 
+                       !player.isFolded && 
+                       !player.isAllIn && 
+                       !player.hasActedThisRound;
+            }
+            
+            processPlayerAction(playerId, action, amount = 0) {
+                if (!this.initialized) {
+                    throw new Error('Jogo não inicializado');
+                }
+                
+                if (this.state !== GAME_STATES.PREFLOP &&
+                    this.state !== GAME_STATES.FLOP &&
+                    this.state !== GAME_STATES.TURN &&
+                    this.state !== GAME_STATES.RIVER) {
+                    throw new Error('Não é hora de agir');
+                }
+                
+                if (this.currentPlayerTurn !== playerId) {
+                    throw new Error('Não é sua vez');
+                }
+                
+                const player = this.playerManager.getPlayerById(playerId);
+                if (!player) {
+                    throw new Error('Jogador não encontrado');
+                }
+                
+                console.log(`🎯 Processando ação: ${player.nickname} - ${action} ${amount > 0 ? amount : ''}`);
+                
+                try {
+                    this.validateAction(player, action, amount);
+                    
+                    const actionResult = player.takeAction(action, amount, {
+                        currentMaxBet: this.currentMaxBet,
+                        currentRound: this.currentRound
+                    });
+                    
+                    if (actionResult.amount > 0) {
+                        const potResult = this.potManager.addBet(playerId, actionResult.amount, player.chips);
+                        
+                        if (['bet', 'raise', 'allin'].includes(action)) {
+                            this.currentMaxBet = Math.max(this.currentMaxBet, player.bet);
+                            this.lastRaiseAmount = action === 'raise' ? amount : 0;
+                        }
+                    }
+                    
+                    this.lastAction = {
+                        playerId: playerId,
+                        action: action,
+                        amount: actionResult.amount,
+                        timestamp: new Date()
+                    };
+                    
+                    this.actionHistory.push({
+                        handNumber: this.handNumber,
+                        round: this.currentRound,
+                        ...this.lastAction
+                    });
+                    
+                    this.stopActionTimer();
+                    
+                    this.emit('player_action_processed', {
+                        playerId: playerId,
+                        nickname: player.nickname,
+                        action: action,
+                        amount: actionResult.amount,
+                        newStack: player.chips,
+                        currentMaxBet: this.currentMaxBet,
+                        potTotal: this.potManager.totalAmount
+                    });
+                    
+                    if (!this.isRoundComplete()) {
+                        this.advanceTurn();
+                    } else {
+                        this.checkRoundCompletion();
+                    }
+                    
+                    return {
+                        success: true,
+                        action: action,
+                        amount: actionResult.amount,
+                        player: player.toJSON(),
+                        gameState: this.getGameState()
+                    };
+                    
+                } catch (error) {
+                    console.error(`❌ Erro na ação ${action}:`, error);
+                    this.logError('action_failed', error, { playerId, action, amount });
+                    
+                    throw error;
+                }
+            }
+            
+            validateAction(player, action, amount) {
+                const playerChips = player.chips;
+                const playerBet = player.bet;
+                
+                switch(action.toLowerCase()) {
+                    case 'fold':
+                        break;
+                        
+                    case 'check':
+                        if (!player.canCheck(this.currentMaxBet)) {
+                            throw new Error('Não pode dar check, precisa igualar a aposta');
+                        }
+                        break;
+                        
+                    case 'call':
+                        const callAmount = player.getCallAmount(this.currentMaxBet);
+                        if (callAmount > playerChips) {
+                            throw new Error('Fichas insuficientes para call');
+                        }
+                        break;
+                        
+                    case 'bet':
+                        if (this.currentMaxBet > 0) {
+                            throw new Error('Não pode fazer bet quando já há apostas');
+                        }
+                        if (amount <= 0) {
+                            throw new Error('Valor de bet inválido');
+                        }
+                        if (amount > playerChips) {
+                            throw new Error('Fichas insuficientes');
+                        }
+                        if (amount < this.bigBlind) {
+                            throw new Error(`Bet mínimo: ${this.bigBlind}`);
+                        }
+                        break;
+                        
+                    case 'raise':
+                        if (this.currentMaxBet === 0) {
+                            throw new Error('Não pode fazer raise sem apostas anteriores');
+                        }
+                        
+                        const minRaise = this.calculateMinRaise();
+                        if (amount < minRaise && playerChips >= minRaise) {
+                            throw new Error(`Raise mínimo: ${minRaise}`);
+                        }
+                        
+                        const totalToCall = playerBet + amount;
+                        if (totalToCall > playerChips + playerBet) {
+                            throw new Error('Fichas insuficientes');
+                        }
+                        break;
+                        
+                    case 'allin':
+                        if (playerChips <= 0) {
+                            throw new Error('Sem fichas para all-in');
+                        }
+                        break;
+                        
+                    default:
+                        throw new Error(`Ação inválida: ${action}`);
+                }
+            }
+            
+            calculateMinRaise() {
+                if (this.currentMaxBet === 0) {
+                    return this.bigBlind;
+                }
+                
+                if (this.lastRaiseAmount > 0) {
+                    return this.currentMaxBet + this.lastRaiseAmount;
+                }
+                
+                return this.currentMaxBet * 2;
+            }
+            
+            isRoundComplete() {
+                const playersInHand = this.playerManager.getPlayersInHand();
+                if (playersInHand.length <= 1) return true;
+                
+                const allActed = playersInHand.every(p => 
+                    p.hasActedThisRound || p.isAllIn || p.isFolded
+                );
+                
+                if (!allActed) return false;
+                
+                return playersInHand.every(p => 
+                    p.isAllIn || p.isFolded || p.bet === this.currentMaxBet
+                );
+            }
+            
+            checkRoundCompletion() {
+                if (!this.isRoundComplete()) return;
+                
+                console.log(`✅ Rodada ${this.currentRound} completa`);
+                
+                switch(this.currentRound) {
+                    case 'preflop':
+                        this.dealCommunityCards(3);
+                        this.currentRound = 'flop';
+                        break;
+                        
+                    case 'flop':
+                        this.dealCommunityCards(1);
+                        this.currentRound = 'turn';
+                        break;
+                        
+                    case 'turn':
+                        this.dealCommunityCards(1);
+                        this.currentRound = 'river';
+                        break;
+                        
+                    case 'river':
+                        this.goToShowdown();
+                        return;
+                }
+                
+                this.resetForNewRound();
+                this.determineFirstToAct();
+                
+                this.state = this.currentRound.toUpperCase();
+                this.roundStartTime = new Date();
+                
+                this.emit('round_completed', {
+                    round: this.currentRound,
+                    communityCards: this.getCommunityCards(),
+                    potTotal: this.potManager.totalAmount,
+                    nextPlayer: this.currentPlayerTurn
+                });
+                
+                if (this.currentPlayerTurn) {
+                    this.startActionTimer();
+                }
+            }
+            
+            dealCommunityCards(count) {
+                this.deck.burnCard();
+                
+                const cards = this.deck.deal(count, true);
+                
+                console.log(`🃏 ${count} carta(s) comunitária(s): ${cards.map(c => c.display).join(' ')}`);
+                
+                this.emit('community_cards_dealt', {
+                    count: count,
+                    cards: cards.map(c => c.display),
+                    round: this.currentRound,
+                    totalCards: cards.length
+                });
+            }
+            
+            resetForNewRound() {
+                const players = this.playerManager.getPlayersInHand();
+                
+                players.forEach(player => {
+                    player.hasActedThisRound = false;
+                    player.bet = 0;
+                    player.lastAction = null;
+                });
+                
+                this.currentMaxBet = 0;
+                this.lastRaiseAmount = 0;
+                this.lastAction = null;
+                
+                console.log(`🔄 Estado resetado para rodada ${this.currentRound}`);
+            }
+            
+            goToShowdown() {
+                console.log('🏆 SHOWDOWN!');
+                
+                this.state = GAME_STATES.SHOWDOWN;
+                
+                const playersInShowdown = this.playerManager.getPlayersInHand()
+                    .filter(p => !p.isFolded);
+                
+                if (playersInShowdown.length === 1) {
+                    const winner = playersInShowdown[0];
+                    this.distributePot([winner.userId]);
+                    return;
+                }
+                
+                const handEvaluations = this.evaluateAllHands(playersInShowdown);
+                const winners = this.determineWinners(handEvaluations);
+                
+                this.distributePot(winners, handEvaluations);
+            }
+            
+            evaluateAllHands(players) {
+                const evaluations = {};
+                const communityCards = this.getCommunityCards();
+                
+                players.forEach(player => {
+                    if (player.cards && player.cards.length === 2) {
+                        const evaluation = this.handEvaluator.evaluate(player.cards, communityCards);
+                        evaluations[player.userId] = evaluation;
+                        
+                        player.bestHand = evaluation;
+                        player.handRank = evaluation.rank;
+                        
+                        console.log(`🃏 ${player.nickname}: ${evaluation.hand} (${evaluation.cards.map(c => c.display).join(' ')})`);
+                    }
+                });
+                
+                return evaluations;
+            }
+            
+            getCommunityCards() {
+                const usedCards = this.deck.usedCards || [];
+                const communityCards = usedCards.filter(card => card.faceUp);
+                
+                return communityCards.slice(0, 5);
+            }
+            
+            determineWinners(handEvaluations) {
+                if (Object.keys(handEvaluations).length === 0) {
+                    return [];
+                }
+                
+                const sortedPlayers = Object.entries(handEvaluations)
+                    .sort(([, evalA], [, evalB]) => {
+                        return this.handEvaluator.compareHands(evalB, evalA);
+                    });
+                
+                const bestHandValue = sortedPlayers[0][1].value;
+                
+                const winners = sortedPlayers
+                    .filter(([, evaluation]) => evaluation.value === bestHandValue)
+                    .map(([playerId]) => playerId);
+                
+                console.log(`🏆 Vencedor(es): ${winners.map(id => this.playerManager.getPlayerById(id)?.nickname).join(', ')}`);
+                
+                return winners;
+            }
+            
+            distributePot(winners, handEvaluations = {}) {
+                if (winners.length === 0) {
+                    console.warn('⚠️ Nenhum vencedor para distribuir pote');
+                    return;
+                }
+                
+                this.state = GAME_STATES.DISTRIBUTING;
+                
+                console.log(`💰 Distribuindo pote para ${winners.length} vencedor(es)`);
+                
+                const distribution = this.potManager.distributeAllPots(winners, handEvaluations);
+                
+                distribution.forEach(({ playerId, amount }) => {
+                    const player = this.playerManager.getPlayerById(playerId);
+                    if (player) {
+                        player.winChips(amount);
+                        
+                        this.stats.totalPots += amount;
+                        if (amount > this.stats.biggestPot) {
+                            this.stats.biggestPot = amount;
+                        }
+                    }
+                });
+                
+                this.emit('pot_distributed', {
+                    winners: winners.map(id => ({
+                        playerId: id,
+                        nickname: this.playerManager.getPlayerById(id)?.nickname,
+                        amount: distribution.find(d => d.playerId === id)?.amount || 0
+                    })),
+                    totalDistributed: distribution.reduce((sum, d) => sum + d.amount, 0),
+                    handNumber: this.handNumber
+                });
+                
+                this.finishHand();
+            }
+            
+            finishHand() {
+                console.log(`🏁 Finalizando mão #${this.handNumber}`);
+                
+                const handDuration = this.handStartTime ? 
+                    Math.floor((new Date() - this.handStartTime) / 1000) : 0;
+                
+                this.handHistory.push({
+                    handNumber: this.handNumber,
+                    duration: handDuration,
+                    potSize: this.potManager.totalAmount,
+                    winners: this.playerManager.getPlayersInHand()
+                        .filter(p => p.wonAmount > 0)
+                        .map(p => ({
+                            playerId: p.userId,
+                            nickname: p.nickname,
+                            amount: p.wonAmount
+                        })),
+                    communityCards: this.getCommunityCards().map(c => c.display),
+                    timestamp: new Date().toISOString()
+                });
+                
+                this.stats.totalHands++;
+                this.stats.averagePot = (
+                    (this.stats.averagePot * (this.stats.totalHands - 1)) + 
+                    this.potManager.totalAmount
+                ) / this.stats.totalHands;
+                
+                if (this.shouldContinueGame()) {
+                    this.state = GAME_STATES.BETWEEN_HANDS;
+                    
+                    setTimeout(() => {
+                        if (this.state === GAME_STATES.BETWEEN_HANDS) {
+                            this.startNewHand();
+                        }
+                    }, 3000);
+                    
+                    console.log(`⏳ Aguardando próxima mão...`);
+                    
+                } else {
+                    this.finishGame();
+                }
+            }
+            
+            shouldContinueGame() {
+                const activePlayers = this.playerManager.getActivePlayers();
+                
+                if (this.gameType === 'cash') {
+                    return activePlayers.length >= this.minPlayers;
+                }
+                
+                return activePlayers.length >= 2;
+            }
+            
+            startActionTimer() {
+                this.stopActionTimer();
+                
+                if (!this.currentPlayerTurn) return;
+                
+                this.actionTimeRemaining = this.actionTime;
+                
+                this.actionTimer = setInterval(() => {
+                    this.actionTimeRemaining--;
+                    
+                    this.emit('action_timer_tick', {
+                        playerId: this.currentPlayerTurn,
+                        timeRemaining: this.actionTimeRemaining,
+                        totalTime: this.actionTime
+                    });
+                    
+                    if (this.actionTimeRemaining <= 0) {
+                        this.handleActionTimeout();
+                    }
+                    
+                }, 1000);
+                
+                console.log(`⏱️ Timer iniciado para ${this.currentPlayerTurn} (${this.actionTime}s)`);
+            }
+            
+            stopActionTimer() {
+                if (this.actionTimer) {
+                    clearInterval(this.actionTimer);
+                    this.actionTimer = null;
+                }
+            }
+            
+            handleActionTimeout() {
+                const playerId = this.currentPlayerTurn;
+                if (!playerId) return;
+                
+                console.log(`⏰ Timeout para ${playerId}`);
+                
+                try {
+                    this.processPlayerAction(playerId, ACTION_TYPES.FOLD);
+                    
+                    this.emit('action_timeout', {
+                        playerId: playerId,
+                        action: ACTION_TYPES.FOLD
+                    });
+                    
+                } catch (error) {
+                    console.error('❌ Erro no timeout:', error);
+                }
+            }
+            
+            pauseGame() {
+                if (this.isPaused) return;
+                
+                this.isPaused = true;
+                this.pauseStartTime = new Date();
+                this.state = GAME_STATES.PAUSED;
+                
+                this.stopActionTimer();
+                
+                console.log('⏸️ Jogo pausado');
+                this.emit('game_paused', { timestamp: this.pauseStartTime });
+            }
+            
+            resumeGame() {
+                if (!this.isPaused) return;
+                
+                const pauseEndTime = new Date();
+                const pauseDuration = Math.floor((pauseEndTime - this.pauseStartTime) / 1000);
+                
+                this.totalPauseTime += pauseDuration;
+                this.isPaused = false;
+                this.pauseStartTime = null;
+                
+                this.state = this.currentRound.toUpperCase();
+                
+                if (this.currentPlayerTurn) {
+                    this.startActionTimer();
+                }
+                
+                console.log(`▶️ Jogo retomado após ${pauseDuration}s`);
+                this.emit('game_resumed', { 
+                    pauseDuration: pauseDuration,
+                    totalPauseTime: this.totalPauseTime 
+                });
+            }
+            
+            finishGame() {
+                console.log('🏁 Finalizando jogo...');
+                
+                this.state = GAME_STATES.FINISHED;
+                
+                this.stopActionTimer();
+                
+                this.calculateFinalStats();
+                
+                this.emit('game_finished', {
+                    gameId: this.gameId,
+                    handNumber: this.handNumber,
+                    totalDuration: this.getGameDuration(),
+                    winner: this.getWinner(),
+                    finalStats: this.stats
+                });
+                
+                console.log(`🎮 Jogo ${this.name} finalizado após ${this.handNumber} mãos`);
+            }
+            
+            checkIfGameShouldEnd() {
+                const activePlayers = this.playerManager.getActivePlayers();
+                
+                if (activePlayers.length < this.minPlayers) {
+                    console.log(`⚠️ Muito poucos jogadores (${activePlayers.length}/${this.minPlayers})`);
+                    
+                    if (this.state !== GAME_STATES.LOBBY && 
+                        this.state !== GAME_STATES.FINISHED) {
+                        this.finishGame();
+                    }
+                }
+            }
+            
+            getWinner() {
+                const activePlayers = this.playerManager.getActivePlayers();
+                
+                if (activePlayers.length === 1) {
+                    return activePlayers[0];
+                }
+                
+                if (this.gameType === 'cash') {
+                    return activePlayers.reduce((max, p) => 
+                        p.chips > max.chips ? p : max, activePlayers[0]
+                    );
+                }
+                
+                return null;
+            }
+            
+            getGameDuration() {
+                return this.totalPauseTime;
+            }
+            
+            calculateFinalStats() {
+                const players = this.playerManager.players;
+                
+                if (players.length > 0) {
+                    const mostActive = players.reduce((max, p) => 
+                        p.actionHistory.length > max.actionHistory.length ? p : max, players[0]
+                    );
+                    this.stats.mostActivePlayer = mostActive.userId;
+                }
+                
+                if (this.handHistory.length > 0) {
+                    const fastestHand = this.handHistory.reduce((min, h) => 
+                        h.duration < min.duration ? h : min, this.handHistory[0]
+                    );
+                    this.stats.fastestHand = fastestHand;
+                }
+            }
+            
+            on(eventName, callback) {
+                if (!this.eventListeners.has(eventName)) {
+                    this.eventListeners.set(eventName, []);
+                }
+                this.eventListeners.get(eventName).push(callback);
+            }
+            
+            off(eventName, callback) {
+                if (!this.eventListeners.has(eventName)) return;
+                
+                const listeners = this.eventListeners.get(eventName);
+                const index = listeners.indexOf(callback);
+                if (index !== -1) {
+                    listeners.splice(index, 1);
+                }
+            }
+            
+            emit(eventName, data = {}) {
+                if (!this.broadcastEnabled) return;
+                
+                const listeners = this.eventListeners.get(eventName) || [];
+                
+                listeners.forEach(callback => {
+                    try {
+                        callback({
+                            event: eventName,
+                            timestamp: new Date().toISOString(),
+                            gameId: this.gameId,
+                            ...data
+                        });
+                    } catch (error) {
+                        console.error(`❌ Erro no listener de ${eventName}:`, error);
+                    }
+                });
+                
+                this.messageQueue.push({
+                    event: eventName,
+                    data: data,
+                    timestamp: new Date()
+                });
+                
+                if (this.messageQueue.length > 1000) {
+                    this.messageQueue.shift();
+                }
+            }
+            
+            emitToPlayer(playerId, eventName, data = {}) {
+                this.emit(eventName, { ...data, targetPlayer: playerId });
+            }
+            
+            logError(context, error, extraData = {}) {
+                const errorEntry = {
+                    context: context,
+                    error: error.message || String(error),
+                    stack: error.stack,
+                    timestamp: new Date().toISOString(),
+                    gameState: this.getGameState(),
+                    ...extraData
+                };
+                
+                this.errorLog.push(errorEntry);
+                
+                if (this.errorLog.length > 100) {
+                    this.errorLog.shift();
+                }
+                
+                console.error(`❌ [${context}]`, error);
+            }
+            
+            getGameState() {
+                const players = this.playerManager.players.map(p => p.toJSON());
+                const activePlayers = this.playerManager.getActivePlayers();
+                const playersInHand = this.playerManager.getPlayersInHand();
+                
+                return {
+                    gameId: this.gameId,
+                    name: this.name,
+                    gameType: this.gameType,
+                    state: this.state,
+                    currentRound: this.currentRound,
+                    handNumber: this.handNumber,
+                    
+                    dealerPosition: this.dealerPosition,
+                    smallBlindPosition: this.smallBlindPosition,
+                    bigBlindPosition: this.bigBlindPosition,
+                    currentPlayerTurn: this.currentPlayerTurn,
+                    
+                    currentMaxBet: this.currentMaxBet,
+                    smallBlind: this.smallBlind,
+                    bigBlind: this.bigBlind,
+                    ante: this.ante,
+                    
+                    potTotal: this.potManager.totalAmount,
+                    potInfo: {
+                        pots: this.potManager.getAllPots().map(p => ({
+                            id: p.id,
+                            amount: p.amount,
+                            type: p.level === 0 ? 'main' : 'side'
+                        })),
+                        total: this.potManager.totalAmount
+                    },
+                    
+                    players: players,
+                    playerCount: players.length,
+                    activePlayers: activePlayers.length,
+                    playersInHand: playersInHand.length,
+                    
+                    communityCards: this.getCommunityCards().map(c => c.display),
+                    
+                    actionTimeRemaining: this.actionTimeRemaining,
+                    actionTime: this.actionTime,
+                    
+                    isPaused: this.isPaused,
+                    canStartNewHand: this.canStartNewHand(),
+                    
+                    stats: {
+                        ...this.stats,
+                        averagePot: Math.round(this.stats.averagePot)
+                    },
+                    
+                    settings: this.settings
+                };
+            }
+            
+            resetGameState() {
+                this.state = GAME_STATES.LOBBY;
+                this.handNumber = 0;
+                this.dealerPosition = 0;
+                this.currentPlayerTurn = null;
+                this.currentMaxBet = 0;
+                this.lastAction = null;
+                this.actionTimeRemaining = this.actionTime;
+                
+                if (this.deck) this.deck.reset();
+                if (this.playerManager) this.playerManager = new PlayerManager(this.maxPlayers);
+                if (this.potManager) this.potManager.resetForNewHand();
+                
+                console.log('🔄 Estado do jogo resetado');
+            }
+            
+            getDisplayInfo() {
+                return {
+                    gameId: this.gameId,
+                    name: this.name,
+                    gameType: this.gameType,
+                    state: this.state,
+                    handNumber: this.handNumber,
+                    playerCount: this.playerManager.players.length,
+                    maxPlayers: this.maxPlayers,
+                    smallBlind: this.smallBlind,
+                    bigBlind: this.bigBlind,
+                    ante: this.ante,
+                    potTotal: this.potManager.totalAmount,
+                    currentPlayerTurn: this.currentPlayerTurn ? 
+                        this.playerManager.getPlayerById(this.currentPlayerTurn)?.nickname : null,
+                    communityCards: this.getCommunityCards().map(c => c.display),
+                    canStart: this.canStartNewHand(),
+                    isPaused: this.isPaused
+                };
+            }
+            
+            validateGameIntegrity() {
+                const issues = [];
+                
+                const totalChips = this.playerManager.players.reduce((sum, p) => sum + p.chips, 0);
+                const expectedChips = this.playerManager.players.length * this.startingStack;
+                
+                if (totalChips !== expectedChips) {
+                    issues.push(`Inconsistência de fichas: ${totalChips} vs ${expectedChips}`);
+                }
+                
+                const playerIds = new Set();
+                this.playerManager.players.forEach(p => {
+                    if (playerIds.has(p.userId)) {
+                        issues.push(`Jogador duplicado: ${p.userId}`);
+                    }
+                    playerIds.add(p.userId);
+                });
+                
+                if (!Object.values(GAME_STATES).includes(this.state)) {
+                    issues.push(`Estado inválido: ${this.state}`);
+                }
+                
+                return {
+                    valid: issues.length === 0,
+                    issues: issues,
+                    playerCount: this.playerManager.players.length,
+                    totalChips: totalChips,
+                    expectedChips: expectedChips
+                };
+            }
+            
+            toJSON() {
+                return {
+                    gameId: this.gameId,
+                    name: this.name,
+                    gameType: this.gameType,
+                    maxPlayers: this.maxPlayers,
+                    minPlayers: this.minPlayers,
+                    startingStack: this.startingStack,
+                    smallBlind: this.smallBlind,
+                    bigBlind: this.bigBlind,
+                    ante: this.ante,
+                    actionTime: this.actionTime,
+                    isPrivate: this.isPrivate,
+                    
+                    state: this.state,
+                    currentRound: this.currentRound,
+                    handNumber: this.handNumber,
+                    dealerPosition: this.dealerPosition,
+                    smallBlindPosition: this.smallBlindPosition,
+                    bigBlindPosition: this.bigBlindPosition,
+                    currentPlayerTurn: this.currentPlayerTurn,
+                    currentMaxBet: this.currentMaxBet,
+                    lastRaiseAmount: this.lastRaiseAmount,
+                    lastAction: this.lastAction,
+                    
+                    deck: this.deck?.toJSON(),
+                    playerManager: this.playerManager?.toJSON(),
+                    potManager: this.potManager?.toJSON(),
+                    
+                    handStartTime: this.handStartTime?.toISOString(),
+                    roundStartTime: this.roundStartTime?.toISOString(),
+                    actionTimeRemaining: this.actionTimeRemaining,
+                    isPaused: this.isPaused,
+                    pauseStartTime: this.pauseStartTime?.toISOString(),
+                    totalPauseTime: this.totalPauseTime,
+                    
+                    stats: this.stats,
+                    
+                    handHistory: this.handHistory.slice(-50),
+                    actionHistory: this.actionHistory.slice(-100),
+                    errorLog: this.errorLog.slice(-20),
+                    
+                    settings: this.settings,
+                    
+                    version: '1.0.0',
+                    savedAt: new Date().toISOString()
+                };
+            }
+            
+            static fromJSON(jsonData) {
+                const config = {
+                    gameId: jsonData.gameId,
+                    name: jsonData.name,
+                    gameType: jsonData.gameType,
+                    maxPlayers: jsonData.maxPlayers,
+                    minPlayers: jsonData.minPlayers,
+                    startingStack: jsonData.startingStack,
+                    smallBlind: jsonData.smallBlind,
+                    bigBlind: jsonData.bigBlind,
+                    ante: jsonData.ante,
+                    actionTime: jsonData.actionTime,
+                    isPrivate: jsonData.isPrivate
+                };
+                
+                const manager = new PokerGameManager(config);
+                
+                manager.state = jsonData.state;
+                manager.currentRound = jsonData.currentRound;
+                manager.handNumber = jsonData.handNumber;
+                manager.dealerPosition = jsonData.dealerPosition;
+                manager.smallBlindPosition = jsonData.smallBlindPosition;
+                manager.bigBlindPosition = jsonData.bigBlindPosition;
+                manager.currentPlayerTurn = jsonData.currentPlayerTurn;
+                manager.currentMaxBet = jsonData.currentMaxBet;
+                manager.lastRaiseAmount = jsonData.lastRaiseAmount;
+                manager.lastAction = jsonData.lastAction;
+                
+                if (jsonData.deck) {
+                    manager.deck = PokerDeck.fromJSON(jsonData.deck);
+                }
+                
+                if (jsonData.playerManager) {
+                    manager.playerManager = PlayerManager.fromJSON(jsonData.playerManager, PokerCard);
+                }
+                
+                if (jsonData.potManager) {
+                    manager.potManager = PotManager.fromJSON(jsonData.potManager);
+                }
+                
+                if (jsonData.handStartTime) {
+                    manager.handStartTime = new Date(jsonData.handStartTime);
+                }
+                if (jsonData.roundStartTime) {
+                    manager.roundStartTime = new Date(jsonData.roundStartTime);
+                }
+                manager.actionTimeRemaining = jsonData.actionTimeRemaining;
+                manager.isPaused = jsonData.isPaused;
+                if (jsonData.pauseStartTime) {
+                    manager.pauseStartTime = new Date(jsonData.pauseStartTime);
+                }
+                manager.totalPauseTime = jsonData.totalPauseTime;
+                
+                manager.stats = jsonData.stats || {};
+                manager.handHistory = jsonData.handHistory || [];
+                manager.actionHistory = jsonData.actionHistory || [];
+                manager.errorLog = jsonData.errorLog || [];
+                manager.settings = jsonData.settings || {};
+                
+                manager.initialized = true;
+                
+                return manager;
+            }
+        }
+
+        // =============================================
+        // SISTEMA PRINCIPAL DA MESA
+        // =============================================
+        
+        // 1. Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyBIBucZSzN671VgJQHGIiepHNUqxbqNKAQ",
             authDomain: "keeppoker-b4173.firebaseapp.com",
@@ -817,42 +3934,338 @@
         const auth = firebase.auth();
         const db = firebase.firestore();
         
-        // 2. Variáveis globais (seus dados)
+        // 2. Variáveis globais
         let currentUser = null;
         let tournamentId = null;
-        let pokerGame = null; // Vai usar PokerGameManager
+        let pokerGame = null;
         let gameState = null;
         let actionTimer = null;
         let timeLeft = 30;
         
-        // 3. Suas funções de interface (mantenha IGUAL)
+        // 3. Funções de interface
         function updateInterface(gameState) {
-            // SEU CÓDIGO ORIGINAL AQUI
-            // document.getElementById('tournamentName').textContent = gameState.name;
-            // document.getElementById('blinds').textContent = `${gameState.smallBlind}/${gameState.bigBlind}`;
-            // etc...
+            if (!gameState) return;
+            
+            console.log('🔄 Atualizando interface...', gameState);
+            
+            // Atualiza informações do torneio
+            document.getElementById('tournamentName').textContent = gameState.name || 'Torneio';
+            document.getElementById('blinds').textContent = 
+                `${gameState.smallBlind || 0}/${gameState.bigBlind || 0}`;
+            document.getElementById('pot').textContent = `Pote: ${gameState.potTotal || 0}`;
+            document.getElementById('playersCount').textContent = 
+                `${gameState.playersInHand || 0}/${gameState.playerCount || 0}`;
+            document.getElementById('potAmount').textContent = gameState.potTotal || 0;
+            
+            // Atualiza cartas comunitárias
+            const communityContainer = document.getElementById('communityCards');
+            if (communityContainer && gameState.communityCards) {
+                communityContainer.innerHTML = '';
+                gameState.communityCards.forEach((card, index) => {
+                    const cardEl = document.createElement('div');
+                    cardEl.className = 'card-placeholder';
+                    cardEl.textContent = card || '';
+                    communityContainer.appendChild(cardEl);
+                });
+            }
+            
+            // Atualiza jogadores
+            if (gameState.players) {
+                updatePlayers(gameState.players);
+            }
+            
+            // Atualiza controles do jogador atual
+            updatePlayerControls(gameState);
         }
         
         function updatePlayers(players) {
-            // SEU CÓDIGO ORIGINAL AQUI
+            console.log('👤 Atualizando jogadores:', players);
+            
+            // Para cada posição (1-6)
+            for (let i = 1; i <= 6; i++) {
+                const posElement = document.getElementById(`playerPos${i}`);
+                if (!posElement) continue;
+                
+                // Limpa o container
+                posElement.innerHTML = '';
+                posElement.className = 'avatar-container';
+                
+                // Encontra jogador nesta posição (simplificado)
+                const player = players[i - 1];
+                if (!player) {
+                    posElement.style.display = 'none';
+                    continue;
+                }
+                
+                posElement.style.display = 'flex';
+                posElement.classList.add(`pos-${i}`);
+                
+                // Adiciona classes baseadas no estado
+                if (player.isCurrentTurn) {
+                    posElement.classList.add('current-turn');
+                }
+                if (player.isFolded) {
+                    posElement.classList.add('player-folded');
+                }
+                if (player.userId === currentUser?.uid) {
+                    posElement.classList.add('player-you');
+                }
+                
+                // Cria avatar
+                const avatarDiv = document.createElement('div');
+                avatarDiv.className = 'avatar';
+                avatarDiv.innerHTML = `
+                    <div style="background: ${player.avatar?.color || '#415a77'}; 
+                               width: 100%; height: 100%; border-radius: 50%;
+                               display: flex; align-items: center; justify-content: center;
+                               color: white; font-size: 1.4em;">
+                        ${player.avatar?.initial || player.nickname?.charAt(0) || '?'}
+                    </div>
+                `;
+                
+                // Adiciona indicadores
+                if (player.isDealer) {
+                    const dealerBtn = document.createElement('div');
+                    dealerBtn.className = 'dealer-button';
+                    dealerBtn.textContent = 'D';
+                    avatarDiv.appendChild(dealerBtn);
+                }
+                
+                if (player.isSmallBlind) {
+                    const blindBtn = document.createElement('div');
+                    blindBtn.className = 'blind-indicator';
+                    blindBtn.textContent = 'SB';
+                    avatarDiv.appendChild(blindBtn);
+                }
+                
+                if (player.isBigBlind) {
+                    const blindBtn = document.createElement('div');
+                    blindBtn.className = 'blind-indicator';
+                    blindBtn.textContent = 'BB';
+                    avatarDiv.appendChild(blindBtn);
+                }
+                
+                // Cria container de cartas
+                const cardsContainer = document.createElement('div');
+                cardsContainer.className = 'player-cards';
+                
+                if (player.cards && player.cards.length > 0) {
+                    player.cards.forEach(card => {
+                        const cardEl = document.createElement('div');
+                        cardEl.className = 'player-card';
+                        // Verifica se é um objeto carta ou apenas string
+                        if (typeof card === 'object' && card.display) {
+                            cardEl.textContent = card.display;
+                            cardEl.style.color = card.color || '#000';
+                        } else if (typeof card === 'string') {
+                            cardEl.textContent = card;
+                        } else {
+                            cardEl.textContent = '?';
+                        }
+                        cardsContainer.appendChild(cardEl);
+                    });
+                } else {
+                    // Cartas viradas
+                    const card1 = document.createElement('div');
+                    card1.className = 'player-card';
+                    card1.textContent = '🂠';
+                    const card2 = document.createElement('div');
+                    card2.className = 'player-card';
+                    card2.textContent = '🂠';
+                    cardsContainer.appendChild(card1);
+                    cardsContainer.appendChild(card2);
+                }
+                
+                // Cria info de fichas
+                const chipsDiv = document.createElement('div');
+                chipsDiv.className = 'player-chips';
+                chipsDiv.textContent = `${player.chips || 0}`;
+                
+                // Cria aposta atual
+                if (player.bet > 0) {
+                    const betDiv = document.createElement('div');
+                    betDiv.className = 'player-bet';
+                    betDiv.textContent = player.bet;
+                    posElement.appendChild(betDiv);
+                }
+                
+                // Monta tudo
+                posElement.appendChild(avatarDiv);
+                posElement.appendChild(cardsContainer);
+                posElement.appendChild(chipsDiv);
+            }
+        }
+        
+        function updatePlayerControls(gameState) {
+            const currentPlayer = gameState.currentPlayerTurn;
+            const isMyTurn = currentPlayer === currentUser?.uid;
+            
+            console.log('🎮 Atualizando controles. Minha vez?', isMyTurn);
+            
+            if (!isMyTurn) {
+                // Não é sua vez - esconde todos os botões
+                hideAllActionButtons();
+                return;
+            }
+            
+            // Encontra o jogador atual
+            const player = gameState.players?.find(p => p.userId === currentUser?.uid);
+            if (!player) {
+                hideAllActionButtons();
+                return;
+            }
+            
+            // Mostra botões baseado nas ações possíveis
+            const canCheck = player.bet >= gameState.currentMaxBet;
+            const callAmount = Math.max(0, gameState.currentMaxBet - player.bet);
+            const canRaise = player.chips > callAmount;
+            
+            // Atualiza texto dos botões
+            const btnCheck = document.getElementById('btnCheck');
+            const btnCall = document.getElementById('btnCall');
+            const btnRaise = document.getElementById('btnRaise');
+            const btnAllIn = document.getElementById('btnAllIn');
+            const btnFold = document.getElementById('btnFold');
+            
+            // Fold sempre disponível
+            if (btnFold) {
+                btnFold.style.display = 'block';
+                btnFold.disabled = false;
+            }
+            
+            // Check ou Call
+            if (callAmount === 0) {
+                // Pode dar check
+                if (btnCheck) {
+                    btnCheck.style.display = 'block';
+                    btnCheck.disabled = false;
+                }
+                if (btnCall) btnCall.style.display = 'none';
+            } else {
+                // Precisa dar call
+                if (btnCall) {
+                    btnCall.style.display = 'block';
+                    btnCall.disabled = false;
+                    btnCall.textContent = `Call ${callAmount}`;
+                }
+                if (btnCheck) btnCheck.style.display = 'none';
+            }
+            
+            // Raise
+            if (btnRaise && canRaise) {
+                btnRaise.style.display = 'block';
+                btnRaise.disabled = false;
+                btnRaise.textContent = `Raise`;
+            } else if (btnRaise) {
+                btnRaise.style.display = 'none';
+            }
+            
+            // All-in
+            if (btnAllIn && player.chips > 0) {
+                btnAllIn.style.display = 'block';
+                btnAllIn.disabled = false;
+                btnAllIn.textContent = `All-in ${player.chips}`;
+            } else if (btnAllIn) {
+                btnAllIn.style.display = 'none';
+            }
+            
+            // Inicia timer se for sua vez
+            if (isMyTurn) {
+                startActionTimer();
+            }
+        }
+        
+        function hideAllActionButtons() {
+            const buttons = ['btnFold', 'btnCheck', 'btnCall', 'btnRaise', 'btnAllIn'];
+            buttons.forEach(btnId => {
+                const btn = document.getElementById(btnId);
+                if (btn) {
+                    btn.style.display = 'none';
+                    btn.disabled = true;
+                }
+            });
         }
         
         function showNotification(message, type = 'info') {
-            // SEU CÓDIGO ORIGINAL AQUI
+            const statusEl = document.getElementById('statusMessage');
+            if (!statusEl) return;
+            
+            statusEl.textContent = message;
+            statusEl.style.display = 'block';
+            
+            // Cores baseadas no tipo
+            if (type === 'success') {
+                statusEl.style.backgroundColor = 'rgba(46, 204, 113, 0.9)';
+                statusEl.style.borderColor = '#27ae60';
+            } else if (type === 'error') {
+                statusEl.style.backgroundColor = 'rgba(231, 76, 60, 0.9)';
+                statusEl.style.borderColor = '#c0392b';
+            } else {
+                statusEl.style.backgroundColor = 'rgba(52, 152, 219, 0.9)';
+                statusEl.style.borderColor = '#2980b9';
+            }
+            
+            // Esconde após 3 segundos
+            setTimeout(() => {
+                statusEl.style.display = 'none';
+            }, 3000);
         }
         
         function startActionTimer() {
-            // SEU CÓDIGO ORIGINAL AQUI
+            const timerContainer = document.getElementById('actionTimerContainer');
+            const timerBar = document.getElementById('actionTimerBar');
+            
+            if (!timerContainer || !timerBar) return;
+            
+            timerContainer.style.display = 'block';
+            timeLeft = 30;
+            
+            // Limpa timer anterior
+            if (actionTimer) {
+                clearInterval(actionTimer);
+            }
+            
+            actionTimer = setInterval(() => {
+                timeLeft--;
+                const percentage = (timeLeft / 30) * 100;
+                timerBar.style.width = `${percentage}%`;
+                
+                // Muda cor conforme o tempo
+                if (timeLeft < 10) {
+                    timerBar.style.background = '#e74c3c';
+                } else if (timeLeft < 20) {
+                    timerBar.style.background = '#e67e22';
+                } else {
+                    timerBar.style.background = '#2ecc71';
+                }
+                
+                if (timeLeft <= 0) {
+                    stopActionTimer();
+                    // Fold automático
+                    playerAction('fold');
+                }
+            }, 1000);
         }
         
         function stopActionTimer() {
-            // SEU CÓDIGO ORIGINAL AQUI
+            if (actionTimer) {
+                clearInterval(actionTimer);
+                actionTimer = null;
+            }
+            
+            const timerContainer = document.getElementById('actionTimerContainer');
+            if (timerContainer) {
+                timerContainer.style.display = 'none';
+            }
         }
         
-        // 4. Ações do jogador (AGORA USA OS MÓDULOS)
+        // 4. Ações do jogador
         async function playerAction(action, amount = 0) {
             try {
-                // Em vez da sua lógica antiga, usa o módulo:
+                if (!pokerGame) {
+                    throw new Error('Jogo não inicializado');
+                }
+                
                 const result = pokerGame.processPlayerAction(currentUser.uid, action, amount);
                 
                 if (result.success) {
@@ -860,47 +4273,154 @@
                     updateInterface(gameState);
                     await saveGameState();
                     showNotification(`✅ ${action} realizado!`, 'success');
+                    
+                    // Se a ação foi fold, check ou call, força atualização
+                    if (['fold', 'check', 'call'].includes(action.toLowerCase())) {
+                        setTimeout(() => {
+                            if (gameState) {
+                                updateInterface(gameState);
+                            }
+                        }, 500);
+                    }
                 }
+                
+                return result;
             } catch (error) {
+                console.error('❌ Erro na ação:', error);
                 showNotification(`Erro: ${error.message}`, 'error');
+                return { success: false, error: error.message };
             }
         }
         
-        // 5. Firebase save/load (mantenha igual)
+        // 5. Firebase save/load
         async function saveGameState() {
             try {
+                if (!tournamentId || !pokerGame) return;
+                
+                const gameStateData = pokerGame.toJSON();
                 await db.collection('tournaments').doc(tournamentId).update({
-                    gameState: gameState,
+                    gameState: gameStateData,
                     updatedAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
+                
+                console.log('💾 Estado do jogo salvo no Firebase');
             } catch (error) {
-                console.error('Erro ao salvar:', error);
+                console.error('❌ Erro ao salvar:', error);
             }
         }
         
         async function loadGameState() {
             try {
+                if (!tournamentId) return null;
+                
                 const tournamentDoc = await db.collection('tournaments').doc(tournamentId).get();
                 return tournamentDoc.exists ? tournamentDoc.data().gameState : null;
             } catch (error) {
-                console.error('Erro ao carregar:', error);
+                console.error('❌ Erro ao carregar:', error);
                 return null;
             }
         }
         
-        // 6. Event Listeners (mantenha igual)
+        // 6. Event Listeners
         function setupEventListeners() {
+            // Ações básicas
             document.getElementById('btnFold').addEventListener('click', () => playerAction('fold'));
             document.getElementById('btnCheck').addEventListener('click', () => playerAction('check'));
             document.getElementById('btnCall').addEventListener('click', () => playerAction('call'));
-            document.getElementById('btnRaise').addEventListener('click', () => showRaiseControls());
+            document.getElementById('btnRaise').addEventListener('click', showRaiseControls);
             document.getElementById('btnAllIn').addEventListener('click', () => playerAction('allin'));
-            // ... outros listeners
+            
+            // Controles de raise
+            document.getElementById('betSlider')?.addEventListener('input', updateBetAmount);
+            document.getElementById('btnConfirmRaise')?.addEventListener('click', () => {
+                const slider = document.getElementById('betSlider');
+                if (slider) {
+                    const amount = parseInt(slider.value);
+                    playerAction('raise', amount);
+                    hideRaiseControls();
+                }
+            });
+            document.getElementById('btnCancelRaise')?.addEventListener('click', hideRaiseControls);
+            
+            // Botão de teste
+            const testBtn = document.createElement('button');
+            testBtn.textContent = '🎮 Iniciar Jogo';
+            testBtn.style.position = 'fixed';
+            testBtn.style.top = '10px';
+            testBtn.style.right = '10px';
+            testBtn.style.zIndex = '9999';
+            testBtn.style.padding = '10px 15px';
+            testBtn.style.background = '#d4af37';
+            testBtn.style.color = '#000';
+            testBtn.style.border = 'none';
+            testBtn.style.borderRadius = '5px';
+            testBtn.style.cursor = 'pointer';
+            testBtn.style.fontWeight = 'bold';
+            testBtn.style.fontSize = '14px';
+            
+            testBtn.addEventListener('click', async () => {
+                if (pokerGame && pokerGame.state === 'lobby') {
+                    await startGame();
+                    showNotification('Jogo iniciado manualmente!', 'success');
+                } else if (pokerGame && pokerGame.state === 'between_hands') {
+                    pokerGame.startNewHand();
+                    gameState = pokerGame.getGameState();
+                    updateInterface(gameState);
+                    showNotification('Nova mão iniciada!', 'success');
+                }
+            });
+            
+            document.body.appendChild(testBtn);
         }
         
-        // 7. Inicialização (AQUI É A INTEGRAÇÃO)
+        function showRaiseControls() {
+            const raiseControls = document.getElementById('raiseControls');
+            const betSlider = document.getElementById('betSlider');
+            const betAmount = document.getElementById('betAmount');
+            const player = pokerGame?.playerManager?.getPlayerById(currentUser?.uid);
+            
+            if (!raiseControls || !betSlider || !betAmount || !player) return;
+            
+            // Esconde botões normais
+            hideAllActionButtons();
+            
+            // Configura slider
+            const minRaise = pokerGame?.calculateMinRaise?.() || player.getMinRaise?.(pokerGame?.currentMaxBet || 0) || 0;
+            const maxAmount = player.chips;
+            
+            betSlider.min = minRaise;
+            betSlider.max = maxAmount;
+            betSlider.value = minRaise;
+            
+            betAmount.textContent = minRaise;
+            
+            // Mostra controles
+            raiseControls.style.display = 'flex';
+        }
+        
+        function hideRaiseControls() {
+            const raiseControls = document.getElementById('raiseControls');
+            if (raiseControls) {
+                raiseControls.style.display = 'none';
+            }
+            // Volta a mostrar botões normais
+            if (pokerGame && gameState) {
+                updatePlayerControls(gameState);
+            }
+        }
+        
+        function updateBetAmount() {
+            const slider = document.getElementById('betSlider');
+            const amountDisplay = document.getElementById('betAmount');
+            
+            if (slider && amountDisplay) {
+                amountDisplay.textContent = slider.value;
+            }
+        }
+        
+        // 7. Inicialização
         document.addEventListener('DOMContentLoaded', async function() {
-            // Seu código original para pegar tournamentId da URL
+            // Pega tournamentId da URL
             const urlParams = new URLSearchParams(window.location.search);
             tournamentId = urlParams.get('tournamentId');
             
@@ -917,15 +4437,22 @@
                 }
                 
                 currentUser = user;
+                console.log('👤 Usuário logado:', currentUser.email);
                 
                 // Carregar estado salvo
                 const savedState = await loadGameState();
                 
                 if (savedState) {
                     // RESTAURAR JOGO EXISTENTE
+                    console.log('🔄 Restaurando jogo salvo...');
                     pokerGame = PokerGameManager.fromJSON(savedState);
+                    pokerGame.initialized = true;
+                    
+                    gameState = pokerGame.getGameState();
+                    console.log('✅ Jogo restaurado:', gameState);
                 } else {
-                    // CRIAR NOVO JOGO COM OS MÓDULOS
+                    // CRIAR NOVO JOGO
+                    console.log('🆕 Criando novo jogo...');
                     pokerGame = new PokerGameManager({
                         gameId: tournamentId,
                         name: 'Torneio KeepPoker',
@@ -935,55 +4462,104 @@
                         bigBlind: 100
                     });
                     
+                    // Inicializar jogo
+                    await pokerGame.initialize();
+                    
                     // Adicionar jogador atual
                     pokerGame.addPlayer(
                         currentUser.uid,
                         currentUser.displayName || currentUser.email.split('@')[0]
                     );
                     
-                    // Salvar estado inicial
+                    // Adicionar alguns bots para teste
+                    setTimeout(() => {
+                        if (pokerGame && pokerGame.playerManager.players.length < 3) {
+                            try {
+                                pokerGame.addPlayer(`bot_1`, 'Bot Carlos', 1500, true);
+                                pokerGame.addPlayer(`bot_2`, 'Bot Maria', 1500, true);
+                                console.log('🤖 Bots adicionados para teste');
+                            } catch (e) {
+                                console.log('⚠️ Não foi possível adicionar bots:', e.message);
+                            }
+                        }
+                    }, 1000);
+                    
+                    // Obter estado inicial
                     gameState = pokerGame.getGameState();
+                    
+                    // Salvar estado inicial
                     await saveGameState();
+                    console.log('✅ Novo jogo criado e salvo');
                 }
+                
+                // Configurar eventos do jogo
+                pokerGame.on('game_state_changed', (data) => {
+                    console.log('🔄 Estado do jogo mudou:', data);
+                    gameState = pokerGame.getGameState();
+                    updateInterface(gameState);
+                });
+                
+                pokerGame.on('player_action_processed', (data) => {
+                    console.log('🎯 Ação processada:', data);
+                    // Força atualização após ação
+                    setTimeout(() => {
+                        if (pokerGame) {
+                            gameState = pokerGame.getGameState();
+                            updateInterface(gameState);
+                        }
+                    }, 100);
+                });
                 
                 // Inicializar interface
                 updateInterface(gameState);
                 
-                // Configurar eventos
+                // Configurar eventos da interface
                 setupEventListeners();
                 
                 // Verificar se pode começar
-                if (pokerGame.players.length >= 2 && pokerGame.state === 'lobby') {
-                    setTimeout(() => startGame(), 2000);
+                if (pokerGame.players && pokerGame.playerManager.players.length >= 2 && pokerGame.state === 'lobby') {
+                    setTimeout(() => {
+                        showNotification('🎮 Jogo pronto para começar! Clique em "Iniciar Jogo"', 'success');
+                    }, 2000);
                 }
+                
+                showNotification('✅ Mesa carregada com sucesso!', 'success');
             });
         });
         
         // 8. Função para iniciar jogo
         async function startGame() {
             try {
+                if (!pokerGame) {
+                    throw new Error('PokerGame não inicializado');
+                }
+                
                 pokerGame.startNewHand();
                 gameState = pokerGame.getGameState();
+                
+                console.log('🎮 Estado do jogo após iniciar:', gameState);
+                
                 updateInterface(gameState);
                 await saveGameState();
-                showNotification('🎮 Jogo iniciado!', 'success');
+                
+                showNotification('🎮 Jogo iniciado! Boa sorte!', 'success');
+                
+                // Força atualização após 1 segundo
+                setTimeout(() => {
+                    if (gameState) {
+                        updateInterface(gameState);
+                    }
+                }, 1000);
+                
             } catch (error) {
+                console.error('❌ Erro ao iniciar jogo:', error);
                 showNotification(`Erro: ${error.message}`, 'error');
             }
         }
         
-        // 9. Funções auxiliares de UI (do seu código)
-        function showRaiseControls() {
-            // SUA LÓGICA ORIGINAL
-        }
+        // Configura botões inicialmente como invisíveis
+        hideAllActionButtons();
         
-        function hideRaiseControls() {
-            // SUA LÓGICA ORIGINAL
-        }
-        
-        function updateBetAmount() {
-            // SUA LÓGICA ORIGINAL
-        }
     </script>
 </body>
 </html>
